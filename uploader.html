@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ROA Uploader – Roots Collective Online Academy</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --accent:#ff3c00; --panel:#1e1e1e; --metal:#2a2a2a; --text:#eaeaea; --muted:#9a9a9a;
+    }
+    body{font-family:Roboto,system-ui,-apple-system,Segoe UI,Arial;background:#111;color:var(--text);margin:0}
+    header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;background:linear-gradient(135deg,#2a2a2a,#121212);border-bottom:1px solid #333}
+    header h1{font-size:1.1rem;margin:0;letter-spacing:.06em}
+    .auth{display:flex;gap:.75rem;align-items:center}
+    .btn{background:linear-gradient(145deg,#666,#444);border:1px solid #c0c0c0;color:#fff;padding:.55rem .9rem;border-radius:6px;cursor:pointer}
+    .btn--accent{background:var(--accent);border:none}
+    main{max-width:1100px;margin:1.5rem auto;padding:0 1rem}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+    .card{background:var(--panel);border:1px solid #3a3a3a;border-radius:10px;box-shadow:0 10px 24px rgba(0,0,0,.35)}
+    .card h2{margin:0;padding:1rem 1.2rem;border-bottom:1px solid #2f2f2f;color:#cfcfcf}
+    .card .body{padding:1.2rem}
+    label{display:block;margin:.5rem 0 .25rem;color:#c8c8c8}
+    input,select,textarea{width:100%;background:#151515;border:1px solid #333;color:#fff;border-radius:6px;padding:.6rem}
+    textarea{min-height:90px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    .muted{color:var(--muted);font-size:.9rem}
+    .progress{height:10px;background:#2a2a2a;border:1px solid #3d3d3d;border-radius:6px;overflow:hidden;margin-top:.5rem}
+    .progress__bar{height:100%;width:0;background:var(--accent);transition:width .2s linear}
+    .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem}
+    .vid{background:#141414;border:1px solid #2c2c2c;border-radius:8px;padding:.75rem}
+    .vid h4{margin:.5rem 0 .25rem;font-size:.98rem}
+    .tag{display:inline-block;background:#232323;color:#ddd;border:1px solid #343434;padding:.15rem .45rem;border-radius:999px;font-size:.75rem;margin-right:.35rem}
+    video{width:100%;border-radius:6px;background:#000}
+    .danger{background:#842029;border:1px solid #dc3545}
+    .flex{display:flex;gap:.5rem;align-items:center}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>ROA Uploader · Roots Collective Online Academy</h1>
+    <div class="auth">
+      <span id="userEmail" class="muted">Not signed in</span>
+      <button id="loginBtn" class="btn">Login</button>
+      <button id="logoutBtn" class="btn danger" style="display:none">Logout</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="grid">
+      <!-- Upload Card -->
+      <section class="card">
+        <h2>Upload New Video</h2>
+        <div class="body">
+          <div class="row">
+            <div>
+              <label>Course Title</label>
+              <input id="courseTitle" placeholder="e.g., Guard Retention Essentials" />
+            </div>
+            <div>
+              <label>Level</label>
+              <select id="level">
+                <option>Beginner</option>
+                <option>Intermediate</option>
+                <option>Advanced</option>
+              </select>
+            </div>
+          </div>
+
+          <label>Module / Lesson Title</label>
+          <input id="lessonTitle" placeholder="e.g., Framing Basics" />
+
+          <label>Description</label>
+          <textarea id="desc" placeholder="What will the student learn?"></textarea>
+
+          <label>Tags (comma separated)</label>
+          <input id="tags" placeholder="e.g., guard, frames, posture" />
+
+          <label class="flex">Video File <span class="muted">(mp4/mov/webm · &lt; 200MB for test)</span></label>
+          <input id="file" type="file" accept="video/*" />
+
+          <div class="progress"><div class="progress__bar" id="bar"></div></div>
+          <div class="flex" style="justify-content:space-between;margin-top:.5rem">
+            <span id="status" class="muted">Waiting…</span>
+            <div class="flex">
+              <button id="uploadBtn" class="btn btn--accent">Upload</button>
+              <button id="cancelBtn" class="btn" disabled>Cancel</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Library Card -->
+      <section class="card">
+        <h2>Your Uploaded Videos</h2>
+        <div class="body">
+          <div id="library" class="list"></div>
+          <p class="muted" id="emptyState">No uploads yet.</p>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Firebase v8 compat -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <script>
+    // ─────────────────────────────────────────────
+    // Auth gating (require login + verified email)
+    // ─────────────────────────────────────────────
+    const loginBtn  = document.getElementById('loginBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const userEmail = document.getElementById('userEmail');
+
+    loginBtn.onclick = () => location.href = 'login.html';
+    logoutBtn.onclick = () => firebase.auth().signOut();
+
+    firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+        userEmail.textContent = 'Not signed in';
+        logoutBtn.style.display = 'none';
+        loginBtn.style.display  = 'inline-block';
+        return;
+      }
+      if (!user.emailVerified) {
+        alert('Please verify your email before uploading.');
+        firebase.auth().signOut();
+        return;
+      }
+      userEmail.textContent = user.email;
+      loginBtn.style.display  = 'none';
+      logoutBtn.style.display = 'inline-block';
+      loadMyVideos(user.uid);
+    });
+
+    // ─────────────────────────────────────────────
+    // Helpers
+    // ─────────────────────────────────────────────
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    function slugify(s){
+      return s.toLowerCase().trim()
+        .replace(/[^a-z0-9]+/g,'-')
+        .replace(/(^-|-$)/g,'');
+    }
+    function fmtBytes(bytes){
+      if (!bytes) return '0 B';
+      const k=1024, sizes=['B','KB','MB','GB','TB'];
+      const i=Math.floor(Math.log(bytes)/Math.log(k));
+      return (bytes/Math.pow(k,i)).toFixed(1)+' '+sizes[i];
+    }
+
+    // ─────────────────────────────────────────────
+    // Upload flow
+    // ─────────────────────────────────────────────
+    const el = {
+      courseTitle: document.getElementById('courseTitle'),
+      level:       document.getElementById('level'),
+      lessonTitle: document.getElementById('lessonTitle'),
+      desc:        document.getElementById('desc'),
+      tags:        document.getElementById('tags'),
+      file:        document.getElementById('file'),
+      bar:         document.getElementById('bar'),
+      status:      document.getElementById('status'),
+      uploadBtn:   document.getElementById('uploadBtn'),
+      cancelBtn:   document.getElementById('cancelBtn'),
+      library:     document.getElementById('library'),
+      emptyState:  document.getElementById('emptyState'),
+    };
+
+    let currentTask = null;
+
+    el.uploadBtn.onclick = async () => {
+      const user = firebase.auth().currentUser;
+      if (!user || !user.emailVerified) { alert('Please log in with a verified email.'); return; }
+
+      const file = el.file.files[0];
+      const course = el.courseTitle.value.trim();
+      const level = el.level.value;
+      const lesson = el.lessonTitle.value.trim();
+      const desc = el.desc.value.trim();
+      const tags = el.tags.value.split(',').map(t => t.trim()).filter(Boolean);
+
+      if (!file) return alert('Pick a video file first.');
+      if (!course || !lesson) return alert('Course and lesson title are required.');
+      if (file.size > 200 * 1024 * 1024) return alert('Keep it under 200 MB for testing (adjust Storage rules later).');
+      if (!file.type.startsWith('video/')) return alert('Please select a video file.');
+
+      const time = Date.now();
+      const ext = file.name.split('.').pop();
+      const safeCourse = slugify(course);
+      const safeLesson = slugify(lesson);
+      const path = `videos/${user.uid}/${level}/${safeCourse}_${safeLesson}_${time}.${ext}`;
+
+      const meta = {
+        contentType: file.type,
+        customMetadata: {
+          uploaderUid: user.uid,
+          courseTitle: course,
+          lessonTitle: lesson,
+          level: level
+        }
+      };
+
+      const ref = storage.ref().child(path);
+      el.cancelBtn.disabled = false;
+      el.uploadBtn.disabled = true;
+
+      currentTask = ref.put(file, meta);
+      el.status.textContent = 'Uploading…';
+
+      currentTask.on('state_changed',
+        snap => {
+          const pct = (snap.bytesTransferred / snap.totalBytes) * 100;
+          el.bar.style.width = pct.toFixed(2) + '%';
+          el.status.textContent = `Uploading ${fmtBytes(snap.bytesTransferred)} / ${fmtBytes(snap.totalBytes)} (${pct.toFixed(0)}%)`;
+        },
+        err => {
+          console.error(err);
+          alert('Upload failed: ' + err.message);
+          resetUI();
+        },
+        async () => {
+          const url = await ref.getDownloadURL();
+          const doc = {
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            uploaderUid: user.uid,
+            courseTitle: course,
+            lessonTitle: lesson,
+            level: level,
+            description: desc,
+            tags: tags,
+            storagePath: path,
+            contentType: file.type,
+            size: file.size,
+            downloadURL: url
+          };
+          await db.collection('videos').add(doc);
+          el.status.textContent = 'Upload complete ✅';
+          el.bar.style.width = '100%';
+          el.cancelBtn.disabled = true;
+          el.uploadBtn.disabled = false;
+          el.file.value = '';
+          loadMyVideos(user.uid, true);
+        }
+      );
+    };
+
+    el.cancelBtn.onclick = () => {
+      if (currentTask) currentTask.cancel();
+      resetUI();
+    };
+
+    function resetUI(){
+      currentTask = null;
+      el.bar.style.width = '0%';
+      el.status.textContent = 'Cancelled / Waiting…';
+      el.cancelBtn.disabled = true;
+      el.uploadBtn.disabled = false;
+    }
+
+    // ─────────────────────────────────────────────
+    // List & render user videos
+    // ─────────────────────────────────────────────
+    async function loadMyVideos(uid, scrollToTop=false){
+      const snap = await db.collection('videos')
+        .where('uploaderUid','==', uid)
+        .orderBy('createdAt','desc')
+        .get();
+
+      el.library.innerHTML = '';
+      if (snap.empty){
+        el.emptyState.style.display = 'block';
+        return;
+      }
+      el.emptyState.style.display = 'none';
+
+      snap.forEach(doc => {
+        const v = doc.data();
+        const card = document.createElement('div');
+        card.className = 'vid';
+        card.innerHTML = `
+          <video controls preload="metadata" src="${v.downloadURL}"></video>
+          <h4>${v.courseTitle} — <span class="tag">${v.level}</span></h4>
+          <div class="muted">${v.lessonTitle}</div>
+          <div style="margin:.35rem 0">${(v.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+          <div class="muted" style="font-size:.85rem">${v.description||''}</div>
+          <div class="flex" style="justify-content:space-between;margin-top:.5rem">
+            <span class="muted">${fmtBytes(v.size)}</span>
+            <div class="flex" style="gap:.35rem">
+              <button class="btn" onclick="navigator.clipboard.writeText('${v.downloadURL}').then(()=>alert('URL copied'))">Copy URL</button>
+              <button class="btn danger" onclick="deleteVideo('${doc.id}','${v.storagePath}')">Delete</button>
+            </div>
+          </div>
+        `;
+        el.library.appendChild(card);
+      });
+
+      if (scrollToTop) window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    // Delete both Firestore doc & Storage object
+    async function deleteVideo(docId, storagePath){
+      if (!confirm('Delete this video permanently?')) return;
+      const user = firebase.auth().currentUser;
+      if (!user) return;
+
+      try{
+        await db.collection('videos').doc(docId).delete();
+        await storage.ref().child(storagePath).delete();
+        loadMyVideos(user.uid);
+      }catch(e){
+        console.error(e);
+        alert('Delete failed: ' + e.message);
+      }
+    }
+
+    // expose delete for inline onclick
+    window.deleteVideo = deleteVideo;
+  </script>
+</body>
+</html>

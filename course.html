@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- …meta… -->
+  <title>Guard Retention Essentials – ROA</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <nav class="navbar">…</nav>
+
+  <main class="course-detail">
+    <!-- …video module… -->
+
+    <section class="course-outline">
+      <h2>Course Outline</h2>
+      <ul id="module-list">
+        <li data-title="Framing Basics">✔️ Framing Basics (5:12)
+          <button onclick="startQuiz('Framing Basics')">Quiz</button>
+        </li>
+        <li data-title="Hip Escape Drills">⏳ Hip Escape Drills (7:04)
+          <button onclick="startQuiz('Hip Escape Drills')">Quiz</button>
+        </li>
+        <!-- … -->
+      </ul>
+    </section>
+
+    <!-- Complete Lesson Button (earn 50 RP) -->
+    <button onclick="addXP(50); alert('You earned 50 RP!');">
+      Complete Lesson & Earn 50 RP
+    </button>
+  </main>
+
+  <script src="gamify.js"></script>
+  <script src="script.js"></script>
+  <script src="nav.js"></script>
+</body>
+</html>

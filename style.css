@@ -1,0 +1,280 @@
+/* ──────────────────────────────────────────────────────────────
+   ROA | Roots Collective Online Academy
+   Metallic / Industrial Theme
+──────────────────────────────────────────────────────────────── */
+
+/* 1. Variables */
+:root {
+    --bg-dark:       #111;        /* deep steel shadow */
+    --bg-panel:      #1d1d1d;     /* dark panel backdrop */
+    --metal-light:   #c0c0c0;     /* chrome highlight */
+    --metal-dark:    #555;        /* brushed metal */
+    --accent:        #ff3c00;     /* ROA orange */
+    --text-light:    #e0e0e0;     /* off-white text */
+    --text-muted:    #888;        /* subdued */
+    --transition:    0.3s ease;
+  }
+  
+  /* 2. Global Resets & Base */
+  * {
+    margin: 0; padding: 0;
+    box-sizing: border-box;
+  }
+  body {
+    background: var(--bg-dark) url('assets/images/metal-texture.jpg') center/cover;
+    color: var(--text-light);
+    font-family: 'Roboto', sans-serif;
+    line-height: 1.5;
+  }
+  
+  /* 3. Navbar */
+  .navbar {
+    background: linear-gradient(135deg, #2a2a2a, #121212);
+    box-shadow: inset 0 -2px 5px rgba(0,0,0,0.7);
+    padding: 1rem 2rem;
+  }
+  .navbar ul {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+  }
+  .navbar a {
+    color: var(--text-light);
+    text-decoration: none;
+    font-weight: 600;
+    position: relative;
+    transition: color var(--transition);
+  }
+  .navbar a:hover {
+    color: var(--accent);
+  }
+  .navbar .user-stats {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .level-name, .xp-value {
+    font-size: 0.85rem;
+  }
+  
+  /* XP Bar */
+  .xp-bar {
+    background: var(--metal-dark);
+    width: 100px;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .xp-bar-inner {
+    background: var(--accent);
+    height: 100%;
+    width: 0;
+    transition: width var(--transition);
+  }
+  
+  /* 4. Hero Section */
+  .hero {
+    position: relative;
+    height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: rgba(0,0,0,0.6);
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--bg-panel);
+    opacity: 0.5;
+  }
+  .hero-content {
+    position: relative;
+    z-index: 1;
+  }
+  .hero-content h1 {
+    font-size: 4rem;
+    letter-spacing: 0.1em;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+  }
+  .hero-content p {
+    margin: 1rem 0 2rem;
+    font-size: 1.25rem;
+  }
+  
+  /* 5. Buttons (CTA & Actions) */
+  .cta-button,
+  button {
+    display: inline-block;
+    background: linear-gradient(145deg, #666, #444);
+    color: var(--text-light);
+    padding: 0.75rem 2rem;
+    border: 1px solid var(--metal-light);
+    border-radius: 4px;
+    box-shadow: 
+      inset 0 1px 0 rgba(255,255,255,0.2),
+      0 3px 6px rgba(0,0,0,0.6);
+    font-weight: bold;
+    cursor: pointer;
+    transition: background var(--transition), transform var(--transition);
+  }
+  .cta-button:hover,
+  button:hover {
+    background: linear-gradient(145deg, #888, #666);
+    transform: translateY(-2px);
+  }
+  
+  /* 6. Course & Plan Cards */
+  .course-card,
+  .plan-card,
+  .instructor-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--metal-dark);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.7);
+    transition: transform var(--transition), box-shadow var(--transition);
+  }
+  .course-card:hover,
+  .plan-card:hover,
+  .instructor-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.8);
+  }
+  .course-card img,
+  .plan-card img,
+  .instructor-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+    filter: brightness(0.9);
+  }
+  .course-card h3,
+  .plan-card h3,
+  .instructor-card h4 {
+    padding: 0.75rem 1rem;
+    font-size: 1.2rem;
+    color: var(--accent);
+  }
+  .course-card p,
+  .plan-card p,
+  .instructor-card p {
+    padding: 0 1rem 1rem;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+  }
+  
+  /* 7. Sections & Layout */
+  section {
+    padding: 4rem 2rem;
+  }
+  .course-section,
+  .plans-section,
+  .instructors-section,
+  .testimonials-section {
+    background: rgba(0,0,0,0.5);
+  }
+  .course-section h2,
+  .plans-section h2,
+  .instructors-section h2,
+  .testimonials-section h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--metal-light);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  }
+  
+  /* 8. Testimonials */
+  .testimonial-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+  blockquote {
+    background: var(--bg-panel);
+    border-left: 4px solid var(--accent);
+    padding: 1rem 1.5rem;
+    font-style: italic;
+    color: var(--text-light);
+  }
+  blockquote cite {
+    display: block;
+    margin-top: 0.5rem;
+    font-style: normal;
+    color: var(--text-muted);
+  }
+  
+  /* 9. Forms & Inputs */
+  input[type="email"],
+  input[type="password"] {
+    background: var(--bg-panel);
+    border: 1px solid var(--metal-dark);
+    border-radius: 4px;
+    color: var(--text-light);
+    padding: 0.5rem;
+    width: 80%;
+    max-width: 300px;
+    transition: border-color var(--transition);
+  }
+  input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  
+  /* 10. Course Detail & Quiz Buttons */
+  .course-outline li {
+    background: var(--bg-panel);
+    border: 1px solid var(--metal-dark);
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .course-outline button {
+    background: var(--accent);
+    border: none;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+    box-shadow: none;
+  }
+  
+  /* 11. Dashboard */
+  .dashboard {
+    background: var(--bg-panel);
+    padding: 2rem;
+    border-radius: 8px;
+  }
+  .profile-overview {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .profile-overview .avatar {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    border: 2px solid var(--metal-light);
+  }
+  .recent-activity ul {
+    list-style: none;
+    color: var(--text-light);
+  }
+  .recent-activity li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  /* 12. Footer */
+  footer {
+    background: var(--bg-panel);
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    border-top: 1px solid var(--metal-dark);
+  }
+  

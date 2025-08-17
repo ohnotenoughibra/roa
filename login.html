@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login – ROA</title>
+  <style>
+    body { background: #0f0f0f; color: #fff; font-family: sans-serif; text-align: center; padding: 2rem; }
+    input { margin: 0.5rem; padding: 0.5rem; width: 80%; max-width: 300px; }
+    button { padding: 0.75rem 2rem; background: #ff3c00; border: none; color: #fff; cursor: pointer; }
+    .error { color: #ff6b6b; margin-top: 1rem; }
+    #resend-section { margin-top: 1rem; }
+    #resend-section a { color: #ff3c00; cursor: pointer; text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>Login to ROA</h1>
+  <div class="error" id="error-msg"></div>
+
+  <input type="email" id="email" placeholder="Email" /><br>
+  <input type="password" id="password" placeholder="Password" /><br><br>
+  <button onclick="logIn()">Login</button>
+  
+  <p><a href="signup.html" style="color:#ff3c00;">No account? Sign up</a></p>
+  <p><a href="reset-password.html" style="color:#ff3c00;">Forgot password?</a></p>
+
+  <div class="error" id="resend-section" style="display:none;">
+    Didn’t get a verification email? <a id="resend-button">Resend now</a>
+  </div>
+
+  <!-- Firebase v8 Compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    function logIn() {
+      const email = document.getElementById('email').value.trim();
+      const pwd   = document.getElementById('password').value.trim();
+      const err   = document.getElementById('error-msg');
+      err.textContent = '';
+      document.getElementById('resend-section').style.display = 'none';
+
+      if (!email || !pwd) {
+        err.textContent = 'Please enter both email and password.';
+        return;
+      }
+
+      firebase.auth()
+        .signInWithEmailAndPassword(email, pwd)
+        .then(cred => {
+          if (cred.user.emailVerified) {
+            window.location.href = 'dashboard.html';
+          } else {
+            // Not verified: prompt resend
+            firebase.auth().signOut();
+            err.textContent = 'Please verify your email before logging in.';
+            const resend = document.getElementById('resend-section');
+            resend.style.display = 'block';
+            document.getElementById('resend-button').onclick = () => {
+              cred.user.sendEmailVerification()
+                .then(() => alert('Verification email resent! Check your inbox (and spam).'))
+                .catch(e => console.error('Resend Error', e));
+            };
+          }
+        })
+        .catch(e => {
+          console.error('Login Error', e);
+          err.textContent = e.message;
+        });
+    }
+  </script>
+</body>
+</html>
