@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoGi Grappling Games Library</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .controls {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        input[type="text"],
+        input[type="search"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .game-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .game-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .game-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+        }
+
+        .game-topic {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .game-roles {
+            background: var(--bg);
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+            color: var(--text-muted);
+        }
+
+        .game-description {
+            color: var(--text);
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .game-coaching {
+            background: #fef3c7;
+            border-left: 3px solid #f59e0b;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .game-coaching strong {
+            color: #f59e0b;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .hashtags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hashtag {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 0.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+
+        .close-btn:hover {
+            background: var(--bg);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 0.25rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .voice-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .voice-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .voice-btn.recording {
+            background: var(--danger);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .input-with-voice {
+            position: relative;
+        }
+
+        .input-with-voice input,
+        .input-with-voice textarea {
+            padding-right: 50px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            flex: 1;
+            background: var(--surface);
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        @media (max-width: 768px) {
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                flex-direction: column;
+            }
+
+            .stats {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🥋 NoGi Grappling Games Library</h1>
+            <p class="subtitle">Your comprehensive database of training games and drills</p>
+        </header>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalGames">0</div>
+                <div class="stat-label">Total Games</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalTopics">0</div>
+                <div class="stat-label">Topics</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalSkills">0</div>
+                <div class="stat-label">Skills Tagged</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="search" id="searchInput" placeholder="🔍 Search games...">
+            </div>
+
+            <select id="topicFilter">
+                <option value="">All Topics</option>
+                <option value="Guard Passing">Guard Passing</option>
+                <option value="Guard Retention">Guard Retention</option>
+                <option value="Back Attacks">Back Attacks</option>
+                <option value="Leg Locks">Leg Locks</option>
+                <option value="Takedowns">Takedowns</option>
+                <option value="Submissions">Submissions</option>
+                <option value="Scrambles">Scrambles</option>
+                <option value="Positional Sparring">Positional Sparring</option>
+                <option value="Movement">Movement</option>
+                <option value="Escapes">Escapes</option>
+            </select>
+
+            <button class="btn btn-primary" onclick="openAddModal()">+ Add Game</button>
+        </div>
+
+        <div class="games-grid" id="gamesGrid"></div>
+    </div>
+
+    <!-- Add/Edit Game Modal -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Add New Game</h2>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+
+            <form id="gameForm">
+                <input type="hidden" id="gameId">
+
+                <div class="form-group">
+                    <label>Game Name</label>
+                    <div class="input-with-voice">
+                        <input type="text" id="gameName" required>
+                        <button type="button" class="voice-btn" onclick="startVoiceCapture('gameName')">🎤</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Topic</label>
+                    <select id="gameTopic" required>
+                        <option value="">Select a topic...</option>
+                        <option value="Guard Passing">Guard Passing</option>
+                        <option value="Guard Retention">Guard Retention</option>
+                        <option value="Back Attacks">Back Attacks</option>
+                        <option value="Leg Locks">Leg Locks</option>
+                        <option value="Takedowns">Takedowns</option>
+                        <option value="Submissions">Submissions</option>
+                        <option value="Scrambles">Scrambles</option>
+                        <option value="Positional Sparring">Positional Sparring</option>
+                        <option value="Movement">Movement</option>
+                        <option value="Escapes">Escapes</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Player Roles</label>
+                    <div class="input-with-voice">
+                        <input type="text" id="gameRoles" placeholder="e.g., Player A / Player B or Attacker / Defender" required>
+                        <button type="button" class="voice-btn" onclick="startVoiceCapture('gameRoles')">🎤</button>
+                    </div>
+                    <small>Describe the roles (e.g., "Attacker / Defender" or "Player A / Player B")</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    <div class="input-with-voice">
+                        <textarea id="gameDescription" required></textarea>
+                        <button type="button" class="voice-btn" onclick="startVoiceCapture('gameDescription')">🎤</button>
+                    </div>
+                    <small>Describe the game rules and objectives</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Coaching Instructions</label>
+                    <div class="input-with-voice">
+                        <textarea id="gameCoaching"></textarea>
+                        <button type="button" class="voice-btn" onclick="startVoiceCapture('gameCoaching')">🎤</button>
+                    </div>
+                    <small>Key coaching points to emphasize during the game</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Skills (Hashtags)</label>
+                    <div class="input-with-voice">
+                        <input type="text" id="gameSkills" placeholder="e.g., #pressure #balance #timing">
+                        <button type="button" class="voice-btn" onclick="startVoiceCapture('gameSkills')">🎤</button>
+                    </div>
+                    <small>Use # to tag skills developed (e.g., #pressure #timing #grips)</small>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <button type="submit" class="btn btn-success" style="flex: 1;">Save Game</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Database storage
+        let games = [];
+        let editingGameId = null;
+        let currentVoiceField = null;
+        let recognition = null;
+
+        // Initialize Speech Recognition
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                if (currentVoiceField) {
+                    const field = document.getElementById(currentVoiceField);
+                    if (field.tagName === 'TEXTAREA') {
+                        field.value = (field.value + ' ' + transcript).trim();
+                    } else {
+                        field.value = transcript;
+                    }
+                }
+            };
+
+            recognition.onend = () => {
+                document.querySelectorAll('.voice-btn').forEach(btn => {
+                    btn.classList.remove('recording');
+                });
+            };
+        }
+
+        // Voice capture function
+        function startVoiceCapture(fieldId) {
+            if (!recognition) {
+                alert('Voice recognition is not supported in your browser. Please use Chrome or Edge.');
+                return;
+            }
+
+            currentVoiceField = fieldId;
+            document.querySelectorAll('.voice-btn').forEach(btn => {
+                btn.classList.remove('recording');
+            });
+            event.target.classList.add('recording');
+
+            recognition.start();
+        }
+
+        // Load initial data
+        function loadGames() {
+            const stored = localStorage.getItem('nogiGames');
+            if (stored) {
+                games = JSON.parse(stored);
+            } else {
+                // Pre-populated games based on research
+                games = [
+                    {
+                        id: Date.now() + 1,
+                        name: "Torreando Passing Game",
+                        topic: "Guard Passing",
+                        roles: "Passer / Guard Player",
+                        description: "Passer attempts to pass using torreando (bullfighter) technique. Guard player must maintain guard using foot positioning and grips. 3-minute rounds. Point for pass, point for sweep or submission.",
+                        coaching: "Passer: Focus on controlling the knees, moving them side to side. Guard: Keep your feet active, don't let them control both knees at once.",
+                        skills: "#footwork #pressure #grips #timing #balance"
+                    },
+                    {
+                        id: Date.now() + 2,
+                        name: "Back Escape Game",
+                        topic: "Back Attacks",
+                        roles: "Back Control / Escaping Player",
+                        description: "Start with back control (both hooks in). Escaping player has 2 minutes to escape. If they escape, switch roles. Attacker can submit. Reset if submission happens.",
+                        coaching: "Defender: Hand fight immediately, get your back to the mat, hide one shoulder. Attacker: Stay heavy on the opposite side they're trying to escape to.",
+                        skills: "#handfighting #posture #frames #submission-defense"
+                    },
+                    {
+                        id: Date.now() + 3,
+                        name: "Single Leg Defense Scramble",
+                        topic: "Takedowns",
+                        roles: "Attacker / Defender",
+                        description: "Attacker starts with a single leg secured. Defender must defend without sitting to guard (must stay standing). 90-second rounds. Point for takedown or successful defense and disengagement.",
+                        coaching: "Defender: Whizzer, crossface, and hop toward attacker. Don't let them get the corner. Attacker: Get the corner, drive the knee.",
+                        skills: "#wrestling #balance #scrambling #pressure"
+                    },
+                    {
+                        id: Date.now() + 4,
+                        name: "Leg Entanglement Game",
+                        topic: "Leg Locks",
+                        roles: "Player A / Player B",
+                        description: "Both start in 50/50 position. Play for leg locks or sweeps. Submission or sweep wins the round. 3-minute rounds.",
+                        coaching: "Control the knee line, don't let opponent get under your legs. Always be attacking or improving position.",
+                        skills: "#leglocks #ashi-garami #transitions #control"
+                    },
+                    {
+                        id: Date.now() + 5,
+                        name: "Guard Recovery Game",
+                        topic: "Guard Retention",
+                        roles: "Passer / Guard Player",
+                        description: "Start with passer standing, guard player on back. Guard player scores by recovering full guard or sweeping. Passer scores by passing. 2-minute rounds.",
+                        coaching: "Guard: Create frames immediately, recover your distance. Don't let them settle their grips. Passer: Connect your grips before moving forward.",
+                        skills: "#frames #distance #movement #grips"
+                    },
+                    {
+                        id: Date.now() + 6,
+                        name: "Mount Escape Challenge",
+                        topic: "Escapes",
+                        roles: "Top Player / Bottom Player",
+                        description: "Bottom player starts in mount. They have 90 seconds to escape to guard or better. Top player can submit. Switch if escape or submission happens.",
+                        coaching: "Bottom: Elbow-knee connection, trap and roll. Don't extend your arms. Top: Stay heavy on chest, control the head.",
+                        skills: "#frames #bridging #timing #patience"
+                    },
+                    {
+                        id: Date.now() + 7,
+                        name: "Turtle Position War",
+                        topic: "Scrambles",
+                        roles: "Top Player / Bottom Player",
+                        description: "Bottom starts in turtle. Top player attacks for back or roll-through. Bottom player tries to come up to standing or recover guard. 2-minute rounds.",
+                        coaching: "Bottom: Keep elbows tight, be ready to sit through or stand up. Top: Control the hips first, then work for back control.",
+                        skills: "#turtle #back-takes #scrambling #standup"
+                    },
+                    {
+                        id: Date.now() + 8,
+                        name: "Submission Only from Side Control",
+                        topic: "Submissions",
+                        roles: "Attacker / Defender",
+                        description: "Start in side control. Attacker has 3 minutes to get a submission. Defender can escape but no points, only restart from side control if they do. Only submission wins.",
+                        coaching: "Attacker: Be patient, force the reactions. Defender: Don't expose your neck or arms, make frames.",
+                        skills: "#submissions #pressure #defense #patience"
+                    },
+                    {
+                        id: Date.now() + 9,
+                        name: "Knee Slice Game",
+                        topic: "Guard Passing",
+                        roles: "Passer / Guard Player",
+                        description: "Passer can only use knee slice variations. Guard player must prevent using frames and retention. 3-minute rounds. Point for pass, sweep, or submission.",
+                        coaching: "Passer: Drive the knee across, control the head. Guard: Create a strong bottom frame, don't let them flatten you.",
+                        skills: "#knee-slice #pressure #frames #grips"
+                    },
+                    {
+                        id: Date.now() + 10,
+                        name: "Guillotine Entry Game",
+                        topic: "Submissions",
+                        roles: "Attacker / Defender",
+                        description: "Start standing. Attacker's goal is to secure guillotine position. Defender tries to pass or escape. If secured, play out the finish or defense. 2-minute rounds.",
+                        coaching: "Attacker: Lock it up before you jump or pull. Defender: Hands together, head up immediately.",
+                        skills: "#guillotine #snap-downs #submission #defense"
+                    },
+                    {
+                        id: Date.now() + 11,
+                        name: "Wrestle-Up from Bottom",
+                        topic: "Escapes",
+                        roles: "Top Player / Bottom Player",
+                        description: "Bottom player starts on hands and knees. Must wrestle up to standing without pulling guard. Top player prevents this. 90-second rounds.",
+                        coaching: "Bottom: Sit out, switch, or stand up in base. Top: Suck them back down, don't let them get their base.",
+                        skills: "#wrestling #base #sitout #standup"
+                    },
+                    {
+                        id: Date.now() + 12,
+                        name: "Saddle Entry Game",
+                        topic: "Leg Locks",
+                        roles: "Player A / Player B",
+                        description: "Start from open guard. First player to enter saddle position (inside sankaku) gets 2 minutes to finish or opponent escapes. Point per successful entry.",
+                        coaching: "Control the far leg, bring your outside leg over. Don't forget heel exposure before attacking.",
+                        skills: "#saddle #inside-sankaku #heel-hooks #entries"
+                    },
+                    {
+                        id: Date.now() + 13,
+                        name: "Half Guard Battle",
+                        topic: "Positional Sparring",
+                        roles: "Top Player / Bottom Player",
+                        description: "Start in half guard. Bottom scores for sweeps or taking the back. Top scores for passes or submissions. 3-minute rounds.",
+                        coaching: "Bottom: Create frames, don't stay flat. Top: Kill the underhook, crossface pressure.",
+                        skills: "#half-guard #underhooks #sweeps #passing"
+                    },
+                    {
+                        id: Date.now() + 14,
+                        name: "Flow Movement Drill",
+                        topic: "Movement",
+                        roles: "Player A / Player B",
+                        description: "Continuous movement - one player flows through positions while partner provides light resistance. Switch every 2 minutes. Focus on smooth transitions, inversions, and level changes.",
+                        coaching: "Moving player: Stay relaxed, focus on efficiency. Resisting player: Just enough pressure to make them work.",
+                        skills: "#movement #fluidity #transitions #awareness"
+                    },
+                    {
+                        id: Date.now() + 15,
+                        name: "Guard Pull to Pass Race",
+                        topic: "Positional Sparring",
+                        roles: "Guard Puller / Passer",
+                        description: "Start standing. One player pulls guard, other immediately works to pass. Guard player can sweep or submit. 2-minute rounds then switch roles.",
+                        coaching: "Puller: Control before you sit. Passer: Stay standing initially, control the legs.",
+                        skills: "#guard-pull #passing #sweeps #strategy"
+                    }
+                ];
+                saveGames();
+            }
+            renderGames();
+            updateStats();
+        }
+
+        // Save to localStorage
+        function saveGames() {
+            localStorage.setItem('nogiGames', JSON.stringify(games));
+            updateStats();
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('totalGames').textContent = games.length;
+
+            const topics = new Set(games.map(g => g.topic));
+            document.getElementById('totalTopics').textContent = topics.size;
+
+            const skills = new Set();
+            games.forEach(game => {
+                const hashtags = game.skills.match(/#\w+/g) || [];
+                hashtags.forEach(tag => skills.add(tag));
+            });
+            document.getElementById('totalSkills').textContent = skills.size;
+        }
+
+        // Render games
+        function renderGames() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const topicFilter = document.getElementById('topicFilter').value;
+
+            let filtered = games.filter(game => {
+                const matchesSearch = !searchTerm ||
+                    game.name.toLowerCase().includes(searchTerm) ||
+                    game.description.toLowerCase().includes(searchTerm) ||
+                    game.skills.toLowerCase().includes(searchTerm);
+
+                const matchesTopic = !topicFilter || game.topic === topicFilter;
+
+                return matchesSearch && matchesTopic;
+            });
+
+            const grid = document.getElementById('gamesGrid');
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1/-1;">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M12 12h.01M12 12h.01M12 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p>No games found. Try adjusting your search or add a new game!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = filtered.map(game => `
+                <div class="game-card">
+                    <div class="game-header">
+                        <div>
+                            <div class="game-topic">${game.topic}</div>
+                            <h3 class="game-title">${game.name}</h3>
+                        </div>
+                    </div>
+
+                    <div class="game-roles">👥 ${game.roles}</div>
+
+                    <div class="game-description">${game.description}</div>
+
+                    ${game.coaching ? `
+                        <div class="game-coaching">
+                            <strong>💡 Coaching Points:</strong>
+                            ${game.coaching}
+                        </div>
+                    ` : ''}
+
+                    ${game.skills ? `
+                        <div class="hashtags">
+                            ${(game.skills.match(/#\w+/g) || []).map(tag =>
+                                `<span class="hashtag">${tag}</span>`
+                            ).join('')}
+                        </div>
+                    ` : ''}
+
+                    <div class="game-actions">
+                        <button class="btn btn-primary btn-sm" onclick="editGame(${game.id})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteGame(${game.id})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Modal functions
+        function openAddModal() {
+            editingGameId = null;
+            document.getElementById('modalTitle').textContent = 'Add New Game';
+            document.getElementById('gameForm').reset();
+            document.getElementById('gameId').value = '';
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        function editGame(id) {
+            const game = games.find(g => g.id === id);
+            if (!game) return;
+
+            editingGameId = id;
+            document.getElementById('modalTitle').textContent = 'Edit Game';
+            document.getElementById('gameId').value = id;
+            document.getElementById('gameName').value = game.name;
+            document.getElementById('gameTopic').value = game.topic;
+            document.getElementById('gameRoles').value = game.roles;
+            document.getElementById('gameDescription').value = game.description;
+            document.getElementById('gameCoaching').value = game.coaching || '';
+            document.getElementById('gameSkills').value = game.skills || '';
+
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('gameModal').classList.remove('active');
+            document.getElementById('gameForm').reset();
+            editingGameId = null;
+        }
+
+        function deleteGame(id) {
+            if (!confirm('Are you sure you want to delete this game?')) return;
+
+            games = games.filter(g => g.id !== id);
+            saveGames();
+            renderGames();
+        }
+
+        // Form submission
+        document.getElementById('gameForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const gameData = {
+                id: editingGameId || Date.now(),
+                name: document.getElementById('gameName').value,
+                topic: document.getElementById('gameTopic').value,
+                roles: document.getElementById('gameRoles').value,
+                description: document.getElementById('gameDescription').value,
+                coaching: document.getElementById('gameCoaching').value,
+                skills: document.getElementById('gameSkills').value
+            };
+
+            if (editingGameId) {
+                const index = games.findIndex(g => g.id === editingGameId);
+                games[index] = gameData;
+            } else {
+                games.push(gameData);
+            }
+
+            saveGames();
+            renderGames();
+            closeModal();
+        });
+
+        // Search and filter
+        document.getElementById('searchInput').addEventListener('input', renderGames);
+        document.getElementById('topicFilter').addEventListener('change', renderGames);
+
+        // Close modal on background click
+        document.getElementById('gameModal').addEventListener('click', (e) => {
+            if (e.target.id === 'gameModal') {
+                closeModal();
+            }
+        });
+
+        // Initialize
+        loadGames();
+    </script>
+</body>
+</html>
