@@ -26,32 +26,57 @@
             --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: var(--bg);
             color: var(--text);
             line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .container {
             max-width: 1400px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                padding: 2rem;
+            }
         }
 
         header {
             background: var(--surface);
-            padding: 2rem;
+            padding: 1.25rem;
             border-radius: 12px;
             box-shadow: var(--shadow);
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            header {
+                padding: 2rem;
+                margin-bottom: 2rem;
+            }
         }
 
         h1 {
-            font-size: 2rem;
+            font-size: 1.5rem;
             font-weight: 700;
             color: var(--text);
             margin-bottom: 0.5rem;
+        }
+
+        @media (min-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
         }
 
         .subtitle {
@@ -61,20 +86,35 @@
 
         .controls {
             background: var(--surface);
-            padding: 1.5rem;
+            padding: 1rem;
             border-radius: 12px;
             box-shadow: var(--shadow);
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
             display: flex;
-            gap: 1rem;
+            gap: 0.75rem;
             flex-wrap: wrap;
-            align-items: center;
+            align-items: stretch;
+        }
+
+        @media (min-width: 768px) {
+            .controls {
+                padding: 1.5rem;
+                margin-bottom: 2rem;
+                gap: 1rem;
+                align-items: center;
+            }
         }
 
         .search-box {
             flex: 1;
-            min-width: 250px;
+            min-width: 100%;
             position: relative;
+        }
+
+        @media (min-width: 640px) {
+            .search-box {
+                min-width: 250px;
+            }
         }
 
         input[type="text"],
@@ -82,12 +122,15 @@
         select,
         textarea {
             width: 100%;
-            padding: 0.75rem 1rem;
-            border: 1px solid var(--border);
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--border);
             border-radius: 8px;
-            font-size: 0.95rem;
+            font-size: 1rem;
             transition: all 0.2s;
             font-family: inherit;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--surface);
         }
 
         input:focus,
@@ -100,10 +143,15 @@
 
         select {
             cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.25rem;
+            padding-right: 2.5rem;
         }
 
         .btn {
-            padding: 0.75rem 1.5rem;
+            padding: 0.875rem 1.5rem;
             border: none;
             border-radius: 8px;
             font-size: 0.95rem;
@@ -112,7 +160,10 @@
             transition: all 0.2s;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 0.5rem;
+            min-height: 44px;
+            -webkit-tap-highlight-color: transparent;
         }
 
         .btn-primary {
@@ -120,10 +171,17 @@
             color: white;
         }
 
-        .btn-primary:hover {
+        @media (hover: hover) {
+            .btn-primary:hover {
+                background: var(--primary-dark);
+                transform: translateY(-1px);
+                box-shadow: var(--shadow-lg);
+            }
+        }
+
+        .btn-primary:active {
             background: var(--primary-dark);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-lg);
+            transform: scale(0.98);
         }
 
         .btn-success {
@@ -131,8 +189,15 @@
             color: white;
         }
 
-        .btn-success:hover {
+        @media (hover: hover) {
+            .btn-success:hover {
+                background: #059669;
+            }
+        }
+
+        .btn-success:active {
             background: #059669;
+            transform: scale(0.98);
         }
 
         .btn-danger {
@@ -140,8 +205,15 @@
             color: white;
         }
 
-        .btn-danger:hover {
+        @media (hover: hover) {
+            .btn-danger:hover {
+                background: #dc2626;
+            }
+        }
+
+        .btn-danger:active {
             background: #dc2626;
+            transform: scale(0.98);
         }
 
         .btn-secondary {
@@ -149,29 +221,51 @@
             color: white;
         }
 
-        .btn-secondary:hover {
+        @media (hover: hover) {
+            .btn-secondary:hover {
+                background: #475569;
+            }
+        }
+
+        .btn-secondary:active {
             background: #475569;
+            transform: scale(0.98);
         }
 
         .games-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        @media (min-width: 640px) {
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 1.5rem;
+            }
         }
 
         .game-card {
             background: var(--surface);
             border-radius: 12px;
-            padding: 1.5rem;
+            padding: 1.25rem;
             box-shadow: var(--shadow);
             transition: all 0.3s;
             border: 2px solid transparent;
         }
 
-        .game-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--primary);
+        @media (min-width: 768px) {
+            .game-card {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (hover: hover) {
+            .game-card:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--shadow-lg);
+                border-color: var(--primary);
+            }
         }
 
         .game-header {
@@ -272,20 +366,37 @@
 
         .modal.active {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
-            padding: 2rem;
+            padding: 0;
+        }
+
+        @media (min-width: 768px) {
+            .modal.active {
+                align-items: center;
+                padding: 2rem;
+            }
         }
 
         .modal-content {
             background: var(--surface);
-            border-radius: 12px;
-            padding: 2rem;
-            max-width: 600px;
+            border-radius: 0;
+            padding: 1.25rem;
+            max-width: 100%;
             width: 100%;
-            max-height: 90vh;
+            height: 100vh;
             overflow-y: auto;
             box-shadow: var(--shadow-lg);
+        }
+
+        @media (min-width: 768px) {
+            .modal-content {
+                border-radius: 12px;
+                padding: 2rem;
+                max-width: 600px;
+                height: auto;
+                max-height: 90vh;
+            }
         }
 
         .modal-header {
@@ -303,20 +414,28 @@
         .close-btn {
             background: none;
             border: none;
-            font-size: 1.5rem;
+            font-size: 1.75rem;
             cursor: pointer;
             color: var(--text-muted);
             padding: 0;
-            width: 32px;
-            height: 32px;
+            width: 44px;
+            height: 44px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 6px;
+            border-radius: 8px;
+            -webkit-tap-highlight-color: transparent;
+            transition: all 0.2s;
         }
 
-        .close-btn:hover {
-            background: var(--bg);
+        @media (hover: hover) {
+            .close-btn:hover {
+                background: var(--bg);
+            }
+        }
+
+        .close-btn:active {
+            background: var(--border);
         }
 
         .form-group {
@@ -342,70 +461,73 @@
             resize: vertical;
         }
 
-        .voice-btn {
-            position: absolute;
-            right: 8px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--primary);
-            color: white;
-            border: none;
+        .voice-hint {
+            background: #e0f2fe;
+            border-left: 3px solid #0284c7;
+            padding: 0.75rem;
             border-radius: 6px;
-            padding: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #0c4a6e;
         }
 
-        .voice-btn:hover {
-            background: var(--primary-dark);
-        }
-
-        .voice-btn.recording {
-            background: var(--danger);
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.7;
-            }
-        }
-
-        .input-with-voice {
-            position: relative;
-        }
-
-        .input-with-voice input,
-        .input-with-voice textarea {
-            padding-right: 50px;
+        .voice-hint strong {
+            display: block;
+            margin-bottom: 0.25rem;
+            color: #0369a1;
         }
 
         .stats {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .stats {
+                gap: 1rem;
+                margin-bottom: 2rem;
+            }
         }
 
         .stat-card {
-            flex: 1;
             background: var(--surface);
             padding: 1rem;
             border-radius: 8px;
             box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        @media (min-width: 768px) {
+            .stat-card {
+                padding: 1.25rem;
+            }
         }
 
         .stat-value {
-            font-size: 2rem;
+            font-size: 1.75rem;
             font-weight: 700;
             color: var(--primary);
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+
+        @media (min-width: 768px) {
+            .stat-value {
+                font-size: 2rem;
+            }
         }
 
         .stat-label {
             color: var(--text-muted);
-            font-size: 0.9rem;
+            font-size: 0.75rem;
+        }
+
+        @media (min-width: 768px) {
+            .stat-label {
+                font-size: 0.9rem;
+            }
         }
 
         .empty-state {
@@ -421,17 +543,22 @@
             opacity: 0.3;
         }
 
-        @media (max-width: 768px) {
-            .games-grid {
-                grid-template-columns: 1fr;
+        @media (max-width: 640px) {
+            .btn-sm {
+                padding: 0.625rem 0.875rem;
+                font-size: 0.8rem;
             }
 
-            .controls {
-                flex-direction: column;
+            .game-title {
+                font-size: 1.125rem;
             }
 
-            .stats {
-                flex-direction: column;
+            .game-actions {
+                gap: 0.625rem;
+            }
+
+            .modal-title {
+                font-size: 1.25rem;
             }
         }
     </style>
@@ -494,12 +621,14 @@
             <form id="gameForm">
                 <input type="hidden" id="gameId">
 
+                <div class="voice-hint">
+                    <strong>💡 Voice Input Tip:</strong>
+                    Use your phone's keyboard microphone button to speak instead of typing! Tap any field, then tap the mic icon on your keyboard.
+                </div>
+
                 <div class="form-group">
                     <label>Game Name</label>
-                    <div class="input-with-voice">
-                        <input type="text" id="gameName" required>
-                        <button type="button" class="voice-btn" onclick="startVoiceCapture('gameName')">🎤</button>
-                    </div>
+                    <input type="text" id="gameName" required>
                 </div>
 
                 <div class="form-group">
@@ -521,37 +650,25 @@
 
                 <div class="form-group">
                     <label>Player Roles</label>
-                    <div class="input-with-voice">
-                        <input type="text" id="gameRoles" placeholder="e.g., Player A / Player B or Attacker / Defender" required>
-                        <button type="button" class="voice-btn" onclick="startVoiceCapture('gameRoles')">🎤</button>
-                    </div>
+                    <input type="text" id="gameRoles" placeholder="e.g., Player A / Player B or Attacker / Defender" required>
                     <small>Describe the roles (e.g., "Attacker / Defender" or "Player A / Player B")</small>
                 </div>
 
                 <div class="form-group">
                     <label>Description</label>
-                    <div class="input-with-voice">
-                        <textarea id="gameDescription" required></textarea>
-                        <button type="button" class="voice-btn" onclick="startVoiceCapture('gameDescription')">🎤</button>
-                    </div>
+                    <textarea id="gameDescription" required></textarea>
                     <small>Describe the game rules and objectives</small>
                 </div>
 
                 <div class="form-group">
                     <label>Coaching Instructions</label>
-                    <div class="input-with-voice">
-                        <textarea id="gameCoaching"></textarea>
-                        <button type="button" class="voice-btn" onclick="startVoiceCapture('gameCoaching')">🎤</button>
-                    </div>
+                    <textarea id="gameCoaching"></textarea>
                     <small>Key coaching points to emphasize during the game</small>
                 </div>
 
                 <div class="form-group">
                     <label>Skills (Hashtags)</label>
-                    <div class="input-with-voice">
-                        <input type="text" id="gameSkills" placeholder="e.g., #pressure #balance #timing">
-                        <button type="button" class="voice-btn" onclick="startVoiceCapture('gameSkills')">🎤</button>
-                    </div>
+                    <input type="text" id="gameSkills" placeholder="e.g., #pressure #balance #timing">
                     <small>Use # to tag skills developed (e.g., #pressure #timing #grips)</small>
                 </div>
 
@@ -567,51 +684,6 @@
         // Database storage
         let games = [];
         let editingGameId = null;
-        let currentVoiceField = null;
-        let recognition = null;
-
-        // Initialize Speech Recognition
-        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRecognition();
-            recognition.continuous = false;
-            recognition.interimResults = false;
-            recognition.lang = 'en-US';
-
-            recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                if (currentVoiceField) {
-                    const field = document.getElementById(currentVoiceField);
-                    if (field.tagName === 'TEXTAREA') {
-                        field.value = (field.value + ' ' + transcript).trim();
-                    } else {
-                        field.value = transcript;
-                    }
-                }
-            };
-
-            recognition.onend = () => {
-                document.querySelectorAll('.voice-btn').forEach(btn => {
-                    btn.classList.remove('recording');
-                });
-            };
-        }
-
-        // Voice capture function
-        function startVoiceCapture(fieldId) {
-            if (!recognition) {
-                alert('Voice recognition is not supported in your browser. Please use Chrome or Edge.');
-                return;
-            }
-
-            currentVoiceField = fieldId;
-            document.querySelectorAll('.voice-btn').forEach(btn => {
-                btn.classList.remove('recording');
-            });
-            event.target.classList.add('recording');
-
-            recognition.start();
-        }
 
         // Load initial data
         function loadGames() {
