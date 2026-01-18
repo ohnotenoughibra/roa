@@ -1804,14 +1804,16 @@
                 const index = games.findIndex(g => g.id === editingGameId);
                 const oldGame = games[index];
                 games[index] = { ...gameData, favorite: oldGame.favorite, created: oldGame.created };
+                console.log('Game updated:', gameData);
             } else {
                 games.push(gameData);
+                console.log('Game added:', gameData);
             }
 
             saveGames();
             renderGames();
             closeModal();
-            showToast(editingGameId ? '✓ Game updated' : '✓ Game created');
+            showToast(editingGameId ? '✅ Game updated successfully!' : '✅ Game added successfully!', 'success');
         });
 
         // Export/Import
@@ -1884,69 +1886,105 @@
 
         function importGames(event) {
             const file = event.target.files[0];
-            if (!file) return;
+            if (!file) {
+                console.log('No file selected');
+                return;
+            }
+
+            console.log('Importing file:', file.name);
+            showToast(`📥 Reading ${file.name}...`, 'info');
 
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
                     const content = e.target.result;
+                    console.log('File content length:', content.length);
+                    console.log('First 100 chars:', content.substring(0, 100));
+
                     const imported = parseImportedContent(content, file.name);
+                    console.log('Parsed games:', imported);
 
                     if (!imported || imported.length === 0) {
-                        alert('No valid games found in the file.');
+                        showToast('❌ No valid games found in the file', 'error');
+                        console.error('No games found after parsing');
                         return;
                     }
 
                     if (confirm(`Import ${imported.length} game(s)? This will add to your existing games.`)) {
+                        const beforeCount = games.length;
                         games = [...games, ...imported];
                         saveGames();
                         renderGames();
+                        const afterCount = games.length;
+                        console.log(`Games before: ${beforeCount}, after: ${afterCount}`);
                         showToast(`✅ ${imported.length} game(s) imported successfully!`, 'success');
+                    } else {
+                        showToast('Import cancelled', 'info');
                     }
                 } catch (err) {
-                    alert(`Error importing file: ${err.message}\n\nMake sure it's a valid JSON or properly formatted text file.`);
+                    console.error('Import error:', err);
+                    showToast(`❌ Error: ${err.message}`, 'error');
+                    alert(`Error importing file: ${err.message}\n\nCheck the browser console (F12) for details.`);
                 }
             };
+
+            reader.onerror = (err) => {
+                console.error('File read error:', err);
+                showToast('❌ Could not read file', 'error');
+            };
+
             reader.readAsText(file);
             event.target.value = '';
         }
 
         function parseImportedContent(content, filename) {
+            console.log('Parsing content from:', filename);
+
             // Try JSON first
             try {
                 const parsed = JSON.parse(content);
+                console.log('Successfully parsed as JSON:', parsed);
 
                 // Case 1: Array of games (standard export format)
                 if (Array.isArray(parsed)) {
+                    console.log(`Found array of ${parsed.length} games`);
                     return parsed.map(convertToLibraryFormat);
                 }
 
                 // Case 2: Single game object (constraint-led or library format)
                 if (typeof parsed === 'object') {
+                    console.log('Found single game object');
                     return [convertToLibraryFormat(parsed)];
                 }
+
+                console.warn('Parsed JSON but not array or object');
+                return [];
             } catch (jsonErr) {
-                // Not JSON, try parsing as text
+                console.log('Not valid JSON, trying text format:', jsonErr.message);
             }
 
             // Parse as plain text
+            console.log('Attempting to parse as text format');
             return parseTextFormat(content);
         }
 
         function convertToLibraryFormat(gameData) {
+            console.log('Converting game:', gameData);
+
             // Already in library format
-            if (gameData.topPlayer && gameData.bottomPlayer && gameData.coaching) {
+            if (gameData.topPlayer && gameData.bottomPlayer) {
+                console.log('Game is in library format');
                 return {
                     id: Date.now() + Math.random(),
                     name: gameData.name || 'Imported Game',
-                    topic: gameData.topic || 'General',
+                    topic: gameData.topic || 'Guard Passing',
                     gameNumber: gameData.gameNumber || '',
                     topPlayer: gameData.topPlayer,
                     bottomPlayer: gameData.bottomPlayer,
-                    coaching: gameData.coaching,
+                    coaching: gameData.coaching || '',
                     skills: gameData.skills || '',
-                    favorite: false,
-                    lastUsed: null,
+                    favorite: gameData.favorite || false,
+                    lastUsed: gameData.lastUsed || null,
                     created: Date.now()
                 };
             }
