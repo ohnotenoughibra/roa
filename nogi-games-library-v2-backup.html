@@ -1983,67 +1983,58 @@
 
             // GUARD RETENTION GAMES (Gordon Ryan / New Wave style)
             if (patterns.guardRetention.test(p)) {
-                return {
-                    title: "Guard Retention Under Pressure",
-                    category: "Guard Retention",
-                    tags: ["#constraint-led", "#gordon-ryan-style", "#retention", "#distance-management"],
-                    startPosition: "Bottom player seated guard, feet on top player's hips. Top player standing with grips on bottom's ankles.",
-                    constraints: [
-                        "Bottom MUST keep at least one foot on top player's body (hip/chest/shoulder) at all times - if both feet lose contact for 2 seconds = loss",
-                        "Top player must break contact with BOTH feet before advancing - no grabbing pants/legs",
-                        "90-second rounds",
-                        "Bottom player's hands can only be used on mat or top player's hands (no gi grips)"
-                    ],
-                    winConditions: {
-                        top: "Pass to knee-on-belly or better, OR control both feet off hips for 3 consecutive seconds",
-                        bottom: "Sweep to top position, OR maintain feet-on-hips for full 90 seconds, OR off-balance top player (hands touch mat)"
-                    },
-                    coachingCues: [
-                        "Bottom: Feet are your distance managers - constant motion, never static",
-                        "Bottom: When they grab one ankle, IMMEDIATELY pummel other foot to their chest",
-                        "Top: Angle off 45° before grabbing - straight-on gets kicked",
-                        "Top: Control one ankle, step around it, pressure the free leg down"
-                    ],
-                    progressions: [
-                        {num: 1, text: "Start with bottom player able to use pistol grips on ankles (easier)"},
-                        {num: 2, text: "Progress to hands on mat only (intermediate) - current version"},
-                        {num: 3, text: "Add rule: bottom can only use one arm (advanced Gordon Ryan drill)"},
-                        {num: 4, text: "Competition version: bottom starts with top player already controlling one ankle"}
-                    ],
-                    pedagogicalNote: "CONSTRAINT POWER: Forcing feet-on-hips creates automatic distance management. Students learn retention through necessity, not instruction."
-                };
+                topic = 'Guard Retention';
+
+                // Vary game based on skill level and specific issues
+                if (skillLevel === 'beginner') {
+                    name = 'Guard Basics - Distance Control';
+                    topPlayer = 'Start standing or on knees. Goal: control both ankles for 3 seconds. 90-second rounds.';
+                    bottomPlayer = 'Keep feet active and maintain distance. Win by keeping feet free or sweeping. Use hands to push hips/knees.';
+                    coaching = 'Bottom: Think of your feet as hands - always moving, pushing, creating angles. Never let both feet get controlled. Top: Be patient, control one leg first, then hunt the second.';
+                    skills = '#guard-retention #distance-management #foot-placement #basics';
+                } else if (keywords.grips.test(lowerQ)) {
+                    name = 'Guard Retention - Grip Fighting';
+                    topPlayer = 'Start with any two grips on bottom player. Goal: maintain grips and advance position for 90 seconds.';
+                    bottomPlayer = 'Break grips immediately. Win by staying grip-free for 10 seconds or sweeping. Can\'t use guard pulls.';
+                    coaching = 'Bottom: Two-on-one grip breaks, swim the hands, create distance after breaking. Never let them settle. Top: Re-grip fast, use angles when they break.';
+                    skills = '#guard-retention #grip-fighting #hand-control #reactions';
+                } else {
+                    name = 'Guard Retention Challenge';
+                    topPlayer = 'Start standing. Goal is to pass guard within 2 minutes. Can use any passing style.';
+                    bottomPlayer = 'Maintain full guard position. Win by sweeping or holding guard for 2 minutes. Lose if guard is passed.';
+                    coaching = 'Bottom: Keep active feet, create frames immediately when pressure comes. Don\'t let them settle grips. Use collar drags and ankle picks when they commit. Top: Control the distance, secure grips before advancing.';
+                    skills = '#guard-retention #frames #distance #grips #movement';
+                }
             }
-            // KNEE SHIELD PASSING (Danaher system)
-            else if (patterns.guardPass.test(p) && /knee.*shield|half.*guard/i.test(p)) {
-                return {
-                    title: "Knee Shield Passing Sequence",
-                    category: "Guard Passing",
-                    tags: ["#constraint-led", "#danaher-system", "#knee-shield", "#pressure-passing"],
-                    startPosition: "Bottom in knee shield half guard (top leg framing across top player's chest, bottom leg half guard). Top player in passing posture.",
-                    constraints: [
-                        "Top player must complete 3 gates IN ORDER: (1) clear the knee shield to quarter position, (2) flatten bottom player's inside shoulder to mat, (3) free trapped leg. Only after all 3 can pass to side control",
-                        "Bottom player resets to knee shield if top player skips a gate or loses progress",
-                        "Top player cannot use leg weaves or fancy techniques - pressure passing only (chest-to-chest control)",
-                        "100-second rounds"
-                    ],
-                    winConditions: {
-                        top: "Complete all 3 gates AND establish side control within time",
-                        bottom: "Prevent top from completing Gate 3, OR sweep, OR recover to full guard"
-                    },
-                    coachingCues: [
-                        "Top: Gate 1 - Underhook far arm, pressure knee down with shoulder, walk around",
-                        "Top: Gate 2 - Crossface near shoulder to mat (kills bottom's frames)",
-                        "Bottom: Defend Gate 1 - keep knee shield active, re-pump if they pass it",
-                        "Bottom: If they clear shield, immediately create new frame with bottom arm on hip"
-                    ],
-                    progressions: [
-                        {num: 1, text: "Beginner: Start at Gate 2 (knee shield already cleared) - practice flattening"},
-                        {num: 2, text: "Intermediate: Start at Gate 1 (current version) - full sequence"},
-                        {num: 3, text: "Advanced: Bottom can use lockdown on trapped leg - top must break it as Gate 2.5"},
-                        {num: 4, text: "Competition: Remove gates - free passing but add bottom can attempt sweeps"}
-                    ],
-                    pedagogicalNote: "SEQUENTIAL CONSTRAINTS: Breaking pass into gates prevents rushing. Students learn that passing is step-by-step problem-solving, not explosion."
-                };
+            // ========== GUARD PASSING GAMES ==========
+            else if (keywords.guardPass.test(lowerQ)) {
+                topic = 'Guard Passing';
+
+                if (skillLevel === 'beginner') {
+                    name = 'Passing Gates - Progressive Game';
+                    topPlayer = 'Gate 1: Control both knees for 3 seconds. Gate 2: Get one knee to mat. Gate 3: Pass to side control. Complete all 3 gates.';
+                    bottomPlayer = 'Prevent each gate. Reset after each successful defense. Can use frames and shrimping.';
+                    coaching = 'Passer: Break the game into steps. Don\'t rush - complete each gate. Guard: Fight at the earliest gate, don\'t let them advance. TEACHING TIP: This game teaches progressive passing concepts.';
+                    skills = '#passing #progression #control #fundamentals';
+                } else if (keywords.pressure.test(lowerQ)) {
+                    name = '3 Touch Pressure Pass';
+                    topPlayer = 'Must touch mat with 3 body parts (knees, chest, shoulder) before passing. Then pass using pressure only.';
+                    bottomPlayer = 'Prevent them getting low and heavy. Use frames to keep distance. Win by sweeping or holding guard.';
+                    coaching = 'Passer: Get heavy first, then work the pass. Guard: Create frames early before they establish weight. PRINCIPLE: Touch-based constraints develop proper pressure mechanics.';
+                    skills = '#passing #pressure #frames #weight-distribution';
+                } else if (keywords.submission.test(lowerQ)) {
+                    name = 'Passing Under Fire';
+                    topPlayer = 'Pass the guard while bottom can attempt submissions. Must pass within 2 minutes without getting submitted.';
+                    bottomPlayer = 'Attack with submissions freely. Win by submission or preventing the pass. Can\'t sweep.';
+                    coaching = 'Passer: Stay safe - protect neck and arms while advancing. Don\'t overcommit. Guard: Use submission threats to create reactions and openings. CONCEPT: Teaches passing with safety and submission defense.';
+                    skills = '#passing #submission-defense #safety #positioning';
+                } else {
+                    name = 'Pressure Passing Game';
+                    topPlayer = 'Pass guard using pressure and control. Score by achieving side control or mount. 3-minute rounds.';
+                    bottomPlayer = 'Prevent the pass. Can sweep or submit. Resetting to guard = 1 point.';
+                    coaching = 'Passer: Stay heavy, control hips first, pin one leg. Guard: Create frames immediately, don\'t let them flatten you out. Shrimp to create angles.';
+                    skills = '#passing #pressure #grips #base';
+                }
             }
             // ========== TURTLE & SCRAMBLE GAMES ==========
             else if (keywords.turtle.test(lowerQ)) {
