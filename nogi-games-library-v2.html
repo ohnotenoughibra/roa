@@ -734,6 +734,7 @@
             <button class="tab active" onclick="switchTab('games')">All Games</button>
             <button class="tab" onclick="switchTab('favorites')">⭐ Favorites</button>
             <button class="tab" onclick="switchTab('sessions')">📋 Sessions</button>
+            <button class="tab" onclick="switchTab('ai')">🤖 AI Assistant</button>
         </div>
 
         <div id="gamesView">
@@ -805,6 +806,68 @@
                 <button class="btn btn-primary" onclick="openSessionModal()">+ Create Session</button>
             </div>
             <div id="sessionsList"></div>
+        </div>
+
+        <div id="aiView" style="display: none;">
+            <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">🤖 AI Game Generator</h2>
+                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
+                    Describe your grappling problem or training goal, and I'll generate a custom game for you!
+                </p>
+
+                <div class="form-group">
+                    <label>What do you want to work on?</label>
+                    <textarea id="aiQuestion" placeholder="Example: My students struggle with maintaining top position when opponent tries to turtle..." style="min-height: 120px;"></textarea>
+                    <small>Describe the problem, skill gap, or training objective you want to address</small>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <button class="btn btn-primary" onclick="generateGamePrompt()" style="flex: 1;">
+                        ✨ Generate Game
+                    </button>
+                    <button class="btn btn-secondary" onclick="document.getElementById('aiQuestion').value = ''">
+                        Clear
+                    </button>
+                </div>
+
+                <div id="aiResponse" style="display: none;">
+                    <div style="background: #f0fdf4; border: 2px solid #10b981; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <strong style="color: #059669;">✓ Game Generated!</strong>
+                            <button class="btn btn-success btn-sm" onclick="addAIGame()">Add to Library</button>
+                        </div>
+                        <div id="aiGamePreview" style="background: white; padding: 1rem; border-radius: 6px; margin-top: 0.5rem;"></div>
+                    </div>
+                </div>
+
+                <div id="aiInstructions" style="background: #eff6ff; border-left: 3px solid #3b82f6; padding: 1rem; border-radius: 6px;">
+                    <strong style="color: #1e40af; display: block; margin-bottom: 0.5rem;">💡 How it works:</strong>
+                    <ol style="margin-left: 1.25rem; color: #1e3a8a;">
+                        <li style="margin-bottom: 0.5rem;">Describe your training problem or goal</li>
+                        <li style="margin-bottom: 0.5rem;">Click "Generate Game" to create a custom training game</li>
+                        <li style="margin-bottom: 0.5rem;">Review the generated game</li>
+                        <li>Click "Add to Library" to save it</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow);">
+                <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">Example Questions:</h3>
+                <div style="display: grid; gap: 0.75rem;">
+                    <div class="session-item" onclick="document.getElementById('aiQuestion').value = this.querySelector('.ai-example-text').textContent" style="cursor: pointer;">
+                        <div class="ai-example-text">My students keep getting their guard passed when they sit up. How can I train them to maintain guard?</div>
+                    </div>
+                    <div class="session-item" onclick="document.getElementById('aiQuestion').value = this.querySelector('.ai-example-text').textContent" style="cursor: pointer;">
+                        <div class="ai-example-text">We need a game to work on aggressive guard passing without being submitted</div>
+                    </div>
+                    <div class="session-item" onclick="document.getElementById('aiQuestion').value = this.querySelector('.ai-example-text').textContent" style="cursor: pointer;">
+                        <div class="ai-example-text">How can I teach students to escape side control using frames?</div>
+                    </div>
+                    <div class="session-item" onclick="document.getElementById('aiQuestion').value = this.querySelector('.ai-example-text').textContent" style="cursor: pointer;">
+                        <div class="ai-example-text">My students need to develop better takedown entries from standing</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -942,6 +1005,7 @@
             document.getElementById('gamesView').style.display = tab === 'games' ? 'block' : 'none';
             document.getElementById('favoritesView').style.display = tab === 'favorites' ? 'block' : 'none';
             document.getElementById('sessionsView').style.display = tab === 'sessions' ? 'block' : 'none';
+            document.getElementById('aiView').style.display = tab === 'ai' ? 'block' : 'none';
 
             if (tab === 'favorites') renderFavorites();
             if (tab === 'sessions') renderSessions();
@@ -1551,6 +1615,214 @@
             setTimeout(() => {
                 toast.classList.remove('show');
             }, 2000);
+        }
+
+        // AI Game Generator
+        let generatedGame = null;
+
+        function generateGamePrompt() {
+            const question = document.getElementById('aiQuestion').value.trim();
+
+            if (!question) {
+                alert('Please describe your training problem or goal first!');
+                return;
+            }
+
+            // Analyze the question and generate appropriate game
+            const game = analyzeAndGenerateGame(question);
+
+            if (game) {
+                generatedGame = game;
+                displayGeneratedGame(game);
+                document.getElementById('aiResponse').style.display = 'block';
+                document.getElementById('aiInstructions').style.display = 'none';
+                showToast('✨ Game generated!');
+            }
+        }
+
+        function analyzeAndGenerateGame(question) {
+            const lowerQ = question.toLowerCase();
+
+            // Analyze keywords to determine the problem type
+            const keywords = {
+                guard: /guard|retention|maintain.*guard|keeping.*guard/i,
+                guardPass: /pass|passing.*guard|get.*past|torreando|knee.*slice/i,
+                turtle: /turtle|turtl/i,
+                mount: /mount|mounted/i,
+                sideControl: /side.*control|side.*mount/i,
+                back: /back.*control|back.*take|rear.*naked/i,
+                standing: /standing|takedown|wrestling|shoot/i,
+                frames: /frame|framing|creating.*space/i,
+                escape: /escape|escaping|get.*out/i,
+                submission: /submit|submission|tap|choke|armbar/i,
+                pressure: /pressure|heavy|weight/i,
+                grips: /grip|gripping|hand.*control/i,
+                scramble: /scramble|scrambling|transition/i,
+                beginner: /beginner|new|fundamental|basic/i,
+                advanced: /advanced|competition|high.*level/i
+            };
+
+            let topic = 'Positional Sparring';
+            let gameNumber = '';
+            let name = 'Custom Training Game';
+            let topPlayer = '';
+            let bottomPlayer = '';
+            let coaching = '';
+            let skills = '#training';
+
+            // Guard retention problems
+            if (keywords.guard.test(lowerQ) && !keywords.guardPass.test(lowerQ)) {
+                topic = 'Guard Retention';
+                name = 'Guard Retention Challenge';
+                topPlayer = 'Start standing. Goal is to pass guard within 2 minutes. Can use any passing style.';
+                bottomPlayer = 'Maintain full guard position. Win by sweeping or holding guard for 2 minutes. Lose if guard is passed.';
+                coaching = 'Bottom: Keep active feet, create frames immediately when pressure comes. Don\'t let them settle grips. Top: Control the distance, secure grips before advancing.';
+                skills = '#guard-retention #frames #distance #grips #movement';
+            }
+            // Guard passing problems
+            else if (keywords.guardPass.test(lowerQ)) {
+                topic = 'Guard Passing';
+                name = 'Pressure Passing Game';
+                topPlayer = 'Pass guard using pressure and control. Score by achieving side control or mount. 3-minute rounds.';
+                bottomPlayer = 'Prevent the pass. Can sweep or submit. Resetting to guard = 1 point.';
+                coaching = 'Passer: Stay heavy, control hips first. Guard: Create frames, don\'t let them flatten you out.';
+                skills = '#passing #pressure #grips #base';
+            }
+            // Turtle problems
+            else if (keywords.turtle.test(lowerQ)) {
+                topic = 'Scrambles';
+                name = 'Turtle Attack & Defense';
+                topPlayer = 'Start with opponent in turtle. Goal: take the back or force a roll. 90 seconds.';
+                bottomPlayer = 'Start in turtle. Goal: stand up or recover guard. Don\'t get flattened.';
+                coaching = 'Bottom: Keep elbows tight, be ready to sit through or explode up. Top: Control hips first, seatbelt grip, then work for hooks.';
+                skills = '#turtle #scrambling #back-takes #wrestling';
+            }
+            // Mount escape problems
+            else if (keywords.mount.test(lowerQ) && keywords.escape.test(lowerQ)) {
+                topic = 'Escapes';
+                name = 'Mount Escape Drill';
+                topPlayer = 'Start in mount. Maintain position for 2 minutes or submit. Can submit under elbows.';
+                bottomPlayer = 'Escape to guard or better within 2 minutes. Win by escaping. Keep elbows connected to body.';
+                coaching = 'Bottom: Elbow-knee connection at all times. Trap and roll when they reach. Don\'t extend arms. Top: Stay heavy on chest, control head, be patient.';
+                skills = '#escapes #mount #frames #bridging #patience';
+            }
+            // Side control escape with frames
+            else if ((keywords.sideControl.test(lowerQ) || keywords.escape.test(lowerQ)) && keywords.frames.test(lowerQ)) {
+                topic = 'Escapes';
+                name = 'Frame Escape Game';
+                topPlayer = 'Start in side control. Maintain position or submit. 2-minute rounds.';
+                bottomPlayer = 'Use frames to create space and escape to guard. Win by recovering guard or reversing.';
+                coaching = 'Bottom: Create strong bottom frame (forearm on hip/neck). Don\'t flat back. Shrimp to create space. Top: Kill the frames, stay heavy on chest.';
+                skills = '#frames #escapes #side-control #shrimping';
+            }
+            // Standing/Takedown problems
+            else if (keywords.standing.test(lowerQ)) {
+                topic = 'Takedowns';
+                name = 'Takedown Entry Game';
+                topPlayer = 'Start standing. Secure a takedown position (single leg, double leg, or front headlock). Score by getting it.';
+                bottomPlayer = 'Defend the takedown attempt. Stay standing. Win by successfully defending and disengaging.';
+                coaching = 'Attacker: Level change, penetration step, secure the position. Defender: Sprawl, crossface, or counter-wrestle.';
+                skills = '#takedowns #wrestling #entries #level-change';
+            }
+            // Submission problems
+            else if (keywords.submission.test(lowerQ)) {
+                topic = 'Submissions';
+                name = 'Submission Hunt';
+                topPlayer = 'Start in dominant position (side control or mount). Only win by submission. 3 minutes.';
+                bottomPlayer = 'Defend all submissions. Can escape but no points - just restart from same position.';
+                coaching = 'Attacker: Be patient, create reactions, chain submissions. Defender: Protect neck and arms, make frames, stay calm.';
+                skills = '#submissions #defense #patience #reactions';
+            }
+            // Scramble problems
+            else if (keywords.scramble.test(lowerQ)) {
+                topic = 'Scrambles';
+                name = 'Scramble Game';
+                topPlayer = 'Start from neutral scramble position. First to establish dominant position wins the round.';
+                bottomPlayer = 'Fight for top position or guard recovery. Stay active and don\'t get pinned.';
+                coaching = 'Both: Stay on your toes, fight for inside position, never stop moving until position is established.';
+                skills = '#scrambling #movement #positioning #wrestling';
+            }
+            // Back control problems
+            else if (keywords.back.test(lowerQ)) {
+                topic = 'Back Attacks';
+                name = 'Back Control Game';
+                topPlayer = 'Start with back control (one or both hooks). Maintain control or submit. 2 minutes.';
+                bottomPlayer = 'Escape back control. Win by escaping to guard or neutral. Hand fight immediately.';
+                coaching = 'Attacker: Stay heavy on opposite side of escape. Bottom: Hand fight, get back to mat, hide a shoulder, turn into them.';
+                skills = '#back-control #escapes #handfighting #positioning';
+            }
+            // Default: general positional game
+            else {
+                name = 'Problem Solving Game';
+                topPlayer = 'Focus on maintaining top position and advancing. Can pass guard, take back, or submit.';
+                bottomPlayer = 'Work on the specific problem: recovering position, creating frames, or escaping.';
+                coaching = 'Identify the specific moment where the problem occurs and isolate that position. Start from there repeatedly.';
+                skills = '#problem-solving #positioning #fundamentals';
+            }
+
+            // Add question-specific notes to coaching
+            coaching = `Problem: "${question.substring(0, 100)}..." \n\n` + coaching;
+
+            return {
+                id: Date.now(),
+                name: name,
+                topic: topic,
+                gameNumber: gameNumber,
+                topPlayer: topPlayer,
+                bottomPlayer: bottomPlayer,
+                coaching: coaching,
+                skills: skills,
+                favorite: false,
+                lastUsed: null,
+                created: Date.now()
+            };
+        }
+
+        function displayGeneratedGame(game) {
+            const preview = document.getElementById('aiGamePreview');
+            preview.innerHTML = `
+                <div style="margin-bottom: 0.75rem;">
+                    <span class="game-topic ${getTopicTagClass(game.topic)}">${game.topic}</span>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-top: 0.5rem;">${game.name}</h3>
+                </div>
+                <div class="player-section">
+                    <span class="player-label">🔵 Top Player:</span>
+                    <div class="player-text">${game.topPlayer}</div>
+                </div>
+                <div class="player-section">
+                    <span class="player-label">🔴 Bottom Player:</span>
+                    <div class="player-text">${game.bottomPlayer}</div>
+                </div>
+                <div class="game-coaching">
+                    <strong>💡 Coaching:</strong>
+                    ${game.coaching}
+                </div>
+                <div class="hashtags">
+                    ${(game.skills.match(/#\w+/g) || []).map(tag => `<span class="hashtag">${tag}</span>`).join('')}
+                </div>
+            `;
+        }
+
+        function addAIGame() {
+            if (!generatedGame) return;
+
+            games.push(generatedGame);
+            saveGames();
+            renderGames();
+
+            showToast('✓ Game added to library!');
+
+            // Reset AI view
+            document.getElementById('aiQuestion').value = '';
+            document.getElementById('aiResponse').style.display = 'none';
+            document.getElementById('aiInstructions').style.display = 'block';
+            generatedGame = null;
+
+            // Switch to games tab to show the new game
+            setTimeout(() => {
+                switchTab('games');
+                document.querySelectorAll('.tab')[0].classList.add('active');
+            }, 1500);
         }
 
         // Search and filter
