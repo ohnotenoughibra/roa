@@ -791,7 +791,7 @@
                 <button class="btn btn-secondary btn-sm" onclick="copyGames()">📋 Copy JSON</button>
                 <button class="btn btn-secondary btn-sm" onclick="document.getElementById('importFile').click()">📥 Import File</button>
                 <button class="btn btn-secondary btn-sm" onclick="pasteGames()">📥 Paste JSON</button>
-                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importGames(event)">
+                <input type="file" id="importFile" accept=".json,.txt,.text" style="display: none;" onchange="importGames(event)">
             </div>
 
             <div class="games-grid" id="gamesGrid"></div>
@@ -1830,39 +1830,201 @@
             const reader = new FileReader();
             reader.onload = (e) => {
                 try {
-                    const imported = JSON.parse(e.target.result);
-                    if (confirm(`Import ${imported.length} games? This will add to your existing games.`)) {
+                    const content = e.target.result;
+                    const imported = parseImportedContent(content, file.name);
+
+                    if (!imported || imported.length === 0) {
+                        alert('No valid games found in the file.');
+                        return;
+                    }
+
+                    if (confirm(`Import ${imported.length} game(s)? This will add to your existing games.`)) {
                         games = [...games, ...imported.map(g => ({...g, id: Date.now() + Math.random()}))];
                         saveGames();
                         renderGames();
-                        showToast('✓ Games imported');
+                        showToast(`✓ ${imported.length} game(s) imported`);
                     }
                 } catch (err) {
-                    alert('Error importing file. Make sure it\'s a valid JSON file.');
+                    alert(`Error importing file: ${err.message}\n\nMake sure it's a valid JSON or properly formatted text file.`);
                 }
             };
             reader.readAsText(file);
             event.target.value = '';
         }
 
+        function parseImportedContent(content, filename) {
+            // Try JSON first
+            try {
+                const parsed = JSON.parse(content);
+
+                // Case 1: Array of games (standard export format)
+                if (Array.isArray(parsed)) {
+                    return parsed.map(convertToLibraryFormat);
+                }
+
+                // Case 2: Single game object (constraint-led or library format)
+                if (typeof parsed === 'object') {
+                    return [convertToLibraryFormat(parsed)];
+                }
+            } catch (jsonErr) {
+                // Not JSON, try parsing as text
+            }
+
+            // Parse as plain text
+            return parseTextFormat(content);
+        }
+
+        function convertToLibraryFormat(gameData) {
+            // Already in library format
+            if (gameData.topPlayer && gameData.bottomPlayer && gameData.coaching) {
+                return {
+                    id: Date.now() + Math.random(),
+                    name: gameData.name || 'Imported Game',
+                    topic: gameData.topic || 'General',
+                    gameNumber: gameData.gameNumber || '',
+                    topPlayer: gameData.topPlayer,
+                    bottomPlayer: gameData.bottomPlayer,
+                    coaching: gameData.coaching,
+                    skills: gameData.skills || '',
+                    favorite: false,
+                    lastUsed: null,
+                    created: Date.now()
+                };
+            }
+
+            // Constraint-led format (from AI designer)
+            if (gameData.constraints && gameData.winConditions && gameData.coachingCues) {
+                const constraints = Array.isArray(gameData.constraints)
+                    ? gameData.constraints
+                    : [gameData.constraints];
+                const coachingCues = Array.isArray(gameData.coachingCues)
+                    ? gameData.coachingCues
+                    : [gameData.coachingCues];
+                const progressions = Array.isArray(gameData.progressions)
+                    ? gameData.progressions
+                    : [];
+
+                return {
+                    id: Date.now() + Math.random(),
+                    name: gameData.title || 'Imported Constraint-Led Game',
+                    topic: gameData.category || 'General',
+                    gameNumber: '',
+                    topPlayer: `START: ${gameData.startPosition || 'N/A'}\n\nCONSTRAINTS:\n${constraints.map((c,i) => `${i+1}. ${c}`).join('\n')}\n\nWIN BY: ${gameData.winConditions.top || 'N/A'}`,
+                    bottomPlayer: `WIN BY: ${gameData.winConditions.bottom || 'N/A'}`,
+                    coaching: `COACHING CUES:\n${coachingCues.map((c,i) => `${i+1}. ${c}`).join('\n')}\n\nPROGRESSION:\n${progressions.map(p => `${p.num || ''}. ${p.text || p}`).join('\n')}\n\n${gameData.pedagogicalNote || ''}`,
+                    skills: Array.isArray(gameData.tags) ? gameData.tags.join(' ') : (gameData.tags || ''),
+                    favorite: false,
+                    lastUsed: null,
+                    created: Date.now()
+                };
+            }
+
+            // Generic object - try to extract what we can
+            return {
+                id: Date.now() + Math.random(),
+                name: gameData.title || gameData.name || 'Imported Game',
+                topic: gameData.topic || gameData.category || 'General',
+                gameNumber: gameData.gameNumber || '',
+                topPlayer: gameData.topPlayer || gameData.top || 'No instructions provided',
+                bottomPlayer: gameData.bottomPlayer || gameData.bottom || 'No instructions provided',
+                coaching: gameData.coaching || gameData.notes || gameData.coachingNotes || '',
+                skills: gameData.skills || gameData.tags || '',
+                favorite: false,
+                lastUsed: null,
+                created: Date.now()
+            };
+        }
+
+        function parseTextFormat(content) {
+            const games = [];
+            const lines = content.split('\n');
+            let currentGame = null;
+            let currentSection = null;
+
+            for (let line of lines) {
+                line = line.trim();
+
+                // Skip empty lines
+                if (!line) continue;
+
+                // Check for section markers
+                if (line.match(/^(GAME|TITLE|NAME):/i)) {
+                    if (currentGame) games.push(convertToLibraryFormat(currentGame));
+                    currentGame = { title: line.replace(/^(GAME|TITLE|NAME):\s*/i, '') };
+                    currentSection = null;
+                } else if (currentGame) {
+                    if (line.match(/^(TOPIC|CATEGORY):/i)) {
+                        currentGame.topic = line.replace(/^(TOPIC|CATEGORY):\s*/i, '');
+                    } else if (line.match(/^START( POSITION)?:/i)) {
+                        currentGame.startPosition = line.replace(/^START( POSITION)?:\s*/i, '');
+                        currentSection = 'startPosition';
+                    } else if (line.match(/^CONSTRAINTS?:/i)) {
+                        currentGame.constraints = [];
+                        currentSection = 'constraints';
+                    } else if (line.match(/^(TOP PLAYER|TOP WIN|WIN TOP):/i)) {
+                        currentGame.winConditions = currentGame.winConditions || {};
+                        currentGame.winConditions.top = line.replace(/^(TOP PLAYER|TOP WIN|WIN TOP):\s*/i, '');
+                        currentSection = 'topWin';
+                    } else if (line.match(/^(BOTTOM PLAYER|BOTTOM WIN|WIN BOTTOM):/i)) {
+                        currentGame.winConditions = currentGame.winConditions || {};
+                        currentGame.winConditions.bottom = line.replace(/^(BOTTOM PLAYER|BOTTOM WIN|WIN BOTTOM):\s*/i, '');
+                        currentSection = 'bottomWin';
+                    } else if (line.match(/^(COACHING|CUES|COACHING CUES):/i)) {
+                        currentGame.coachingCues = [];
+                        currentSection = 'coaching';
+                    } else if (line.match(/^(PROGRESSION|PROGRESSIONS):/i)) {
+                        currentGame.progressions = [];
+                        currentSection = 'progressions';
+                    } else if (line.match(/^TAGS?:/i)) {
+                        currentGame.tags = line.replace(/^TAGS?:\s*/i, '');
+                    } else if (line.match(/^---+$/)) {
+                        // Separator - start new game
+                        if (currentGame) games.push(convertToLibraryFormat(currentGame));
+                        currentGame = null;
+                        currentSection = null;
+                    } else {
+                        // Continue adding to current section
+                        if (currentSection === 'constraints' && currentGame.constraints) {
+                            currentGame.constraints.push(line.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, ''));
+                        } else if (currentSection === 'coaching' && currentGame.coachingCues) {
+                            currentGame.coachingCues.push(line.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, ''));
+                        } else if (currentSection === 'progressions' && currentGame.progressions) {
+                            currentGame.progressions.push({ text: line.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, '') });
+                        } else if (currentSection === 'startPosition') {
+                            currentGame.startPosition += ' ' + line;
+                        } else if (currentSection === 'topWin' && currentGame.winConditions) {
+                            currentGame.winConditions.top += ' ' + line;
+                        } else if (currentSection === 'bottomWin' && currentGame.winConditions) {
+                            currentGame.winConditions.bottom += ' ' + line;
+                        }
+                    }
+                }
+            }
+
+            // Add last game
+            if (currentGame) games.push(convertToLibraryFormat(currentGame));
+
+            return games;
+        }
+
         async function pasteGames() {
             try {
                 const text = await navigator.clipboard.readText();
-                const imported = JSON.parse(text);
+                const imported = parseImportedContent(text, 'clipboard');
 
-                if (!Array.isArray(imported)) {
-                    alert('Invalid format. Please copy the JSON from the export.');
+                if (!imported || imported.length === 0) {
+                    alert('No valid games found in clipboard.');
                     return;
                 }
 
-                if (confirm(`Import ${imported.length} games? This will add to your existing games.`)) {
+                if (confirm(`Import ${imported.length} game(s) from clipboard? This will add to your existing games.`)) {
                     games = [...games, ...imported.map(g => ({...g, id: Date.now() + Math.random()}))];
                     saveGames();
                     renderGames();
-                    showToast('✓ Games imported from clipboard');
+                    showToast(`✓ ${imported.length} game(s) imported from clipboard`);
                 }
             } catch (err) {
-                alert('Could not read clipboard. Make sure you copied the JSON data first, or use Import File instead.');
+                alert(`Could not import from clipboard: ${err.message}\n\nMake sure you copied valid JSON or text data first, or use Import File instead.`);
             }
         }
 
