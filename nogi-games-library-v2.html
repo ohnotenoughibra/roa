@@ -2045,207 +2045,266 @@
                     pedagogicalNote: "SEQUENTIAL CONSTRAINTS: Breaking pass into gates prevents rushing. Students learn that passing is step-by-step problem-solving, not explosion."
                 };
             }
-            // ========== TURTLE & SCRAMBLE GAMES ==========
-            else if (keywords.turtle.test(lowerQ)) {
-                topic = 'Scrambles';
-
-                if (skillLevel === 'beginner') {
-                    name = 'Turtle Escape Fundamentals';
-                    topPlayer = 'Start with both hands on opponent\'s hips (turtle position). Cannot go for submissions. Goal: flatten them or take the back.';
-                    bottomPlayer = 'Stay in strong turtle (elbows in, knees together). Goal: stand up or sit to guard. 60-second rounds.';
-                    coaching = 'Bottom: Elbows MUST stay connected to knees. Explode up or sit through - choose one direction. Top: Get seatbelt first, THEN work for control. PRINCIPLE: Build turtle fundamentals before adding submissions.';
-                    skills = '#turtle #escapes #back-defense #fundamentals';
-                } else if (keywords.back.test(lowerQ)) {
-                    name = 'Turtle to Back Race';
-                    topPlayer = 'Start with one hook in. Goal: secure both hooks and back control within 30 seconds. Top gets 1 point per successful back take.';
-                    bottomPlayer = 'Start in turtle with opponent having one hook. Escape to guard or neutral. Bottom gets 1 point per escape. First to 5 points.';
-                    coaching = 'Top: Seatbelt grip is KEY. Control the far hip, drive the second hook. Bottom: Turn INTO them, strip the hook, explode to guard or stand. GAME DESIGN: Short bursts develop explosion and timing.';
-                    skills = '#turtle #back-takes #escapes #timing #wrestling';
-                } else {
-                    name = 'Turtle Attack & Defense';
-                    topPlayer = 'Start with opponent in turtle. Goal: take the back or force a roll to pin position. 90 seconds.';
-                    bottomPlayer = 'Start in turtle. Goal: stand up or recover guard. Don\'t get flattened or back taken.';
-                    coaching = 'Bottom: Keep elbows tight, be ready to sit through or explode up. Never go flat. Top: Control hips first with seatbelt grip, then work for hooks. Use opponent\'s movement against them. CONCEPT: Turtle is transitional - force a decision quickly.';
-                    skills = '#turtle #scrambling #back-takes #wrestling';
-                }
+            // TURTLE ESCAPE (Craig Jones / B-Team style)
+            else if (patterns.turtle.test(p)) {
+                return {
+                    title: "Turtle Explosion Timing",
+                    category: "Scrambles",
+                    tags: ["#constraint-led", "#b-team-style", "#timing", "#turtle"],
+                    startPosition: "Bottom in defensive turtle (elbows to knees, tight ball). Top has seatbelt grip (one arm over shoulder, one under armpit) but NO hooks yet.",
+                    constraints: [
+                        "Bottom player has 3 escape options ONLY: (1) sit-through to guard, (2) stand-up, (3) granby roll. Must choose ONE direction and commit fully",
+                        "Top player CANNOT flatten bottom - if bottom's chest touches mat, bottom wins the round",
+                        "Bottom has 5-second window to escape after coach says 'GO' - if no explosion in 5 seconds, top gets the back automatically",
+                        "60-second rounds (short = intensity)"
+                    ],
+                    winConditions: {
+                        top: "Secure both hooks + back control, OR bottom fails to explode within 5-second window",
+                        bottom: "Escape to guard, neutral, or top position within 5-second explosion window"
+                    },
+                    coachingCues: [
+                        "Bottom: Pick ONE direction based on where their weight is - commit 100%",
+                        "Bottom: Sit-through if they're heavy on your back, stand if they're light",
+                        "Top: Seatbelt tight, follow their movement, get hooks DURING their escape attempt",
+                        "Top: If they sit through, follow to their back; if they stand, drag them down"
+                    ],
+                    progressions: [
+                        {num: 1, text: "Start: 10-second window (beginner - more time to think)"},
+                        {num: 2, text: "Progress: 5-second window (intermediate - current version)"},
+                        {num: 3, text: "Advanced: 3-second window + top player can use one hook at start"},
+                        {num: 4, text: "Competition: Remove window - continuous scramble but bottom must escape within 60 seconds"}
+                    ],
+                    pedagogicalNote: "TIME PRESSURE CREATES DECISION-MAKING: Short explosion window mimics competition reality. Turtle is transitional - hesitation = back take."
+                };
             }
-            // ========== MOUNT ESCAPE GAMES ==========
-            else if (keywords.mount.test(lowerQ) && keywords.escape.test(lowerQ)) {
-                topic = 'Escapes';
-
-                if (skillLevel === 'beginner') {
-                    name = 'Elbow Escape Fundamentals';
-                    topPlayer = 'Start in mount. Keep arms at sides - NO SUBMISSIONS. Goal: maintain mount for 90 seconds.';
-                    bottomPlayer = 'Keep elbows connected to ribs (can place hands on chest). Escape using trap-and-roll or elbow escape only. 90 seconds.';
-                    coaching = 'Bottom: NEVER extend arms. Elbow-knee connection is law. Bridge with hips, not back. Top: Be patient, chest to chest, control posture. TEACHING MOMENT: Master defensive positioning before adding submissions. PRINCIPLE: Constraint (no submissions) forces proper positional chess.';
-                    skills = '#escapes #mount #elbows-in #bridging #fundamentals';
-                } else if (keywords.timing.test(lowerQ)) {
-                    name = 'Mount Escape - Reaction Game';
-                    topPlayer = 'Start in mount. Every 15 seconds, reach for a submission (instructor calls which one). Bottom must react immediately.';
-                    bottomPlayer = 'Stay defensive until top attacks. Trap-and-roll or elbow escape based on which submission they reach for. Score 1 point per successful escape.';
-                    coaching = 'Bottom: Watch the hands. When they reach = your moment to escape. Use their movement. Top: Make realistic attacks, but allow escape if they react correctly. CONCEPT: Teaches escaping during submission attempts when top is lightest. PROGRESSION: Advanced version - top can fake and change attacks.';
-                    skills = '#escapes #mount #timing #reactions #reading-opponent';
-                } else {
-                    name = 'Mount Survival Challenge';
-                    topPlayer = 'Start in mount. Maintain position for 2 minutes or submit. Can submit under elbows (arm triangle, ezekiel, etc).';
-                    bottomPlayer = 'Escape to guard or better within 2 minutes. Win by escaping. Keep elbows connected to body at all times.';
-                    coaching = 'Bottom: Elbow-knee connection is law. Trap and roll when they reach. Don\'t extend arms ever. Bridge from hips. Top: Stay heavy on chest, control head, walk hands up slowly, be patient. GAME THEORY: Time pressure forces aggression from top, creates escape opportunities for bottom.';
-                    skills = '#escapes #mount #frames #bridging #patience #defense';
-                }
+            // SIDE CONTROL ESCAPE (New Wave escapes)
+            else if (patterns.sideEscape.test(p)) {
+                return {
+                    title: "Frame Escape From Side Control",
+                    category: "Escapes",
+                    tags: ["#constraint-led", "#frames", "#new-wave-escapes", "#side-control"],
+                    startPosition: "Top player in tight side control (crossface, far arm underhook). Bottom player flat on back initially.",
+                    constraints: [
+                        "Bottom player MUST create and maintain both frames (bottom frame on far hip, top frame on near shoulder) before attempting escape - coach checks frames",
+                        "Bottom player loses if both elbows touch ribs simultaneously (means flat/defensive failure)",
+                        "Top player cannot submit - position only",
+                        "120-second rounds - bottom must escape within time"
+                    ],
+                    winConditions: {
+                        top: "Maintain side control for 120 seconds, OR force bottom's elbows to ribs for 5 seconds, OR advance to mount",
+                        bottom: "Create frames AND recover to guard (half or full), OR reverse to top position"
+                    },
+                    coachingCues: [
+                        "Bottom: Turn to side FIRST, then build frames - can't frame while flat",
+                        "Bottom: Bottom frame is on their FAR hip (creates distance), not near",
+                        "Top: Swim your shoulder OVER their top frame to kill it",
+                        "Top: Pressure their bottom elbow to their ribs - kills bottom frame"
+                    ],
+                    progressions: [
+                        {num: 1, text: "Start: Top player maintains loose side control (gives space for frames)"},
+                        {num: 2, text: "Progress: Top player starts tight but allows bottom to turn to side"},
+                        {num: 3, text: "Advanced: Top player starts crushing, bottom must create frames from worst position"},
+                        {num: 4, text: "Competition: Add 30-second timer where top can submit after frames are broken"}
+                    ],
+                    pedagogicalNote: "FRAMES BEFORE MOVEMENT: Constraining escape to frame-creation first breaks bad habit of flailing. Elbow-to-ribs rule forces defensive structure."
+                };
             }
-            // ========== SIDE CONTROL ESCAPE GAMES ==========
-            else if ((keywords.sideControl.test(lowerQ) || keywords.escape.test(lowerQ)) && keywords.frames.test(lowerQ)) {
-                topic = 'Escapes';
-
-                if (skillLevel === 'beginner') {
-                    name = 'Frame Creation Drill';
-                    topPlayer = 'Start in side control. Can kill frames, but no submissions. Goal: stay in side control 90 seconds.';
-                    bottomPlayer = 'Create bottom frame (forearm on hip, top on neck/shoulder). Shrimp 3 times successfully, then attempt guard recovery.';
-                    coaching = 'Bottom: Forearm on FAR hip, don\'t use hands (weak). Stay on side - NEVER flat back. Shrimp SMALL and MANY. Top: Kill frames by underhooking, swimming over, or pressuring down. TEACHING PRINCIPLE: Break escape into steps - frames→shrimp→recover. Each step must be solid before next.';
-                    skills = '#frames #escapes #side-control #shrimping #progressive-learning';
-                } else if (keywords.pressure.test(lowerQ)) {
-                    name = 'Escape Heavy Pressure';
-                    topPlayer = 'Start in side control. Focus maximum pressure on chest/shoulders. Cannot submit. Goal: prevent escape for 90 seconds.';
-                    bottomPlayer = 'Escape under HEAVY pressure. Must create frames despite weight. Win by recovering guard.';
-                    coaching = 'Bottom: Frame EARLY before pressure settles. Once flat, nearly impossible. Use hip escape during breath when top shifts weight. Top: Crossface, chest-to-chest, settle ALL your weight on sternum. REALITY TRAINING: Simulates escaping bigger opponents or bad positions.';
-                    skills = '#frames #escapes #heavy-pressure #defensive-tactics #survival';
-                } else {
-                    name = 'Frame Escape Game';
-                    topPlayer = 'Start in side control. Maintain position or submit. Can advance to mount/back. 2-minute rounds.';
-                    bottomPlayer = 'Use frames to create space and escape to guard. Win by recovering guard or reversing. Can\'t give up back.';
-                    coaching = 'Bottom: Create strong bottom frame (forearm on hip, forearm on neck/shoulder). Don\'t flat back - stay on side. Shrimp to create space, then knee-shield or recover guard. Top: Kill the frames immediately - swim over, underhook, or pressure through them. Stay heavy on chest. GAME VARIATION: Advanced players - top can advance, beginner - top stays in side control only.';
-                    skills = '#frames #escapes #side-control #shrimping';
-                }
+            // TAKEDOWN ENTRIES (Wrestling fundamentals)
+            else if (patterns.takedown.test(p)) {
+                return {
+                    title: "Takedown Entry - Setup Required",
+                    category: "Takedowns",
+                    tags: ["#constraint-led", "#wrestling", "#takedowns", "#setups"],
+                    startPosition: "Both standing in neutral, good wrestling stance (feet staggered, hands up, head up).",
+                    constraints: [
+                        "Attacker MUST establish one of these controls BEFORE shooting: (1) collar tie, (2) wrist control, (3) underhook. Direct naked shots = reset with no point",
+                        "Attacker has maximum 5 seconds from establishing control to shoot - forces urgency",
+                        "Defender scores 1 point if they successfully sprawl AND get front headlock",
+                        "Attacker scores 1 point if they secure takedown position (don't need finish). First to 5 points."
+                    ],
+                    winConditions: {
+                        top: "Score 5 points via successful takedown entries (position secured, not necessarily finished)",
+                        bottom: "Score 5 points via successful sprawls to front headlock"
+                    },
+                    coachingCues: [
+                        "Attacker: Grip → pull to break posture → shoot as they react (3-step process)",
+                        "Attacker: Collar tie pull brings head down = shoot opposite side",
+                        "Defender: Feel the grip, start preparing sprawl, hands ready for head",
+                        "Defender: Sprawl = hips back fast, hands on head, chest on their back"
+                    ],
+                    progressions: [
+                        {num: 1, text: "Start: Attacker begins with control already established (focus on shot)"},
+                        {num: 2, text: "Progress: Attacker must establish control (current version)"},
+                        {num: 3, text: "Advanced: Add 3-second window instead of 5 (faster reactions required)"},
+                        {num: 4, text: "Competition: Add finishes required - must complete takedown, not just entry"}
+                    ],
+                    pedagogicalNote: "SETUPS > SHOTS: Requiring control before shooting teaches wrestling reality - random shots get stuffed. Point system creates competitive urgency."
+                };
             }
-            // ========== STANDING & TAKEDOWN GAMES ==========
-            else if (keywords.standing.test(lowerQ)) {
-                topic = 'Takedowns';
-
-                if (skillLevel === 'beginner') {
-                    name = 'Stance & Motion Game';
-                    topPlayer = 'Start standing. Goal: touch opponent\'s lead knee 3 times while staying in wrestling stance. No takedowns yet.';
-                    bottomPlayer = 'Stay in stance, move feet to avoid touches. Touch opponent\'s knee 3 times to win.';
-                    coaching = 'Both: Stay low, small steps, hands active. This builds stance awareness and footwork BEFORE attempting takedowns. Head up, back straight. PEDAGOGICAL NOTE: Movement before technique. Students must be comfortable standing before shooting. PROGRESSION: Next level add actual takedown attempts after touches.';
-                    skills = '#stance #footwork #wrestling #movement #basics';
-                } else if (keywords.grips.test(lowerQ) || keywords.technique.test(lowerQ)) {
-                    name = 'Grip & Entry Game';
-                    topPlayer = 'Secure collar tie or wrist control, then attempt single/double leg within 5 seconds. Must have grip before shooting.';
-                    bottomPlayer = 'Break grips with two-on-one, or counter with own tie/wrist control. Sprawl if they shoot.';
-                    coaching = 'Attacker: Grip→pull to break posture→shoot as they react. NO naked shots. Defender: Two hands beat one hand - strip grips before they settle. CONCEPT: Teaches setups. Random shooting gets stuffed - create opportunities first. COACH TIP: Count loud "5-4-3-2-1" to force action.';
-                    skills = '#takedowns #setups #grip-fighting #entries #wrestling';
-                } else if (keywords.defense.test(lowerQ)) {
-                    name = 'Sprawl & Counter Game';
-                    topPlayer = 'Attempt takedowns freely (single, double, ankle pick). Score 1 point per successful takedown. 2-minute rounds.';
-                    bottomPlayer = 'Sprawl and get front headlock on every shot. Score 1 point per successful front headlock. First to 5 points.';
-                    coaching = 'Shooter: Level change, penetration step, drive through. Defender: Hips down FAST (sprawl), hands on head (front headlock), then advance to side or back. COMPETITION ELEMENT: Points create urgency - defender MUST counter, not just defend. VARIATION: Winner stays, loser rotates (King of the Mat).';
-                    skills = '#takedowns #sprawl #front-headlock #defense #wrestling';
-                } else {
-                    name = 'Takedown Entry Game';
-                    topPlayer = 'Start standing. Secure a takedown position (single leg, double leg, or front headlock). Score by getting it.';
-                    bottomPlayer = 'Defend the takedown attempt. Stay standing. Win by successfully defending and disengaging.';
-                    coaching = 'Attacker: Level change, penetration step, secure the position. Don\'t telegraph. Defender: Sprawl, crossface, or counter-wrestle. Stay heavy on their back if they shoot. PRINCIPLE: Position before submission - secure the takedown position fully before finishing.';
-                    skills = '#takedowns #wrestling #entries #level-change';
-                }
-            }
-            // Submission problems
-            else if (keywords.submission.test(lowerQ)) {
-                topic = 'Submissions';
-                name = 'Submission Hunt';
-                topPlayer = 'Start in dominant position (side control or mount). Only win by submission. 3 minutes.';
-                bottomPlayer = 'Defend all submissions. Can escape but no points - just restart from same position.';
-                coaching = 'Attacker: Be patient, create reactions, chain submissions. Defender: Protect neck and arms, make frames, stay calm.';
-                skills = '#submissions #defense #patience #reactions';
-            }
-            // Scramble problems
-            else if (keywords.scramble.test(lowerQ)) {
-                topic = 'Scrambles';
-                name = 'Scramble Game';
-                topPlayer = 'Start from neutral scramble position. First to establish dominant position wins the round.';
-                bottomPlayer = 'Fight for top position or guard recovery. Stay active and don\'t get pinned.';
-                coaching = 'Both: Stay on your toes, fight for inside position, never stop moving until position is established.';
-                skills = '#scrambling #movement #positioning #wrestling';
-            }
-            // Back control problems
-            else if (keywords.back.test(lowerQ)) {
-                topic = 'Back Attacks';
-                name = 'Back Control Game';
-                topPlayer = 'Start with back control (one or both hooks). Maintain control or submit. 2 minutes.';
-                bottomPlayer = 'Escape back control. Win by escaping to guard or neutral. Hand fight immediately.';
-                coaching = 'Attacker: Stay heavy on opposite side of escape. Bottom: Hand fight, get back to mat, hide a shoulder, turn into them.';
-                skills = '#back-control #escapes #handfighting #positioning';
-            }
-            // Default: general positional game
+            // DEFAULT: General positional problem-solving game
             else {
-                name = 'Problem Solving Game';
-                topPlayer = 'Focus on maintaining top position and advancing. Can pass guard, take back, or submit.';
-                bottomPlayer = 'Work on the specific problem: recovering position, creating frames, or escaping.';
-                coaching = 'Identify the specific moment where the problem occurs and isolate that position. Start from there repeatedly.';
-                skills = '#problem-solving #positioning #fundamentals';
+                return {
+                    title: "Positional Problem-Solving Game",
+                    category: "Positional Sparring",
+                    tags: ["#constraint-led", "#problem-solving", "#custom"],
+                    startPosition: "Start in the position where the problem occurs (coach demonstrates specific situation from description).",
+                    constraints: [
+                        "Identify the exact moment where students fail - start 3 seconds before that moment",
+                        "Top player has specific goal related to the problem described",
+                        "Bottom player must solve the specific problem identified",
+                        "90-second rounds - short, intense, focused on one skill"
+                    ],
+                    winConditions: {
+                        top: "Successfully execute the action that causes the problem (e.g., if problem is 'getting passed', top wins by passing)",
+                        bottom: "Prevent the problem situation from occurring, OR recover to advantageous position"
+                    },
+                    coachingCues: [
+                        "Focus on the MOMENT of failure - what happens right before it goes wrong?",
+                        "Bottom: What is your body position when the problem occurs? Fix that first",
+                        "Top: Create the problem deliberately - help partner learn by applying pressure",
+                        "Both: This is not sparring - this is problem-solving. Slow down if needed"
+                    ],
+                    progressions: [
+                        {num: 1, text: "Start in worst position (just after problem occurs) and work backward"},
+                        {num: 2, text: "Progress to starting just before problem occurs (anticipation training)"},
+                        {num: 3, text: "Add complexity: earlier start position, more variables"},
+                        {num: 4, text: "Free sparring from the position - apply solution in chaos"}
+                    ],
+                    pedagogicalNote: `PROBLEM-SPECIFIC DESIGN: Based on your description: "${problem.substring(0, 100)}..." - Design the exact constraints that force students to solve THIS problem.`
+                };
             }
-
-            // Add question-specific notes to coaching
-            coaching = `Problem: "${question.substring(0, 100)}..." \n\n` + coaching;
-
-            return {
-                id: Date.now(),
-                name: name,
-                topic: topic,
-                gameNumber: gameNumber,
-                topPlayer: topPlayer,
-                bottomPlayer: bottomPlayer,
-                coaching: coaching,
-                skills: skills,
-                favorite: false,
-                lastUsed: null,
-                created: Date.now()
-            };
         }
 
-        function displayGeneratedGame(game) {
-            const preview = document.getElementById('aiGamePreview');
-            preview.innerHTML = `
-                <div style="margin-bottom: 0.75rem;">
-                    <span class="game-topic ${getTopicTagClass(game.topic)}">${game.topic}</span>
-                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-top: 0.5rem;">${game.name}</h3>
-                </div>
-                <div class="player-section">
-                    <span class="player-label">🔵 Top Player:</span>
-                    <div class="player-text">${game.topPlayer}</div>
-                </div>
-                <div class="player-section">
-                    <span class="player-label">🔴 Bottom Player:</span>
-                    <div class="player-text">${game.bottomPlayer}</div>
-                </div>
-                <div class="game-coaching">
-                    <strong>💡 Coaching:</strong>
-                    ${game.coaching}
-                </div>
-                <div class="hashtags">
-                    ${(game.skills.match(/#\w+/g) || []).map(tag => `<span class="hashtag">${tag}</span>`).join('')}
+        function displayConstraintGame(game) {
+            const card = document.getElementById('aiResultCard');
+
+            const constraintsList = game.constraints.map(c => `<div class="ai-constraint-box">🔒 ${c}</div>`).join('');
+
+            const progressionItems = game.progressions.map(p =>
+                `<li data-number="${p.num}">${p.text}</li>`
+            ).join('');
+
+            const coachingCues = game.coachingCues.map(c =>
+                `<div class="ai-cue">💡 ${c}</div>`
+            ).join('');
+
+            card.innerHTML = `
+                <div class="ai-result-card">
+                    <div class="ai-result-header">
+                        <div style="flex: 1;">
+                            <h3 class="ai-game-title">${game.title}</h3>
+                            <div class="ai-game-tags">
+                                <span class="ai-tag">${game.category}</span>
+                                ${game.tags.map(tag => `<span class="ai-tag">${tag}</span>`).join('')}
+                            </div>
+                        </div>
+                        <button class="ai-add-btn" onclick="addGeneratedGameToLibrary()">
+                            + Add to Library
+                        </button>
+                    </div>
+
+                    <div class="ai-game-content">
+                        <div class="ai-section">
+                            <div class="ai-section-title">
+                                📍 START POSITION
+                            </div>
+                            <div class="ai-section-content">
+                                ${game.startPosition}
+                            </div>
+                        </div>
+
+                        <div class="ai-section">
+                            <div class="ai-section-title">
+                                🔒 CONSTRAINTS (MOST IMPORTANT)
+                            </div>
+                            <div style="display: grid; gap: 0.75rem;">
+                                ${constraintsList}
+                            </div>
+                        </div>
+
+                        <div class="ai-section">
+                            <div class="ai-section-title">
+                                🎯 WIN CONDITIONS
+                            </div>
+                            <div class="ai-win-conditions">
+                                <div class="ai-win-box top">
+                                    <div class="ai-win-label">🔵 TOP PLAYER WINS BY:</div>
+                                    <div>${game.winConditions.top}</div>
+                                </div>
+                                <div class="ai-win-box bottom">
+                                    <div class="ai-win-label">🔴 BOTTOM PLAYER WINS BY:</div>
+                                    <div>${game.winConditions.bottom}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ai-section">
+                            <div class="ai-section-title">
+                                💬 KEY COACHING CUES
+                            </div>
+                            <div class="ai-coaching-cues">
+                                ${coachingCues}
+                            </div>
+                        </div>
+
+                        <div class="ai-section">
+                            <div class="ai-section-title">
+                                📈 PROGRESSION PATH (SCAFFOLDING)
+                            </div>
+                            <ol class="ai-progression-list">
+                                ${progressionItems}
+                            </ol>
+                        </div>
+
+                        ${game.pedagogicalNote ? `
+                        <div class="ai-section">
+                            <div class="ai-section-title">
+                                🧠 PEDAGOGICAL NOTE
+                            </div>
+                            <div class="ai-section-content" style="font-style: italic; color: #6366f1; font-weight: 500;">
+                                ${game.pedagogicalNote}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
                 </div>
             `;
         }
 
-        function addAIGame() {
-            if (!generatedGame) return;
+        function addGeneratedGameToLibrary() {
+            if (!window.lastGeneratedGame) {
+                alert('No game to add!');
+                return;
+            }
 
-            games.push(generatedGame);
+            const game = window.lastGeneratedGame;
+
+            // Convert to library format
+            const libraryGame = {
+                id: Date.now(),
+                name: game.title,
+                topic: game.category,
+                gameNumber: '',
+                topPlayer: `START: ${game.startPosition}\n\nCONSTRAINTS:\n${game.constraints.map((c,i) => `${i+1}. ${c}`).join('\n')}\n\nWIN BY: ${game.winConditions.top}`,
+                bottomPlayer: `WIN BY: ${game.winConditions.bottom}`,
+                coaching: `COACHING CUES:\n${game.coachingCues.map((c,i) => `${i+1}. ${c}`).join('\n')}\n\nPROGRESSION:\n${game.progressions.map(p => `${p.num}. ${p.text}`).join('\n')}\n\n${game.pedagogicalNote || ''}`,
+                skills: game.tags.join(' '),
+                favorite: false,
+                lastUsed: null,
+                created: Date.now()
+            };
+
+            // Add to games array
+            games.push(libraryGame);
             saveGames();
             renderGames();
+            showToast('✅ Game added to your library!');
 
-            showToast('✓ Game added to library!');
-
-            // Reset AI view
-            document.getElementById('aiQuestion').value = '';
-            document.getElementById('aiResponse').style.display = 'none';
-            document.getElementById('aiInstructions').style.display = 'block';
-            generatedGame = null;
-
-            // Switch to games tab to show the new game
+            // Switch to games tab
             setTimeout(() => {
-                switchTab('games');
-                document.querySelectorAll('.tab')[0].classList.add('active');
-            }, 1500);
+                const gamesTab = document.querySelectorAll('.tab')[0];
+                if (gamesTab) gamesTab.click();
+            }, 1000);
         }
 
         // Search and filter
