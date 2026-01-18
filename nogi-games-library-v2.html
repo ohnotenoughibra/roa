@@ -1814,13 +1814,16 @@
         }
 
         function deleteGame(id) {
-            if (!confirm('Delete this game?')) return;
+            const game = games.find(g => g.id === id);
+            const gameName = game ? game.name : 'game';
 
             games = games.filter(g => g.id !== id);
             saveGames();
             renderGames();
             if (currentTab === 'favorites') renderFavorites();
-            showToast('Game deleted');
+
+            showToast(`🗑️ "${gameName}" deleted`, 'info');
+            console.log('Game deleted:', id, gameName);
         }
 
         // Form submission
@@ -2287,11 +2290,15 @@
         }
 
         function deleteSession(id) {
-            if (!confirm('Delete this session?')) return;
+            const session = sessions.find(s => s.id === id);
+            const sessionName = session ? session.name : 'session';
+
             sessions = sessions.filter(s => s.id !== id);
             saveSessions();
             renderSessions();
-            showToast('Session deleted');
+
+            showToast(`🗑️ Session "${sessionName}" deleted`, 'info');
+            console.log('Session deleted:', id, sessionName);
         }
 
         // Toast notification
