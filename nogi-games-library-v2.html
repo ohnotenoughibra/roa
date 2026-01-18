@@ -1914,10 +1914,10 @@
                     }
 
                     if (confirm(`Import ${imported.length} game(s)? This will add to your existing games.`)) {
-                        games = [...games, ...imported.map(g => ({...g, id: Date.now() + Math.random()}))];
+                        games = [...games, ...imported];
                         saveGames();
                         renderGames();
-                        showToast(`✓ ${imported.length} game(s) imported`);
+                        showToast(`✅ ${imported.length} game(s) imported successfully!`, 'success');
                     }
                 } catch (err) {
                     alert(`Error importing file: ${err.message}\n\nMake sure it's a valid JSON or properly formatted text file.`);
@@ -2093,10 +2093,10 @@
                 }
 
                 if (confirm(`Import ${imported.length} game(s) from clipboard? This will add to your existing games.`)) {
-                    games = [...games, ...imported.map(g => ({...g, id: Date.now() + Math.random()}))];
+                    games = [...games, ...imported];
                     saveGames();
                     renderGames();
-                    showToast(`✓ ${imported.length} game(s) imported from clipboard`);
+                    showToast(`✅ ${imported.length} game(s) imported from clipboard!`, 'success');
                 }
             } catch (err) {
                 alert(`Could not import from clipboard: ${err.message}\n\nMake sure you copied valid JSON or text data first, or use Import File instead.`);
