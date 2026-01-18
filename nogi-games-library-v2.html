@@ -641,18 +641,32 @@
             bottom: 100px;
             left: 50%;
             transform: translateX(-50%) translateY(200px);
-            background: var(--text);
+            background: #059669;
             color: white;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            box-shadow: var(--shadow-lg);
+            padding: 1.25rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(5, 150, 105, 0.4);
             z-index: 2000;
-            transition: transform 0.3s;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
             max-width: 90%;
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.3);
         }
 
         .toast.show {
-            transform: translateX(-50%) translateY(0);
+            transform: translateX(-50%) translateY(0) scale(1.05);
+        }
+
+        .toast.error {
+            background: #dc2626;
+            box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+        }
+
+        .toast.info {
+            background: #2563eb;
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
         }
 
         .session-item {
@@ -675,9 +689,53 @@
 
         .quick-actions {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.75rem;
             flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 12px;
+            border: 2px solid #bae6fd;
+        }
+
+        .quick-actions .btn {
+            flex: 1;
+            min-width: 140px;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .action-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .action-section-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+        }
+
+        .primary-action {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            font-size: 1.05rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            transition: all 0.2s;
+            width: 100%;
             margin-bottom: 1rem;
+            min-height: 56px;
+        }
+
+        .primary-action:active {
+            transform: scale(0.98);
         }
 
         @media (max-width: 640px) {
@@ -757,6 +815,31 @@
                 </div>
             </div>
 
+            <div class="action-section">
+                <button class="primary-action" onclick="openModal()">
+                    ➕ Add New Game
+                </button>
+            </div>
+
+            <div class="action-section">
+                <div class="action-section-title">📥 Import & Export</div>
+                <div class="quick-actions">
+                    <button class="btn btn-primary" onclick="document.getElementById('importFile').click()">
+                        📥 Import File
+                    </button>
+                    <button class="btn btn-primary" onclick="pasteGames()">
+                        📋 Paste
+                    </button>
+                    <button class="btn btn-success" onclick="shareGames()">
+                        📤 Export
+                    </button>
+                    <button class="btn btn-success" onclick="copyGames()">
+                        📋 Copy
+                    </button>
+                    <input type="file" id="importFile" accept=".json,.txt,.text" style="display: none;" onchange="importGames(event)">
+                </div>
+            </div>
+
             <div class="controls">
                 <div class="search-box">
                     <input type="search" id="searchInput" placeholder="🔍 Search games...">
@@ -784,14 +867,6 @@
                     <option value="topic">Topic</option>
                     <option value="used">Recently Used</option>
                 </select>
-            </div>
-
-            <div class="quick-actions">
-                <button class="btn btn-secondary btn-sm" onclick="shareGames()">📤 Share/Export</button>
-                <button class="btn btn-secondary btn-sm" onclick="copyGames()">📋 Copy JSON</button>
-                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('importFile').click()">📥 Import File</button>
-                <button class="btn btn-secondary btn-sm" onclick="pasteGames()">📥 Paste JSON</button>
-                <input type="file" id="importFile" accept=".json,.txt,.text" style="display: none;" onchange="importGames(event)">
             </div>
 
             <div class="games-grid" id="gamesGrid"></div>
@@ -1772,7 +1847,7 @@
 
                     if (navigator.canShare(shareData)) {
                         await navigator.share(shareData);
-                        showToast('✓ Shared successfully');
+                        showToast(`✅ ${games.length} game(s) shared successfully!`, 'success');
                         return;
                     }
                 } catch (err) {
@@ -1792,7 +1867,7 @@
             link.download = fileName;
             link.click();
             URL.revokeObjectURL(url);
-            showToast('📤 Downloaded to Files');
+            showToast(`📤 Exported ${games.length} game(s) to file successfully!`, 'success');
         }
 
         async function copyGames() {
@@ -1800,7 +1875,7 @@
 
             try {
                 await navigator.clipboard.writeText(dataStr);
-                showToast('📋 Copied to clipboard! Paste into Notes app to save.');
+                showToast(`📋 ${games.length} game(s) copied to clipboard!`, 'success');
             } catch (err) {
                 // Fallback for older browsers
                 const textarea = document.createElement('textarea');
@@ -1811,9 +1886,9 @@
                 textarea.select();
                 try {
                     document.execCommand('copy');
-                    showToast('📋 Copied to clipboard!');
+                    showToast(`📋 ${games.length} game(s) copied to clipboard!`, 'success');
                 } catch (e) {
-                    alert('Could not copy. Please use Share/Export instead.');
+                    showToast('❌ Could not copy. Please use Export instead.', 'error');
                 }
                 document.body.removeChild(textarea);
             }
@@ -2106,13 +2181,28 @@
         }
 
         // Toast notification
-        function showToast(message) {
+        function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
             toast.textContent = message;
+
+            // Remove any existing type classes
+            toast.classList.remove('error', 'info', 'success');
+
+            // Add the new type class
+            if (type === 'error') {
+                toast.classList.add('error');
+            } else if (type === 'info') {
+                toast.classList.add('info');
+            }
+
             toast.classList.add('show');
+
+            // Longer duration for important messages
+            const duration = type === 'error' ? 4000 : 3000;
+
             setTimeout(() => {
                 toast.classList.remove('show');
-            }, 2000);
+            }, duration);
         }
 
         // ==================== AI GAME GENERATOR ====================
