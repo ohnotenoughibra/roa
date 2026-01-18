@@ -808,64 +808,343 @@
             <div id="sessionsList"></div>
         </div>
 
+        <!-- ==================== CONSTRAINT-LED AI GAME DESIGNER ==================== -->
         <div id="aiView" style="display: none;">
-            <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 1.5rem;">
-                <h2 style="font-size: 1.5rem; margin-bottom: 1rem;">🤖 AI Game Generator</h2>
-                <p style="color: var(--text-muted); margin-bottom: 1.5rem;">
-                    Describe your grappling problem or training goal, and I'll generate a custom game for you!
-                </p>
+            <style>
+                /* AI Game Designer Styles - Mobile First */
+                .ai-container {
+                    max-width: 100%;
+                    margin: 0 auto;
+                }
 
-                <div class="form-group">
-                    <label>What do you want to work on?</label>
-                    <textarea id="aiQuestion" placeholder="Example: My students struggle with maintaining top position when opponent tries to turtle..." style="min-height: 120px;"></textarea>
-                    <small>Describe the problem, skill gap, or training objective you want to address</small>
+                .ai-header {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 1.5rem;
+                    border-radius: 12px;
+                    margin-bottom: 1.5rem;
+                    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+                }
+
+                .ai-header h2 {
+                    font-size: 1.5rem;
+                    margin-bottom: 0.5rem;
+                    font-weight: 700;
+                }
+
+                .ai-header p {
+                    opacity: 0.95;
+                    font-size: 0.95rem;
+                    line-height: 1.5;
+                }
+
+                .ai-input-section {
+                    background: white;
+                    padding: 1.5rem;
+                    border-radius: 12px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    margin-bottom: 1.5rem;
+                }
+
+                .ai-textarea {
+                    width: 100%;
+                    min-height: 140px;
+                    padding: 1rem;
+                    border: 2px solid #e2e8f0;
+                    border-radius: 10px;
+                    font-size: 1rem;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    resize: vertical;
+                    transition: border-color 0.2s;
+                }
+
+                .ai-textarea:focus {
+                    outline: none;
+                    border-color: #667eea;
+                    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                }
+
+                .ai-examples {
+                    display: grid;
+                    gap: 0.75rem;
+                    margin-top: 1rem;
+                }
+
+                .ai-example-btn {
+                    background: #f8fafc;
+                    border: 2px solid #e2e8f0;
+                    padding: 1rem;
+                    border-radius: 10px;
+                    text-align: left;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    font-size: 0.95rem;
+                    color: #334155;
+                    min-height: 56px;
+                    display: flex;
+                    align-items: center;
+                }
+
+                .ai-example-btn:active {
+                    transform: scale(0.98);
+                }
+
+                .ai-example-btn:hover {
+                    background: #f1f5f9;
+                    border-color: #cbd5e1;
+                }
+
+                .ai-generate-btn {
+                    width: 100%;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    border: none;
+                    padding: 1.25rem;
+                    border-radius: 12px;
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    margin-top: 1.5rem;
+                    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                    transition: all 0.3s;
+                    min-height: 60px;
+                }
+
+                .ai-generate-btn:active {
+                    transform: translateY(1px);
+                }
+
+                .ai-result-card {
+                    background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+                    border-radius: 12px;
+                    padding: 1.5rem;
+                    margin-bottom: 1.5rem;
+                    box-shadow: 0 4px 16px rgba(150, 230, 161, 0.3);
+                }
+
+                .ai-result-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 1.5rem;
+                    gap: 1rem;
+                }
+
+                .ai-game-title {
+                    font-size: 1.4rem;
+                    font-weight: 800;
+                    color: #065f46;
+                    margin-bottom: 0.5rem;
+                }
+
+                .ai-game-tags {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                    margin-bottom: 1rem;
+                }
+
+                .ai-tag {
+                    background: rgba(255, 255, 255, 0.9);
+                    color: #059669;
+                    padding: 0.35rem 0.75rem;
+                    border-radius: 20px;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                }
+
+                .ai-add-btn {
+                    background: #059669;
+                    color: white;
+                    border: none;
+                    padding: 0.875rem 1.5rem;
+                    border-radius: 10px;
+                    font-weight: 700;
+                    font-size: 1rem;
+                    cursor: pointer;
+                    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+                    white-space: nowrap;
+                    min-height: 50px;
+                    transition: all 0.2s;
+                }
+
+                .ai-add-btn:active {
+                    transform: scale(0.95);
+                }
+
+                .ai-game-content {
+                    background: white;
+                    border-radius: 10px;
+                    padding: 1.25rem;
+                }
+
+                .ai-section {
+                    margin-bottom: 1.25rem;
+                    padding-bottom: 1.25rem;
+                    border-bottom: 1px solid #e2e8f0;
+                }
+
+                .ai-section:last-child {
+                    border-bottom: none;
+                    margin-bottom: 0;
+                    padding-bottom: 0;
+                }
+
+                .ai-section-title {
+                    font-weight: 700;
+                    color: #0f172a;
+                    font-size: 0.85rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    margin-bottom: 0.5rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                }
+
+                .ai-section-content {
+                    color: #334155;
+                    line-height: 1.6;
+                    font-size: 0.95rem;
+                }
+
+                .ai-win-conditions {
+                    display: grid;
+                    gap: 0.75rem;
+                }
+
+                .ai-win-box {
+                    background: #f8fafc;
+                    padding: 0.875rem;
+                    border-radius: 8px;
+                    border-left: 4px solid #3b82f6;
+                }
+
+                .ai-win-box.bottom {
+                    border-left-color: #ef4444;
+                }
+
+                .ai-win-label {
+                    font-weight: 700;
+                    font-size: 0.8rem;
+                    color: #3b82f6;
+                    margin-bottom: 0.25rem;
+                }
+
+                .ai-win-box.bottom .ai-win-label {
+                    color: #ef4444;
+                }
+
+                .ai-coaching-cues {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                }
+
+                .ai-cue {
+                    background: #fef3c7;
+                    padding: 0.75rem;
+                    border-radius: 6px;
+                    border-left: 3px solid #f59e0b;
+                    font-size: 0.9rem;
+                    color: #78350f;
+                }
+
+                .ai-progression-list {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                }
+
+                .ai-progression-list li {
+                    background: #f1f5f9;
+                    padding: 0.875rem;
+                    border-radius: 8px;
+                    margin-bottom: 0.5rem;
+                    position: relative;
+                    padding-left: 2.5rem;
+                    font-size: 0.9rem;
+                    color: #334155;
+                }
+
+                .ai-progression-list li::before {
+                    content: attr(data-number);
+                    position: absolute;
+                    left: 0.875rem;
+                    top: 0.875rem;
+                    background: #667eea;
+                    color: white;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 700;
+                    font-size: 0.75rem;
+                }
+
+                .ai-constraint-box {
+                    background: #fef2f2;
+                    border: 2px solid #fecaca;
+                    padding: 1rem;
+                    border-radius: 8px;
+                    color: #991b1b;
+                    font-weight: 600;
+                }
+
+                @media (min-width: 640px) {
+                    .ai-examples {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                }
+            </style>
+
+            <div class="ai-container">
+                <!-- Header -->
+                <div class="ai-header">
+                    <h2>🎯 AI Game Designer</h2>
+                    <p>Constraint-led approach: Describe your training problem and get a custom game with specific start positions, strong constraints, and clear win conditions.</p>
                 </div>
 
-                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                    <button class="btn btn-primary" onclick="generateGamePrompt()" style="flex: 1;">
-                        ✨ Generate Game
-                    </button>
-                    <button class="btn btn-secondary" onclick="document.getElementById('aiQuestion').value = ''">
-                        Clear
-                    </button>
-                </div>
+                <!-- Input Section -->
+                <div class="ai-input-section">
+                    <label for="aiProblemInput" style="display: block; font-weight: 600; margin-bottom: 0.75rem; color: #0f172a;">
+                        What problem do you want to solve?
+                    </label>
+                    <textarea
+                        id="aiProblemInput"
+                        class="ai-textarea"
+                        placeholder="e.g., My students get flattened from turtle and can't escape..."></textarea>
 
-                <div id="aiResponse" style="display: none;">
-                    <div style="background: #f0fdf4; border: 2px solid #10b981; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                            <strong style="color: #059669;">✓ Game Generated!</strong>
-                            <button class="btn btn-success btn-sm" onclick="addAIGame()">Add to Library</button>
+                    <div style="margin-top: 0.75rem;">
+                        <label style="display: block; font-size: 0.85rem; color: #64748b; margin-bottom: 0.5rem;">
+                            💡 Or try these common scenarios:
+                        </label>
+                        <div class="ai-examples">
+                            <button class="ai-example-btn" onclick="fillExample(0)">
+                                Students get their guard passed when they sit up
+                            </button>
+                            <button class="ai-example-btn" onclick="fillExample(1)">
+                                Can't escape side control - get stuck flat
+                            </button>
+                            <button class="ai-example-btn" onclick="fillExample(2)">
+                                Turtle position - students get flattened or back taken
+                            </button>
+                            <button class="ai-example-btn" onclick="fillExample(3)">
+                                Passing knee shield - students get swept or can't advance
+                            </button>
                         </div>
-                        <div id="aiGamePreview" style="background: white; padding: 1rem; border-radius: 6px; margin-top: 0.5rem;"></div>
                     </div>
+
+                    <button class="ai-generate-btn" onclick="generateConstraintGame()">
+                        ✨ Generate Constraint-Led Game
+                    </button>
                 </div>
 
-                <div id="aiInstructions" style="background: #eff6ff; border-left: 3px solid #3b82f6; padding: 1rem; border-radius: 6px;">
-                    <strong style="color: #1e40af; display: block; margin-bottom: 0.5rem;">💡 How it works:</strong>
-                    <ol style="margin-left: 1.25rem; color: #1e3a8a;">
-                        <li style="margin-bottom: 0.5rem;">Describe your training problem or goal</li>
-                        <li style="margin-bottom: 0.5rem;">Click "Generate Game" to create a custom training game</li>
-                        <li style="margin-bottom: 0.5rem;">Review the generated game</li>
-                        <li>Click "Add to Library" to save it</li>
-                    </ol>
-                </div>
-            </div>
-
-            <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow);">
-                <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">Example Questions:</h3>
-                <div style="display: grid; gap: 0.75rem;">
-                    <div class="session-item" onclick="document.getElementById('aiQuestion').value = this.querySelector('.ai-example-text').textContent" style="cursor: pointer;">
-                        <div class="ai-example-text">My students keep getting their guard passed when they sit up. How can I train them to maintain guard?</div>
-                    </div>
-                    <div class="session-item" onclick="document.getElementById('aiQuestion').value = this.querySelector('.ai-example-text').textContent" style="cursor: pointer;">
-                        <div class="ai-example-text">We need a game to work on aggressive guard passing without being submitted</div>
-                    </div>
-                    <div class="session-item" onclick="document.getElementById('aiQuestion').value = this.querySelector('.ai-example-text').textContent" style="cursor: pointer;">
-                        <div class="ai-example-text">How can I teach students to escape side control using frames?</div>
-                    </div>
-                    <div class="session-item" onclick="document.getElementById('aiQuestion').value = this.querySelector('.ai-example-text').textContent" style="cursor: pointer;">
-                        <div class="ai-example-text">My students need to develop better takedown entries from standing</div>
-                    </div>
+                <!-- Result Card (hidden by default) -->
+                <div id="aiResultCard" style="display: none;">
+                    <!-- Game will be inserted here -->
                 </div>
             </div>
         </div>
@@ -1650,101 +1929,60 @@
             ]
         };
 
-        function generateGamePrompt() {
-            const question = document.getElementById('aiQuestion').value.trim();
+        // ==================== CONSTRAINT-LED AI GAME DESIGNER ====================
+        // Modern pedagogical approach based on ecological dynamics
 
-            if (!question) {
-                alert('Please describe your training problem or goal first!');
+        window.lastGeneratedGame = null;
+
+        const exampleProblems = [
+            "My students keep getting their guard passed when they sit up. They don't maintain distance and get smashed.",
+            "Students can't escape side control. They go flat on their back and give up instead of creating frames.",
+            "From turtle, my students get flattened out or back taken immediately. They don't know when to explode.",
+            "When passing knee shield, students get swept or stuck. They don't understand pressure sequencing."
+        ];
+
+        function fillExample(index) {
+            document.getElementById('aiProblemInput').value = exampleProblems[index];
+        }
+
+        function generateConstraintGame() {
+            const problem = document.getElementById('aiProblemInput').value.trim();
+
+            if (!problem) {
+                alert('Please describe your training problem first!');
                 return;
             }
 
-            // Analyze existing games to learn patterns
-            const libraryPatterns = analyzeLibraryGames();
-
-            // Generate game using enhanced algorithm
-            const game = analyzeAndGenerateGame(question, libraryPatterns);
+            // Generate game using constraint-led algorithm
+            const game = analyzeAndCreateConstraintGame(problem);
 
             if (game) {
-                generatedGame = game;
-                displayGeneratedGame(game);
-                document.getElementById('aiResponse').style.display = 'block';
-                document.getElementById('aiInstructions').style.display = 'none';
-                showToast('✨ Game generated!');
+                window.lastGeneratedGame = game;
+                displayConstraintGame(game);
+                document.getElementById('aiResultCard').style.display = 'block';
+                document.getElementById('aiResultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
         }
 
-        // Analyze existing games in library to learn common patterns
-        function analyzeLibraryGames() {
+        function analyzeAndCreateConstraintGame(problem) {
+            const p = problem.toLowerCase();
+
+            // Advanced keyword detection
             const patterns = {
-                commonTopics: {},
-                commonSkills: [],
-                avgGameLength: 0,
-                touchBasedGames: 0,
-                progressionGames: 0,
-                totalGames: games.length
+                guardRetention: /guard.*(pass|retention|maintain|sit.*up|distance|smash)/i,
+                guardPass: /pass.*guard|knee.*shield|stuck.*passing|can't.*pass|smash.*through/i,
+                turtle: /turtle|flatten|defensive.*ball|back.*take.*turtle/i,
+                sideEscape: /side.*control.*escape|stuck.*side|flat.*back|can't.*escape.*side/i,
+                mountEscape: /mount.*escape|stuck.*mount|can't.*escape.*mount/i,
+                backEscape: /back.*escape|rear.*naked|hooks/i,
+                takedown: /takedown|wrestling|shoot|sprawl|standup/i,
+                legLock: /leg.*lock|heel.*hook|ankle|ashi|saddle/i,
+                frames: /frame|creating.*space|defensive.*structure/i,
+                grips: /grip|hand.*control|breaking.*grips/i
             };
 
-            games.forEach(game => {
-                // Count topics
-                patterns.commonTopics[game.topic] = (patterns.commonTopics[game.topic] || 0) + 1;
-
-                // Extract skills
-                const skills = game.skills.match(/#[\w-]+/g) || [];
-                patterns.commonSkills.push(...skills);
-
-                // Detect game types
-                if (game.topPlayer.toLowerCase().includes('touch')) {
-                    patterns.touchBasedGames++;
-                }
-                if (game.topPlayer.toLowerCase().includes('then') || game.topPlayer.toLowerCase().includes('move to')) {
-                    patterns.progressionGames++;
-                }
-            });
-
-            return patterns;
-        }
-
-        function analyzeAndGenerateGame(question, libraryPatterns = {}) {
-            const lowerQ = question.toLowerCase();
-
-            // Enhanced keyword analysis with compound patterns
-            const keywords = {
-                guard: /guard|retention|maintain.*guard|keeping.*guard|closed.*guard|open.*guard/i,
-                guardPass: /pass|passing.*guard|get.*past|torreando|knee.*slice|stack.*pass|smash/i,
-                turtle: /turtle|turtl|defensive.*position/i,
-                mount: /mount|mounted|high.*mount/i,
-                sideControl: /side.*control|side.*mount|cross.*side|kesa/i,
-                back: /back.*control|back.*take|rear.*naked|hooks/i,
-                standing: /standing|takedown|wrestling|shoot|feet/i,
-                frames: /frame|framing|creating.*space|elbow.*escape/i,
-                escape: /escape|escaping|get.*out|recover/i,
-                submission: /submit|submission|tap|choke|armbar|kimura|triangle/i,
-                pressure: /pressure|heavy|weight|smash|crush/i,
-                grips: /grip|gripping|hand.*control|collar|sleeve/i,
-                scramble: /scramble|scrambling|transition|chaos/i,
-                beginner: /beginner|new|fundamental|basic|white.*belt/i,
-                advanced: /advanced|competition|high.*level|blue.*belt|purple|brown|black/i,
-                timing: /timing|reaction|speed|fast|slow/i,
-                defense: /defend|defense|prevent|stop/i,
-                offense: /attack|offense|aggressive|finish/i,
-                movement: /movement|mobility|agility|footwork/i,
-                technique: /technique|technical|detail|precision/i
-            };
-
-            // Detect skill level
-            const skillLevel = keywords.beginner.test(lowerQ) ? 'beginner' :
-                             keywords.advanced.test(lowerQ) ? 'advanced' : 'intermediate';
-
-            let topic = 'Positional Sparring';
-            let gameNumber = '';
-            let name = 'Custom Training Game';
-            let topPlayer = '';
-            let bottomPlayer = '';
-            let coaching = '';
-            let skills = '#training';
-
-            // ========== GUARD RETENTION GAMES ==========
-            if (keywords.guard.test(lowerQ) && !keywords.guardPass.test(lowerQ)) {
+            // GUARD RETENTION GAMES (Gordon Ryan / New Wave style)
+            if (patterns.guardRetention.test(p)) {
                 topic = 'Guard Retention';
 
                 // Vary game based on skill level and specific issues
