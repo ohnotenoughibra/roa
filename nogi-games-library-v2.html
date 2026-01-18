@@ -1910,17 +1910,14 @@
                         return;
                     }
 
-                    if (confirm(`Import ${imported.length} game(s)? This will add to your existing games.`)) {
-                        const beforeCount = games.length;
-                        games = [...games, ...imported];
-                        saveGames();
-                        renderGames();
-                        const afterCount = games.length;
-                        console.log(`Games before: ${beforeCount}, after: ${afterCount}`);
-                        showToast(`✅ ${imported.length} game(s) imported successfully!`, 'success');
-                    } else {
-                        showToast('Import cancelled', 'info');
-                    }
+                    // Import directly without confirmation (better mobile UX)
+                    const beforeCount = games.length;
+                    games = [...games, ...imported];
+                    saveGames();
+                    renderGames();
+                    const afterCount = games.length;
+                    console.log(`Games before: ${beforeCount}, after: ${afterCount}`);
+                    showToast(`✅ ${imported.length} game(s) added! Total: ${afterCount}`, 'success');
                 } catch (err) {
                     console.error('Import error:', err);
                     showToast(`❌ Error: ${err.message}`, 'error');
@@ -2106,22 +2103,24 @@
 
         async function pasteGames() {
             try {
+                showToast('📋 Reading clipboard...', 'info');
                 const text = await navigator.clipboard.readText();
                 const imported = parseImportedContent(text, 'clipboard');
 
                 if (!imported || imported.length === 0) {
-                    alert('No valid games found in clipboard.');
+                    showToast('❌ No valid games found in clipboard', 'error');
                     return;
                 }
 
-                if (confirm(`Import ${imported.length} game(s) from clipboard? This will add to your existing games.`)) {
-                    games = [...games, ...imported];
-                    saveGames();
-                    renderGames();
-                    showToast(`✅ ${imported.length} game(s) imported from clipboard!`, 'success');
-                }
+                // Import directly without confirmation (better mobile UX)
+                const beforeCount = games.length;
+                games = [...games, ...imported];
+                saveGames();
+                renderGames();
+                showToast(`✅ ${imported.length} game(s) pasted! Total: ${games.length}`, 'success');
             } catch (err) {
-                alert(`Could not import from clipboard: ${err.message}\n\nMake sure you copied valid JSON or text data first, or use Import File instead.`);
+                showToast(`❌ Could not paste: ${err.message}`, 'error');
+                console.error('Paste error:', err);
             }
         }
 
