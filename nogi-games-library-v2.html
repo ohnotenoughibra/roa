@@ -754,31 +754,23 @@
         }
 
         /* Topic color classes */
-        .topic-standing { border-left-color: var(--color-standing); }
-        .topic-guarded { border-left-color: var(--color-guarded); }
-        .topic-pinning { border-left-color: var(--color-pinning); }
-        .topic-submissions { border-left-color: var(--color-submissions); }
         .topic-guard-passing { border-left-color: var(--color-guard-passing); }
         .topic-guard-retention { border-left-color: var(--color-guard-retention); }
-        .topic-back-attacks { border-left-color: var(--color-back-attacks); }
+        .topic-top-control { border-left-color: var(--color-pinning); }
+        .topic-escapes { border-left-color: var(--color-escapes); }
+        .topic-back-control { border-left-color: var(--color-back-attacks); }
         .topic-leg-locks { border-left-color: var(--color-leg-locks); }
         .topic-takedowns { border-left-color: var(--color-takedowns); }
-        .topic-scrambles { border-left-color: var(--color-scrambles); }
-        .topic-escapes { border-left-color: var(--color-escapes); }
-        .topic-movement { border-left-color: var(--color-movement); }
+        .topic-transitions { border-left-color: var(--color-scrambles); }
 
-        .topic-tag-standing { background: var(--color-standing); }
-        .topic-tag-guarded { background: var(--color-guarded); }
-        .topic-tag-pinning { background: var(--color-pinning); }
-        .topic-tag-submissions { background: var(--color-submissions); }
         .topic-tag-guard-passing { background: var(--color-guard-passing); }
         .topic-tag-guard-retention { background: var(--color-guard-retention); }
-        .topic-tag-back-attacks { background: var(--color-back-attacks); }
+        .topic-tag-top-control { background: var(--color-pinning); }
+        .topic-tag-escapes { background: var(--color-escapes); }
+        .topic-tag-back-control { background: var(--color-back-attacks); }
         .topic-tag-leg-locks { background: var(--color-leg-locks); }
         .topic-tag-takedowns { background: var(--color-takedowns); }
-        .topic-tag-scrambles { background: var(--color-scrambles); }
-        .topic-tag-escapes { background: var(--color-escapes); }
-        .topic-tag-movement { background: var(--color-movement); }
+        .topic-tag-transitions { background: var(--color-scrambles); }
     </style>
 </head>
 <body>
@@ -847,18 +839,14 @@
 
                 <select id="topicFilter">
                     <option value="">All Topics</option>
-                    <option value="Standing">Standing</option>
-                    <option value="Guarded">Guarded</option>
-                    <option value="Pinning">Pinning</option>
-                    <option value="Submissions">Submissions</option>
                     <option value="Guard Passing">Guard Passing</option>
                     <option value="Guard Retention">Guard Retention</option>
-                    <option value="Back Attacks">Back Attacks</option>
+                    <option value="Top Control">Top Control</option>
+                    <option value="Escapes">Escapes</option>
+                    <option value="Back Control">Back Control</option>
                     <option value="Leg Locks">Leg Locks</option>
                     <option value="Takedowns">Takedowns</option>
-                    <option value="Scrambles">Scrambles</option>
-                    <option value="Escapes">Escapes</option>
-                    <option value="Movement">Movement</option>
+                    <option value="Transitions">Transitions</option>
                 </select>
 
                 <select id="sortBy">
@@ -1310,18 +1298,14 @@
                         <label>Topic</label>
                         <select id="gameTopic" required>
                             <option value="">Select...</option>
-                            <option value="Standing">Standing</option>
-                            <option value="Guarded">Guarded</option>
-                            <option value="Pinning">Pinning</option>
-                            <option value="Submissions">Submissions</option>
                             <option value="Guard Passing">Guard Passing</option>
                             <option value="Guard Retention">Guard Retention</option>
-                            <option value="Back Attacks">Back Attacks</option>
+                            <option value="Top Control">Top Control</option>
+                            <option value="Escapes">Escapes</option>
+                            <option value="Back Control">Back Control</option>
                             <option value="Leg Locks">Leg Locks</option>
                             <option value="Takedowns">Takedowns</option>
-                            <option value="Scrambles">Scrambles</option>
-                            <option value="Escapes">Escapes</option>
-                            <option value="Movement">Movement</option>
+                            <option value="Transitions">Transitions</option>
                         </select>
                     </div>
 
