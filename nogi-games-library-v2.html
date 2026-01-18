@@ -786,8 +786,10 @@
             </div>
 
             <div class="quick-actions">
-                <button class="btn btn-secondary btn-sm" onclick="exportGames()">📤 Export</button>
-                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
+                <button class="btn btn-secondary btn-sm" onclick="shareGames()">📤 Share/Export</button>
+                <button class="btn btn-secondary btn-sm" onclick="copyGames()">📋 Copy JSON</button>
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('importFile').click()">📥 Import File</button>
+                <button class="btn btn-secondary btn-sm" onclick="pasteGames()">📥 Paste JSON</button>
                 <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importGames(event)">
             </div>
 
@@ -1354,15 +1356,71 @@
         });
 
         // Export/Import
-        function exportGames() {
+        async function shareGames() {
             const dataStr = JSON.stringify(games, null, 2);
+            const fileName = `nogi-games-${Date.now()}.json`;
+
+            // Check if Web Share API is available (iOS Safari, modern browsers)
+            if (navigator.share && navigator.canShare) {
+                try {
+                    const file = new File([dataStr], fileName, { type: 'application/json' });
+                    const shareData = {
+                        files: [file],
+                        title: 'NoGi Games Library',
+                        text: `My NoGi training games library (${games.length} games)`
+                    };
+
+                    if (navigator.canShare(shareData)) {
+                        await navigator.share(shareData);
+                        showToast('✓ Shared successfully');
+                        return;
+                    }
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.log('Share failed, falling back to download');
+                    } else {
+                        return; // User cancelled
+                    }
+                }
+            }
+
+            // Fallback to download
             const dataBlob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(dataBlob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `nogi-games-${Date.now()}.json`;
+            link.download = fileName;
             link.click();
-            showToast('📤 Games exported');
+            URL.revokeObjectURL(url);
+            showToast('📤 Downloaded to Files');
+        }
+
+        async function copyGames() {
+            const dataStr = JSON.stringify(games, null, 2);
+
+            try {
+                await navigator.clipboard.writeText(dataStr);
+                showToast('📋 Copied to clipboard! Paste into Notes app to save.');
+            } catch (err) {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = dataStr;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast('📋 Copied to clipboard!');
+                } catch (e) {
+                    alert('Could not copy. Please use Share/Export instead.');
+                }
+                document.body.removeChild(textarea);
+            }
+        }
+
+        function exportGames() {
+            shareGames(); // Keep this for backward compatibility
         }
 
         function importGames(event) {
@@ -1380,11 +1438,32 @@
                         showToast('✓ Games imported');
                     }
                 } catch (err) {
-                    alert('Error importing file');
+                    alert('Error importing file. Make sure it\'s a valid JSON file.');
                 }
             };
             reader.readAsText(file);
             event.target.value = '';
+        }
+
+        async function pasteGames() {
+            try {
+                const text = await navigator.clipboard.readText();
+                const imported = JSON.parse(text);
+
+                if (!Array.isArray(imported)) {
+                    alert('Invalid format. Please copy the JSON from the export.');
+                    return;
+                }
+
+                if (confirm(`Import ${imported.length} games? This will add to your existing games.`)) {
+                    games = [...games, ...imported.map(g => ({...g, id: Date.now() + Math.random()}))];
+                    saveGames();
+                    renderGames();
+                    showToast('✓ Games imported from clipboard');
+                }
+            } catch (err) {
+                alert('Could not read clipboard. Make sure you copied the JSON data first, or use Import File instead.');
+            }
         }
 
         // Sessions
