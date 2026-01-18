@@ -1617,8 +1617,38 @@
             }, 2000);
         }
 
-        // AI Game Generator
+        // ==================== AI GAME GENERATOR ====================
+        // Enhanced game creation system with progressive complexity
+
         let generatedGame = null;
+
+        // Game Design Principles Database
+        const GAME_DESIGN_PRINCIPLES = {
+            constraints: [
+                'Touch rules (3 touch, alternating touches)',
+                'Time limits (30s, 1min, 2min rounds)',
+                'Position restrictions (can only use certain grips/techniques)',
+                'Progression gates (must complete X before Y)',
+                'Handicaps (top player starts without grips, bottom has one arm)',
+                'Point systems (first to 3 points, defending = 1pt per 30s)',
+                'Equipment constraints (can only grip sleeves, one arm behind back)'
+            ],
+            winConditions: [
+                'Time-based (survive X seconds)',
+                'Position achievement (reach mount/back)',
+                'Submission only',
+                'Escape-based (recover guard)',
+                'Point accumulation',
+                'Technical completion (complete 3 passes)'
+            ],
+            skillProgression: [
+                'Isolation → Integration',
+                'Static → Dynamic',
+                'Compliant → Resistant',
+                'Simple → Complex',
+                'Slow → Fast'
+            ]
+        };
 
         function generateGamePrompt() {
             const question = document.getElementById('aiQuestion').value.trim();
@@ -1628,8 +1658,11 @@
                 return;
             }
 
-            // Analyze the question and generate appropriate game
-            const game = analyzeAndGenerateGame(question);
+            // Analyze existing games to learn patterns
+            const libraryPatterns = analyzeLibraryGames();
+
+            // Generate game using enhanced algorithm
+            const game = analyzeAndGenerateGame(question, libraryPatterns);
 
             if (game) {
                 generatedGame = game;
@@ -1640,27 +1673,67 @@
             }
         }
 
-        function analyzeAndGenerateGame(question) {
+        // Analyze existing games in library to learn common patterns
+        function analyzeLibraryGames() {
+            const patterns = {
+                commonTopics: {},
+                commonSkills: [],
+                avgGameLength: 0,
+                touchBasedGames: 0,
+                progressionGames: 0,
+                totalGames: games.length
+            };
+
+            games.forEach(game => {
+                // Count topics
+                patterns.commonTopics[game.topic] = (patterns.commonTopics[game.topic] || 0) + 1;
+
+                // Extract skills
+                const skills = game.skills.match(/#[\w-]+/g) || [];
+                patterns.commonSkills.push(...skills);
+
+                // Detect game types
+                if (game.topPlayer.toLowerCase().includes('touch')) {
+                    patterns.touchBasedGames++;
+                }
+                if (game.topPlayer.toLowerCase().includes('then') || game.topPlayer.toLowerCase().includes('move to')) {
+                    patterns.progressionGames++;
+                }
+            });
+
+            return patterns;
+        }
+
+        function analyzeAndGenerateGame(question, libraryPatterns = {}) {
             const lowerQ = question.toLowerCase();
 
-            // Analyze keywords to determine the problem type
+            // Enhanced keyword analysis with compound patterns
             const keywords = {
-                guard: /guard|retention|maintain.*guard|keeping.*guard/i,
-                guardPass: /pass|passing.*guard|get.*past|torreando|knee.*slice/i,
-                turtle: /turtle|turtl/i,
-                mount: /mount|mounted/i,
-                sideControl: /side.*control|side.*mount/i,
-                back: /back.*control|back.*take|rear.*naked/i,
-                standing: /standing|takedown|wrestling|shoot/i,
-                frames: /frame|framing|creating.*space/i,
-                escape: /escape|escaping|get.*out/i,
-                submission: /submit|submission|tap|choke|armbar/i,
-                pressure: /pressure|heavy|weight/i,
-                grips: /grip|gripping|hand.*control/i,
-                scramble: /scramble|scrambling|transition/i,
-                beginner: /beginner|new|fundamental|basic/i,
-                advanced: /advanced|competition|high.*level/i
+                guard: /guard|retention|maintain.*guard|keeping.*guard|closed.*guard|open.*guard/i,
+                guardPass: /pass|passing.*guard|get.*past|torreando|knee.*slice|stack.*pass|smash/i,
+                turtle: /turtle|turtl|defensive.*position/i,
+                mount: /mount|mounted|high.*mount/i,
+                sideControl: /side.*control|side.*mount|cross.*side|kesa/i,
+                back: /back.*control|back.*take|rear.*naked|hooks/i,
+                standing: /standing|takedown|wrestling|shoot|feet/i,
+                frames: /frame|framing|creating.*space|elbow.*escape/i,
+                escape: /escape|escaping|get.*out|recover/i,
+                submission: /submit|submission|tap|choke|armbar|kimura|triangle/i,
+                pressure: /pressure|heavy|weight|smash|crush/i,
+                grips: /grip|gripping|hand.*control|collar|sleeve/i,
+                scramble: /scramble|scrambling|transition|chaos/i,
+                beginner: /beginner|new|fundamental|basic|white.*belt/i,
+                advanced: /advanced|competition|high.*level|blue.*belt|purple|brown|black/i,
+                timing: /timing|reaction|speed|fast|slow/i,
+                defense: /defend|defense|prevent|stop/i,
+                offense: /attack|offense|aggressive|finish/i,
+                movement: /movement|mobility|agility|footwork/i,
+                technique: /technique|technical|detail|precision/i
             };
+
+            // Detect skill level
+            const skillLevel = keywords.beginner.test(lowerQ) ? 'beginner' :
+                             keywords.advanced.test(lowerQ) ? 'advanced' : 'intermediate';
 
             let topic = 'Positional Sparring';
             let gameNumber = '';
@@ -1670,59 +1743,162 @@
             let coaching = '';
             let skills = '#training';
 
-            // Guard retention problems
+            // ========== GUARD RETENTION GAMES ==========
             if (keywords.guard.test(lowerQ) && !keywords.guardPass.test(lowerQ)) {
                 topic = 'Guard Retention';
-                name = 'Guard Retention Challenge';
-                topPlayer = 'Start standing. Goal is to pass guard within 2 minutes. Can use any passing style.';
-                bottomPlayer = 'Maintain full guard position. Win by sweeping or holding guard for 2 minutes. Lose if guard is passed.';
-                coaching = 'Bottom: Keep active feet, create frames immediately when pressure comes. Don\'t let them settle grips. Top: Control the distance, secure grips before advancing.';
-                skills = '#guard-retention #frames #distance #grips #movement';
+
+                // Vary game based on skill level and specific issues
+                if (skillLevel === 'beginner') {
+                    name = 'Guard Basics - Distance Control';
+                    topPlayer = 'Start standing or on knees. Goal: control both ankles for 3 seconds. 90-second rounds.';
+                    bottomPlayer = 'Keep feet active and maintain distance. Win by keeping feet free or sweeping. Use hands to push hips/knees.';
+                    coaching = 'Bottom: Think of your feet as hands - always moving, pushing, creating angles. Never let both feet get controlled. Top: Be patient, control one leg first, then hunt the second.';
+                    skills = '#guard-retention #distance-management #foot-placement #basics';
+                } else if (keywords.grips.test(lowerQ)) {
+                    name = 'Guard Retention - Grip Fighting';
+                    topPlayer = 'Start with any two grips on bottom player. Goal: maintain grips and advance position for 90 seconds.';
+                    bottomPlayer = 'Break grips immediately. Win by staying grip-free for 10 seconds or sweeping. Can\'t use guard pulls.';
+                    coaching = 'Bottom: Two-on-one grip breaks, swim the hands, create distance after breaking. Never let them settle. Top: Re-grip fast, use angles when they break.';
+                    skills = '#guard-retention #grip-fighting #hand-control #reactions';
+                } else {
+                    name = 'Guard Retention Challenge';
+                    topPlayer = 'Start standing. Goal is to pass guard within 2 minutes. Can use any passing style.';
+                    bottomPlayer = 'Maintain full guard position. Win by sweeping or holding guard for 2 minutes. Lose if guard is passed.';
+                    coaching = 'Bottom: Keep active feet, create frames immediately when pressure comes. Don\'t let them settle grips. Use collar drags and ankle picks when they commit. Top: Control the distance, secure grips before advancing.';
+                    skills = '#guard-retention #frames #distance #grips #movement';
+                }
             }
-            // Guard passing problems
+            // ========== GUARD PASSING GAMES ==========
             else if (keywords.guardPass.test(lowerQ)) {
                 topic = 'Guard Passing';
-                name = 'Pressure Passing Game';
-                topPlayer = 'Pass guard using pressure and control. Score by achieving side control or mount. 3-minute rounds.';
-                bottomPlayer = 'Prevent the pass. Can sweep or submit. Resetting to guard = 1 point.';
-                coaching = 'Passer: Stay heavy, control hips first. Guard: Create frames, don\'t let them flatten you out.';
-                skills = '#passing #pressure #grips #base';
+
+                if (skillLevel === 'beginner') {
+                    name = 'Passing Gates - Progressive Game';
+                    topPlayer = 'Gate 1: Control both knees for 3 seconds. Gate 2: Get one knee to mat. Gate 3: Pass to side control. Complete all 3 gates.';
+                    bottomPlayer = 'Prevent each gate. Reset after each successful defense. Can use frames and shrimping.';
+                    coaching = 'Passer: Break the game into steps. Don\'t rush - complete each gate. Guard: Fight at the earliest gate, don\'t let them advance. TEACHING TIP: This game teaches progressive passing concepts.';
+                    skills = '#passing #progression #control #fundamentals';
+                } else if (keywords.pressure.test(lowerQ)) {
+                    name = '3 Touch Pressure Pass';
+                    topPlayer = 'Must touch mat with 3 body parts (knees, chest, shoulder) before passing. Then pass using pressure only.';
+                    bottomPlayer = 'Prevent them getting low and heavy. Use frames to keep distance. Win by sweeping or holding guard.';
+                    coaching = 'Passer: Get heavy first, then work the pass. Guard: Create frames early before they establish weight. PRINCIPLE: Touch-based constraints develop proper pressure mechanics.';
+                    skills = '#passing #pressure #frames #weight-distribution';
+                } else if (keywords.submission.test(lowerQ)) {
+                    name = 'Passing Under Fire';
+                    topPlayer = 'Pass the guard while bottom can attempt submissions. Must pass within 2 minutes without getting submitted.';
+                    bottomPlayer = 'Attack with submissions freely. Win by submission or preventing the pass. Can\'t sweep.';
+                    coaching = 'Passer: Stay safe - protect neck and arms while advancing. Don\'t overcommit. Guard: Use submission threats to create reactions and openings. CONCEPT: Teaches passing with safety and submission defense.';
+                    skills = '#passing #submission-defense #safety #positioning';
+                } else {
+                    name = 'Pressure Passing Game';
+                    topPlayer = 'Pass guard using pressure and control. Score by achieving side control or mount. 3-minute rounds.';
+                    bottomPlayer = 'Prevent the pass. Can sweep or submit. Resetting to guard = 1 point.';
+                    coaching = 'Passer: Stay heavy, control hips first, pin one leg. Guard: Create frames immediately, don\'t let them flatten you out. Shrimp to create angles.';
+                    skills = '#passing #pressure #grips #base';
+                }
             }
-            // Turtle problems
+            // ========== TURTLE & SCRAMBLE GAMES ==========
             else if (keywords.turtle.test(lowerQ)) {
                 topic = 'Scrambles';
-                name = 'Turtle Attack & Defense';
-                topPlayer = 'Start with opponent in turtle. Goal: take the back or force a roll. 90 seconds.';
-                bottomPlayer = 'Start in turtle. Goal: stand up or recover guard. Don\'t get flattened.';
-                coaching = 'Bottom: Keep elbows tight, be ready to sit through or explode up. Top: Control hips first, seatbelt grip, then work for hooks.';
-                skills = '#turtle #scrambling #back-takes #wrestling';
+
+                if (skillLevel === 'beginner') {
+                    name = 'Turtle Escape Fundamentals';
+                    topPlayer = 'Start with both hands on opponent\'s hips (turtle position). Cannot go for submissions. Goal: flatten them or take the back.';
+                    bottomPlayer = 'Stay in strong turtle (elbows in, knees together). Goal: stand up or sit to guard. 60-second rounds.';
+                    coaching = 'Bottom: Elbows MUST stay connected to knees. Explode up or sit through - choose one direction. Top: Get seatbelt first, THEN work for control. PRINCIPLE: Build turtle fundamentals before adding submissions.';
+                    skills = '#turtle #escapes #back-defense #fundamentals';
+                } else if (keywords.back.test(lowerQ)) {
+                    name = 'Turtle to Back Race';
+                    topPlayer = 'Start with one hook in. Goal: secure both hooks and back control within 30 seconds. Top gets 1 point per successful back take.';
+                    bottomPlayer = 'Start in turtle with opponent having one hook. Escape to guard or neutral. Bottom gets 1 point per escape. First to 5 points.';
+                    coaching = 'Top: Seatbelt grip is KEY. Control the far hip, drive the second hook. Bottom: Turn INTO them, strip the hook, explode to guard or stand. GAME DESIGN: Short bursts develop explosion and timing.';
+                    skills = '#turtle #back-takes #escapes #timing #wrestling';
+                } else {
+                    name = 'Turtle Attack & Defense';
+                    topPlayer = 'Start with opponent in turtle. Goal: take the back or force a roll to pin position. 90 seconds.';
+                    bottomPlayer = 'Start in turtle. Goal: stand up or recover guard. Don\'t get flattened or back taken.';
+                    coaching = 'Bottom: Keep elbows tight, be ready to sit through or explode up. Never go flat. Top: Control hips first with seatbelt grip, then work for hooks. Use opponent\'s movement against them. CONCEPT: Turtle is transitional - force a decision quickly.';
+                    skills = '#turtle #scrambling #back-takes #wrestling';
+                }
             }
-            // Mount escape problems
+            // ========== MOUNT ESCAPE GAMES ==========
             else if (keywords.mount.test(lowerQ) && keywords.escape.test(lowerQ)) {
                 topic = 'Escapes';
-                name = 'Mount Escape Drill';
-                topPlayer = 'Start in mount. Maintain position for 2 minutes or submit. Can submit under elbows.';
-                bottomPlayer = 'Escape to guard or better within 2 minutes. Win by escaping. Keep elbows connected to body.';
-                coaching = 'Bottom: Elbow-knee connection at all times. Trap and roll when they reach. Don\'t extend arms. Top: Stay heavy on chest, control head, be patient.';
-                skills = '#escapes #mount #frames #bridging #patience';
+
+                if (skillLevel === 'beginner') {
+                    name = 'Elbow Escape Fundamentals';
+                    topPlayer = 'Start in mount. Keep arms at sides - NO SUBMISSIONS. Goal: maintain mount for 90 seconds.';
+                    bottomPlayer = 'Keep elbows connected to ribs (can place hands on chest). Escape using trap-and-roll or elbow escape only. 90 seconds.';
+                    coaching = 'Bottom: NEVER extend arms. Elbow-knee connection is law. Bridge with hips, not back. Top: Be patient, chest to chest, control posture. TEACHING MOMENT: Master defensive positioning before adding submissions. PRINCIPLE: Constraint (no submissions) forces proper positional chess.';
+                    skills = '#escapes #mount #elbows-in #bridging #fundamentals';
+                } else if (keywords.timing.test(lowerQ)) {
+                    name = 'Mount Escape - Reaction Game';
+                    topPlayer = 'Start in mount. Every 15 seconds, reach for a submission (instructor calls which one). Bottom must react immediately.';
+                    bottomPlayer = 'Stay defensive until top attacks. Trap-and-roll or elbow escape based on which submission they reach for. Score 1 point per successful escape.';
+                    coaching = 'Bottom: Watch the hands. When they reach = your moment to escape. Use their movement. Top: Make realistic attacks, but allow escape if they react correctly. CONCEPT: Teaches escaping during submission attempts when top is lightest. PROGRESSION: Advanced version - top can fake and change attacks.';
+                    skills = '#escapes #mount #timing #reactions #reading-opponent';
+                } else {
+                    name = 'Mount Survival Challenge';
+                    topPlayer = 'Start in mount. Maintain position for 2 minutes or submit. Can submit under elbows (arm triangle, ezekiel, etc).';
+                    bottomPlayer = 'Escape to guard or better within 2 minutes. Win by escaping. Keep elbows connected to body at all times.';
+                    coaching = 'Bottom: Elbow-knee connection is law. Trap and roll when they reach. Don\'t extend arms ever. Bridge from hips. Top: Stay heavy on chest, control head, walk hands up slowly, be patient. GAME THEORY: Time pressure forces aggression from top, creates escape opportunities for bottom.';
+                    skills = '#escapes #mount #frames #bridging #patience #defense';
+                }
             }
-            // Side control escape with frames
+            // ========== SIDE CONTROL ESCAPE GAMES ==========
             else if ((keywords.sideControl.test(lowerQ) || keywords.escape.test(lowerQ)) && keywords.frames.test(lowerQ)) {
                 topic = 'Escapes';
-                name = 'Frame Escape Game';
-                topPlayer = 'Start in side control. Maintain position or submit. 2-minute rounds.';
-                bottomPlayer = 'Use frames to create space and escape to guard. Win by recovering guard or reversing.';
-                coaching = 'Bottom: Create strong bottom frame (forearm on hip/neck). Don\'t flat back. Shrimp to create space. Top: Kill the frames, stay heavy on chest.';
-                skills = '#frames #escapes #side-control #shrimping';
+
+                if (skillLevel === 'beginner') {
+                    name = 'Frame Creation Drill';
+                    topPlayer = 'Start in side control. Can kill frames, but no submissions. Goal: stay in side control 90 seconds.';
+                    bottomPlayer = 'Create bottom frame (forearm on hip, top on neck/shoulder). Shrimp 3 times successfully, then attempt guard recovery.';
+                    coaching = 'Bottom: Forearm on FAR hip, don\'t use hands (weak). Stay on side - NEVER flat back. Shrimp SMALL and MANY. Top: Kill frames by underhooking, swimming over, or pressuring down. TEACHING PRINCIPLE: Break escape into steps - frames→shrimp→recover. Each step must be solid before next.';
+                    skills = '#frames #escapes #side-control #shrimping #progressive-learning';
+                } else if (keywords.pressure.test(lowerQ)) {
+                    name = 'Escape Heavy Pressure';
+                    topPlayer = 'Start in side control. Focus maximum pressure on chest/shoulders. Cannot submit. Goal: prevent escape for 90 seconds.';
+                    bottomPlayer = 'Escape under HEAVY pressure. Must create frames despite weight. Win by recovering guard.';
+                    coaching = 'Bottom: Frame EARLY before pressure settles. Once flat, nearly impossible. Use hip escape during breath when top shifts weight. Top: Crossface, chest-to-chest, settle ALL your weight on sternum. REALITY TRAINING: Simulates escaping bigger opponents or bad positions.';
+                    skills = '#frames #escapes #heavy-pressure #defensive-tactics #survival';
+                } else {
+                    name = 'Frame Escape Game';
+                    topPlayer = 'Start in side control. Maintain position or submit. Can advance to mount/back. 2-minute rounds.';
+                    bottomPlayer = 'Use frames to create space and escape to guard. Win by recovering guard or reversing. Can\'t give up back.';
+                    coaching = 'Bottom: Create strong bottom frame (forearm on hip, forearm on neck/shoulder). Don\'t flat back - stay on side. Shrimp to create space, then knee-shield or recover guard. Top: Kill the frames immediately - swim over, underhook, or pressure through them. Stay heavy on chest. GAME VARIATION: Advanced players - top can advance, beginner - top stays in side control only.';
+                    skills = '#frames #escapes #side-control #shrimping';
+                }
             }
-            // Standing/Takedown problems
+            // ========== STANDING & TAKEDOWN GAMES ==========
             else if (keywords.standing.test(lowerQ)) {
                 topic = 'Takedowns';
-                name = 'Takedown Entry Game';
-                topPlayer = 'Start standing. Secure a takedown position (single leg, double leg, or front headlock). Score by getting it.';
-                bottomPlayer = 'Defend the takedown attempt. Stay standing. Win by successfully defending and disengaging.';
-                coaching = 'Attacker: Level change, penetration step, secure the position. Defender: Sprawl, crossface, or counter-wrestle.';
-                skills = '#takedowns #wrestling #entries #level-change';
+
+                if (skillLevel === 'beginner') {
+                    name = 'Stance & Motion Game';
+                    topPlayer = 'Start standing. Goal: touch opponent\'s lead knee 3 times while staying in wrestling stance. No takedowns yet.';
+                    bottomPlayer = 'Stay in stance, move feet to avoid touches. Touch opponent\'s knee 3 times to win.';
+                    coaching = 'Both: Stay low, small steps, hands active. This builds stance awareness and footwork BEFORE attempting takedowns. Head up, back straight. PEDAGOGICAL NOTE: Movement before technique. Students must be comfortable standing before shooting. PROGRESSION: Next level add actual takedown attempts after touches.';
+                    skills = '#stance #footwork #wrestling #movement #basics';
+                } else if (keywords.grips.test(lowerQ) || keywords.technique.test(lowerQ)) {
+                    name = 'Grip & Entry Game';
+                    topPlayer = 'Secure collar tie or wrist control, then attempt single/double leg within 5 seconds. Must have grip before shooting.';
+                    bottomPlayer = 'Break grips with two-on-one, or counter with own tie/wrist control. Sprawl if they shoot.';
+                    coaching = 'Attacker: Grip→pull to break posture→shoot as they react. NO naked shots. Defender: Two hands beat one hand - strip grips before they settle. CONCEPT: Teaches setups. Random shooting gets stuffed - create opportunities first. COACH TIP: Count loud "5-4-3-2-1" to force action.';
+                    skills = '#takedowns #setups #grip-fighting #entries #wrestling';
+                } else if (keywords.defense.test(lowerQ)) {
+                    name = 'Sprawl & Counter Game';
+                    topPlayer = 'Attempt takedowns freely (single, double, ankle pick). Score 1 point per successful takedown. 2-minute rounds.';
+                    bottomPlayer = 'Sprawl and get front headlock on every shot. Score 1 point per successful front headlock. First to 5 points.';
+                    coaching = 'Shooter: Level change, penetration step, drive through. Defender: Hips down FAST (sprawl), hands on head (front headlock), then advance to side or back. COMPETITION ELEMENT: Points create urgency - defender MUST counter, not just defend. VARIATION: Winner stays, loser rotates (King of the Mat).';
+                    skills = '#takedowns #sprawl #front-headlock #defense #wrestling';
+                } else {
+                    name = 'Takedown Entry Game';
+                    topPlayer = 'Start standing. Secure a takedown position (single leg, double leg, or front headlock). Score by getting it.';
+                    bottomPlayer = 'Defend the takedown attempt. Stay standing. Win by successfully defending and disengaging.';
+                    coaching = 'Attacker: Level change, penetration step, secure the position. Don\'t telegraph. Defender: Sprawl, crossface, or counter-wrestle. Stay heavy on their back if they shoot. PRINCIPLE: Position before submission - secure the takedown position fully before finishing.';
+                    skills = '#takedowns #wrestling #entries #level-change';
+                }
             }
             // Submission problems
             else if (keywords.submission.test(lowerQ)) {
