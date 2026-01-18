@@ -972,6 +972,63 @@
                     transform: scale(0.95);
                 }
 
+                .ai-edit-btn {
+                    background: #6366f1;
+                    color: white;
+                    border: none;
+                    padding: 0.875rem 1.5rem;
+                    border-radius: 10px;
+                    font-weight: 700;
+                    font-size: 1rem;
+                    cursor: pointer;
+                    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+                    white-space: nowrap;
+                    min-height: 50px;
+                    transition: all 0.2s;
+                    margin-right: 0.75rem;
+                }
+
+                .ai-edit-btn:active {
+                    transform: scale(0.95);
+                }
+
+                .ai-edit-btn.editing {
+                    background: #f59e0b;
+                }
+
+                .ai-result-header {
+                    display: flex;
+                    gap: 0.75rem;
+                    align-items: flex-start;
+                    flex-wrap: wrap;
+                }
+
+                .ai-header-buttons {
+                    display: flex;
+                    gap: 0.5rem;
+                    flex-wrap: wrap;
+                }
+
+                [contenteditable="true"] {
+                    background: #fef9c3;
+                    padding: 0.5rem;
+                    border-radius: 6px;
+                    border: 2px solid #fbbf24;
+                    outline: none;
+                    min-height: 2rem;
+                }
+
+                [contenteditable="true"]:focus {
+                    border-color: #f59e0b;
+                    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+                }
+
+                .ai-constraint-box[contenteditable="true"],
+                .ai-cue[contenteditable="true"],
+                .ai-progression-list li[contenteditable="true"] {
+                    cursor: text;
+                }
+
                 .ai-game-content {
                     background: white;
                     border-radius: 10px;
@@ -2192,15 +2249,20 @@
                 <div class="ai-result-card">
                     <div class="ai-result-header">
                         <div style="flex: 1;">
-                            <h3 class="ai-game-title">${game.title}</h3>
+                            <h3 class="ai-game-title" id="aiGameTitle">${game.title}</h3>
                             <div class="ai-game-tags">
-                                <span class="ai-tag">${game.category}</span>
+                                <span class="ai-tag" id="aiGameCategory">${game.category}</span>
                                 ${game.tags.map(tag => `<span class="ai-tag">${tag}</span>`).join('')}
                             </div>
                         </div>
-                        <button class="ai-add-btn" onclick="addGeneratedGameToLibrary()">
-                            + Add to Library
-                        </button>
+                        <div class="ai-header-buttons">
+                            <button class="ai-edit-btn" id="aiEditBtn" onclick="toggleEditMode()">
+                                ✏️ Edit
+                            </button>
+                            <button class="ai-add-btn" onclick="addGeneratedGameToLibrary()">
+                                + Add to Library
+                            </button>
+                        </div>
                     </div>
 
                     <div class="ai-game-content">
@@ -2208,7 +2270,7 @@
                             <div class="ai-section-title">
                                 📍 START POSITION
                             </div>
-                            <div class="ai-section-content">
+                            <div class="ai-section-content" id="aiStartPosition">
                                 ${game.startPosition}
                             </div>
                         </div>
@@ -2217,7 +2279,7 @@
                             <div class="ai-section-title">
                                 🔒 CONSTRAINTS (MOST IMPORTANT)
                             </div>
-                            <div style="display: grid; gap: 0.75rem;">
+                            <div style="display: grid; gap: 0.75rem;" id="aiConstraints">
                                 ${constraintsList}
                             </div>
                         </div>
@@ -2229,11 +2291,11 @@
                             <div class="ai-win-conditions">
                                 <div class="ai-win-box top">
                                     <div class="ai-win-label">🔵 TOP PLAYER WINS BY:</div>
-                                    <div>${game.winConditions.top}</div>
+                                    <div id="aiWinTop">${game.winConditions.top}</div>
                                 </div>
                                 <div class="ai-win-box bottom">
                                     <div class="ai-win-label">🔴 BOTTOM PLAYER WINS BY:</div>
-                                    <div>${game.winConditions.bottom}</div>
+                                    <div id="aiWinBottom">${game.winConditions.bottom}</div>
                                 </div>
                             </div>
                         </div>
@@ -2242,7 +2304,7 @@
                             <div class="ai-section-title">
                                 💬 KEY COACHING CUES
                             </div>
-                            <div class="ai-coaching-cues">
+                            <div class="ai-coaching-cues" id="aiCoachingCues">
                                 ${coachingCues}
                             </div>
                         </div>
@@ -2251,7 +2313,7 @@
                             <div class="ai-section-title">
                                 📈 PROGRESSION PATH (SCAFFOLDING)
                             </div>
-                            <ol class="ai-progression-list">
+                            <ol class="ai-progression-list" id="aiProgressions">
                                 ${progressionItems}
                             </ol>
                         </div>
@@ -2261,7 +2323,7 @@
                             <div class="ai-section-title">
                                 🧠 PEDAGOGICAL NOTE
                             </div>
-                            <div class="ai-section-content" style="font-style: italic; color: #6366f1; font-weight: 500;">
+                            <div class="ai-section-content" id="aiPedagogicalNote" style="font-style: italic; color: #6366f1; font-weight: 500;">
                                 ${game.pedagogicalNote}
                             </div>
                         </div>
@@ -2271,24 +2333,116 @@
             `;
         }
 
+        let isEditMode = false;
+
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const editBtn = document.getElementById('aiEditBtn');
+
+            if (isEditMode) {
+                // Enable editing
+                editBtn.textContent = '💾 Done Editing';
+                editBtn.classList.add('editing');
+
+                // Make fields editable
+                document.getElementById('aiGameTitle').contentEditable = 'true';
+                document.getElementById('aiStartPosition').contentEditable = 'true';
+                document.getElementById('aiWinTop').contentEditable = 'true';
+                document.getElementById('aiWinBottom').contentEditable = 'true';
+
+                // Make constraints editable
+                const constraints = document.querySelectorAll('#aiConstraints .ai-constraint-box');
+                constraints.forEach(c => c.contentEditable = 'true');
+
+                // Make coaching cues editable
+                const cues = document.querySelectorAll('#aiCoachingCues .ai-cue');
+                cues.forEach(c => c.contentEditable = 'true');
+
+                // Make progressions editable
+                const progressions = document.querySelectorAll('#aiProgressions li');
+                progressions.forEach(p => p.contentEditable = 'true');
+
+                // Make pedagogical note editable if exists
+                const pedNote = document.getElementById('aiPedagogicalNote');
+                if (pedNote) pedNote.contentEditable = 'true';
+
+                showToast('✏️ Edit mode enabled - click fields to modify');
+            } else {
+                // Disable editing
+                editBtn.textContent = '✏️ Edit';
+                editBtn.classList.remove('editing');
+
+                // Make fields non-editable
+                document.getElementById('aiGameTitle').contentEditable = 'false';
+                document.getElementById('aiStartPosition').contentEditable = 'false';
+                document.getElementById('aiWinTop').contentEditable = 'false';
+                document.getElementById('aiWinBottom').contentEditable = 'false';
+
+                const constraints = document.querySelectorAll('#aiConstraints .ai-constraint-box');
+                constraints.forEach(c => c.contentEditable = 'false');
+
+                const cues = document.querySelectorAll('#aiCoachingCues .ai-cue');
+                cues.forEach(c => c.contentEditable = 'false');
+
+                const progressions = document.querySelectorAll('#aiProgressions li');
+                progressions.forEach(p => p.contentEditable = 'false');
+
+                const pedNote = document.getElementById('aiPedagogicalNote');
+                if (pedNote) pedNote.contentEditable = 'false';
+
+                showToast('💾 Changes saved to preview');
+            }
+        }
+
         function addGeneratedGameToLibrary() {
             if (!window.lastGeneratedGame) {
                 alert('No game to add!');
                 return;
             }
 
-            const game = window.lastGeneratedGame;
+            // Read current values from the display (includes any edits)
+            const title = document.getElementById('aiGameTitle').textContent;
+            const category = document.getElementById('aiGameCategory').textContent;
+            const startPosition = document.getElementById('aiStartPosition').textContent;
+            const winTop = document.getElementById('aiWinTop').textContent;
+            const winBottom = document.getElementById('aiWinBottom').textContent;
+
+            // Get constraints
+            const constraintElements = document.querySelectorAll('#aiConstraints .ai-constraint-box');
+            const constraints = Array.from(constraintElements).map(el =>
+                el.textContent.replace(/^🔒\s*/, '').trim()
+            );
+
+            // Get coaching cues
+            const cueElements = document.querySelectorAll('#aiCoachingCues .ai-cue');
+            const coachingCues = Array.from(cueElements).map(el =>
+                el.textContent.replace(/^💡\s*/, '').trim()
+            );
+
+            // Get progressions
+            const progressionElements = document.querySelectorAll('#aiProgressions li');
+            const progressions = Array.from(progressionElements).map((el, idx) => ({
+                num: idx + 1,
+                text: el.textContent.trim()
+            }));
+
+            // Get pedagogical note if exists
+            const pedNoteEl = document.getElementById('aiPedagogicalNote');
+            const pedagogicalNote = pedNoteEl ? pedNoteEl.textContent : '';
+
+            // Get tags from original game
+            const tags = window.lastGeneratedGame.tags;
 
             // Convert to library format
             const libraryGame = {
                 id: Date.now(),
-                name: game.title,
-                topic: game.category,
+                name: title,
+                topic: category,
                 gameNumber: '',
-                topPlayer: `START: ${game.startPosition}\n\nCONSTRAINTS:\n${game.constraints.map((c,i) => `${i+1}. ${c}`).join('\n')}\n\nWIN BY: ${game.winConditions.top}`,
-                bottomPlayer: `WIN BY: ${game.winConditions.bottom}`,
-                coaching: `COACHING CUES:\n${game.coachingCues.map((c,i) => `${i+1}. ${c}`).join('\n')}\n\nPROGRESSION:\n${game.progressions.map(p => `${p.num}. ${p.text}`).join('\n')}\n\n${game.pedagogicalNote || ''}`,
-                skills: game.tags.join(' '),
+                topPlayer: `START: ${startPosition}\n\nCONSTRAINTS:\n${constraints.map((c,i) => `${i+1}. ${c}`).join('\n')}\n\nWIN BY: ${winTop}`,
+                bottomPlayer: `WIN BY: ${winBottom}`,
+                coaching: `COACHING CUES:\n${coachingCues.map((c,i) => `${i+1}. ${c}`).join('\n')}\n\nPROGRESSION:\n${progressions.map(p => `${p.num}. ${p.text}`).join('\n')}\n\n${pedagogicalNote}`,
+                skills: tags.join(' '),
                 favorite: false,
                 lastUsed: null,
                 created: Date.now()
@@ -2299,6 +2453,9 @@
             saveGames();
             renderGames();
             showToast('✅ Game added to your library!');
+
+            // Reset edit mode
+            isEditMode = false;
 
             // Switch to games tab
             setTimeout(() => {
