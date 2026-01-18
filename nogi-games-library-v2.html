@@ -1363,7 +1363,48 @@
 
                 <div class="form-group">
                     <label>Select Games</label>
-                    <div id="sessionGamesList" style="max-height: 300px; overflow-y: auto; border: 2px solid var(--border); border-radius: 8px; padding: 1rem;">
+
+                    <!-- Search and Filter Controls -->
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+                        <input
+                            type="search"
+                            id="sessionSearchInput"
+                            placeholder="🔍 Search games..."
+                            style="flex: 1; padding: 0.625rem; border: 2px solid var(--border); border-radius: 6px;"
+                            oninput="filterSessionGames()"
+                        >
+                        <select
+                            id="sessionTopicFilter"
+                            style="padding: 0.625rem; border: 2px solid var(--border); border-radius: 6px; min-width: 140px;"
+                            onchange="filterSessionGames()"
+                        >
+                            <option value="">All Topics</option>
+                            <option value="Guard Passing">Guard Passing</option>
+                            <option value="Guard Retention">Guard Retention</option>
+                            <option value="Top Control">Top Control</option>
+                            <option value="Escapes">Escapes</option>
+                            <option value="Back Control">Back Control</option>
+                            <option value="Leg Locks">Leg Locks</option>
+                            <option value="Takedowns">Takedowns</option>
+                            <option value="Transitions">Transitions</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                        <small style="color: var(--text-muted);">
+                            <span id="sessionGamesCount">0</span> games shown
+                        </small>
+                        <div>
+                            <button type="button" class="btn btn-secondary" style="padding: 0.375rem 0.75rem; font-size: 0.85rem;" onclick="selectAllSessionGames()">
+                                Select All
+                            </button>
+                            <button type="button" class="btn btn-secondary" style="padding: 0.375rem 0.75rem; font-size: 0.85rem; margin-left: 0.25rem;" onclick="deselectAllSessionGames()">
+                                Deselect All
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="sessionGamesList" style="max-height: 300px; overflow-y: auto; border: 2px solid var(--border); border-radius: 8px; padding: 1rem; background: var(--bg);">
                     </div>
                 </div>
 
@@ -2127,13 +2168,65 @@
         // Sessions
         function openSessionModal() {
             document.getElementById('sessionModal').classList.add('active');
+
+            // Reset filters
+            document.getElementById('sessionSearchInput').value = '';
+            document.getElementById('sessionTopicFilter').value = '';
+
+            // Render all games initially
+            filterSessionGames();
+        }
+
+        function filterSessionGames() {
+            const searchTerm = document.getElementById('sessionSearchInput').value.toLowerCase();
+            const topicFilter = document.getElementById('sessionTopicFilter').value;
+
+            let filteredGames = games.filter(game => {
+                const matchesSearch = !searchTerm ||
+                    game.name.toLowerCase().includes(searchTerm) ||
+                    game.topic.toLowerCase().includes(searchTerm) ||
+                    game.skills.toLowerCase().includes(searchTerm);
+
+                const matchesTopic = !topicFilter || game.topic === topicFilter;
+
+                return matchesSearch && matchesTopic;
+            });
+
+            // Sort by topic, then by name
+            filteredGames.sort((a, b) => {
+                if (a.topic !== b.topic) {
+                    return a.topic.localeCompare(b.topic);
+                }
+                return a.name.localeCompare(b.name);
+            });
+
             const list = document.getElementById('sessionGamesList');
-            list.innerHTML = games.map(g => `
-                <label style="display: block; margin-bottom: 0.5rem; cursor: pointer;">
-                    <input type="checkbox" value="${g.id}" style="margin-right: 0.5rem;">
-                    ${g.topic} - ${g.name}
-                </label>
-            `).join('');
+
+            if (filteredGames.length === 0) {
+                list.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 2rem;">No games found</p>';
+            } else {
+                list.innerHTML = filteredGames.map(g => `
+                    <label style="display: block; margin-bottom: 0.75rem; cursor: pointer; padding: 0.5rem; border-radius: 6px; transition: background 0.2s;"
+                           onmouseover="this.style.background='var(--border)'"
+                           onmouseout="this.style.background='transparent'">
+                        <input type="checkbox" value="${g.id}" class="session-game-checkbox" style="margin-right: 0.75rem;">
+                        <strong style="color: var(--primary);">${g.topic}</strong> - ${g.name}
+                    </label>
+                `).join('');
+            }
+
+            // Update count
+            document.getElementById('sessionGamesCount').textContent = filteredGames.length;
+        }
+
+        function selectAllSessionGames() {
+            const checkboxes = document.querySelectorAll('.session-game-checkbox');
+            checkboxes.forEach(cb => cb.checked = true);
+        }
+
+        function deselectAllSessionGames() {
+            const checkboxes = document.querySelectorAll('.session-game-checkbox');
+            checkboxes.forEach(cb => cb.checked = false);
         }
 
         function closeSessionModal() {
@@ -2149,7 +2242,7 @@
             const gameIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
 
             if (gameIds.length === 0) {
-                alert('Please select at least one game');
+                showToast('❌ Please select at least one game', 'error');
                 return;
             }
 
@@ -2164,7 +2257,7 @@
             closeSessionModal();
             switchTab('sessions');
             renderSessions();
-            showToast('✓ Session created');
+            showToast(`✅ Session "${name}" created with ${gameIds.length} game(s)!`, 'success');
         });
 
         function renderSessions() {
