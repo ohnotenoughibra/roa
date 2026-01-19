@@ -1351,7 +1351,7 @@
     <div class="modal" id="sessionModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Create Training Session</h2>
+                <h2 class="modal-title" id="sessionModalTitle">Create Training Session</h2>
                 <button class="close-btn" onclick="closeSessionModal()">×</button>
             </div>
 
@@ -1409,7 +1409,7 @@
                 </div>
 
                 <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                    <button type="submit" class="btn btn-success" style="flex: 1;">Create Session</button>
+                    <button type="submit" id="sessionSubmitBtn" class="btn btn-success" style="flex: 1;">Create Session</button>
                     <button type="button" class="btn btn-secondary" onclick="closeSessionModal()">Cancel</button>
                 </div>
             </form>
@@ -1422,6 +1422,7 @@
         let games = [];
         let sessions = [];
         let editingGameId = null;
+        let editingSessionId = null;
         let currentTab = 'games';
 
         // Initialize
@@ -2170,6 +2171,10 @@
 
         // Sessions
         function openSessionModal() {
+            editingSessionId = null;
+            document.getElementById('sessionModalTitle').textContent = 'Create Training Session';
+            document.getElementById('sessionSubmitBtn').textContent = 'Create Session';
+            document.getElementById('sessionName').value = '';
             document.getElementById('sessionModal').classList.add('active');
 
             // Reset filters
@@ -2178,6 +2183,32 @@
 
             // Render all games initially
             filterSessionGames();
+        }
+
+        function editSession(id) {
+            const session = sessions.find(s => s.id === id);
+            if (!session) return;
+
+            editingSessionId = id;
+            document.getElementById('sessionModalTitle').textContent = 'Edit Training Session';
+            document.getElementById('sessionSubmitBtn').textContent = 'Update Session';
+            document.getElementById('sessionName').value = session.name;
+            document.getElementById('sessionModal').classList.add('active');
+
+            // Reset filters
+            document.getElementById('sessionSearchInput').value = '';
+            document.getElementById('sessionTopicFilter').value = '';
+
+            // Render all games
+            filterSessionGames();
+
+            // Check the games that are in this session
+            setTimeout(() => {
+                session.gameIds.forEach(gameId => {
+                    const checkbox = document.querySelector(`.session-game-checkbox[value="${gameId}"]`);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }, 100);
         }
 
         function filterSessionGames() {
@@ -2235,6 +2266,7 @@
         function closeSessionModal() {
             document.getElementById('sessionModal').classList.remove('active');
             document.getElementById('sessionForm').reset();
+            editingSessionId = null;
         }
 
         document.getElementById('sessionForm').addEventListener('submit', (e) => {
@@ -2249,18 +2281,32 @@
                 return;
             }
 
-            sessions.push({
-                id: Date.now(),
-                name: name,
-                gameIds: gameIds,
-                created: Date.now()
-            });
+            if (editingSessionId) {
+                // Update existing session
+                const index = sessions.findIndex(s => s.id === editingSessionId);
+                const oldSession = sessions[index];
+                sessions[index] = {
+                    id: editingSessionId,
+                    name: name,
+                    gameIds: gameIds,
+                    created: oldSession.created
+                };
+                showToast(`✅ Session "${name}" updated with ${gameIds.length} game(s)!`, 'success');
+            } else {
+                // Create new session
+                sessions.push({
+                    id: Date.now(),
+                    name: name,
+                    gameIds: gameIds,
+                    created: Date.now()
+                });
+                showToast(`✅ Session "${name}" created with ${gameIds.length} game(s)!`, 'success');
+            }
 
             saveSessions();
             closeSessionModal();
             switchTab('sessions');
             renderSessions();
-            showToast(`✅ Session "${name}" created with ${gameIds.length} game(s)!`, 'success');
         });
 
         function renderSessions() {
@@ -2282,6 +2328,7 @@
                         <div class="session-item-title">${s.name}</div>
                         <div class="session-games">${sessionGames.length} games: ${sessionGames.map(g => g.name).join(', ')}</div>
                         <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem;">
+                            <button class="btn btn-primary btn-sm" onclick="editSession(${s.id})">Edit</button>
                             <button class="btn btn-danger btn-sm" onclick="deleteSession(${s.id})">Delete</button>
                         </div>
                     </div>
