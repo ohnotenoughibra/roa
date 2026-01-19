@@ -1365,6 +1365,14 @@
                     <small>Use # to tag skills (e.g., #connection #wrestling #base)</small>
                 </div>
 
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" id="gameUsed" style="width: auto; margin: 0;">
+                        <span>Mark as used in training</span>
+                    </label>
+                    <small>Track which games you've already practiced</small>
+                </div>
+
                 <div style="display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap;">
                     <button type="submit" class="btn btn-success" style="flex: 1;">Save Game</button>
                     <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
@@ -1716,7 +1724,10 @@
                                 onclick="toggleFavorite(${game.id})">
                             ${game.favorite ? '⭐' : '☆'}
                         </button>
-                        <button class="btn btn-success btn-sm" onclick="markAsUsed(${game.id})">✓ Used</button>
+                        <button class="btn btn-sm ${game.lastUsed ? 'btn-secondary' : 'btn-success'}"
+                                onclick="markAsUsed(${game.id})">
+                            ${game.lastUsed ? '↩️ Unused' : '✓ Used'}
+                        </button>
                         <button class="btn btn-primary btn-sm" onclick="editGame(${game.id})">Edit</button>
                         <button class="btn btn-secondary btn-sm" onclick="duplicateGame(${game.id})">Copy</button>
                         <button class="btn btn-danger btn-sm" onclick="deleteGame(${game.id})">Delete</button>
@@ -1778,7 +1789,10 @@
 
                     <div class="game-actions">
                         <button class="btn btn-warning btn-sm" onclick="toggleFavorite(${game.id})">⭐</button>
-                        <button class="btn btn-success btn-sm" onclick="markAsUsed(${game.id})">✓ Used</button>
+                        <button class="btn btn-sm ${game.lastUsed ? 'btn-secondary' : 'btn-success'}"
+                                onclick="markAsUsed(${game.id})">
+                            ${game.lastUsed ? '↩️ Unused' : '✓ Used'}
+                        </button>
                         <button class="btn btn-primary btn-sm" onclick="editGame(${game.id})">Edit</button>
                     </div>
                 </div>
@@ -1801,9 +1815,21 @@
         function markAsUsed(id) {
             const game = games.find(g => g.id === id);
             if (game) {
-                game.lastUsed = Date.now();
-                saveGames();
-                showToast('✓ Marked as used today');
+                if (game.lastUsed) {
+                    // Toggle to unused
+                    game.lastUsed = null;
+                    saveGames();
+                    renderGames();
+                    if (currentTab === 'favorites') renderFavorites();
+                    showToast('↩️ Marked as unused', 'info');
+                } else {
+                    // Toggle to used
+                    game.lastUsed = Date.now();
+                    saveGames();
+                    renderGames();
+                    if (currentTab === 'favorites') renderFavorites();
+                    showToast('✓ Marked as used today', 'success');
+                }
             }
         }
 
@@ -1851,6 +1877,7 @@
             document.getElementById('gameAuthor').value = game.author || '';
             document.getElementById('gameContributors').value = game.contributors ? game.contributors.join(', ') : '';
             document.getElementById('gameSkills').value = game.skills || '';
+            document.getElementById('gameUsed').checked = !!game.lastUsed;
 
             document.getElementById('gameModal').classList.add('active');
         }
@@ -1883,6 +1910,8 @@
                 ? contributorsInput.split(',').map(c => c.trim()).filter(c => c)
                 : [];
 
+            const isUsed = document.getElementById('gameUsed').checked;
+
             const gameData = {
                 id: editingGameId || Date.now(),
                 name: document.getElementById('gameName').value,
@@ -1895,14 +1924,19 @@
                 contributors: contributors,
                 skills: document.getElementById('gameSkills').value,
                 favorite: false,
-                lastUsed: null,
+                lastUsed: isUsed ? Date.now() : null,
                 created: Date.now()
             };
 
             if (editingGameId) {
                 const index = games.findIndex(g => g.id === editingGameId);
                 const oldGame = games[index];
-                games[index] = { ...gameData, favorite: oldGame.favorite, created: oldGame.created };
+                games[index] = {
+                    ...gameData,
+                    favorite: oldGame.favorite,
+                    created: oldGame.created,
+                    lastUsed: isUsed ? (oldGame.lastUsed || Date.now()) : null
+                };
                 console.log('Game updated:', gameData);
             } else {
                 games.push(gameData);
