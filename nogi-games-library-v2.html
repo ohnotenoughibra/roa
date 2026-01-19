@@ -1399,12 +1399,12 @@
                     <label>Select Games</label>
 
                     <!-- Search and Filter Controls -->
-                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
                         <input
                             type="search"
                             id="sessionSearchInput"
                             placeholder="🔍 Search games..."
-                            style="flex: 1; padding: 0.625rem; border: 2px solid var(--border); border-radius: 6px;"
+                            style="flex: 1; min-width: 180px; padding: 0.625rem; border: 2px solid var(--border); border-radius: 6px;"
                             oninput="filterSessionGames()"
                         >
                         <select
@@ -1421,6 +1421,13 @@
                             <option value="Leg Locks">Leg Locks</option>
                             <option value="Takedowns">Takedowns</option>
                             <option value="Transitions">Transitions</option>
+                        </select>
+                        <select
+                            id="sessionSkillsFilter"
+                            style="padding: 0.625rem; border: 2px solid var(--border); border-radius: 6px; min-width: 140px;"
+                            onchange="filterSessionGames()"
+                        >
+                            <option value="">All Skills</option>
                         </select>
                     </div>
 
@@ -2274,6 +2281,10 @@
             // Reset filters
             document.getElementById('sessionSearchInput').value = '';
             document.getElementById('sessionTopicFilter').value = '';
+            document.getElementById('sessionSkillsFilter').value = '';
+
+            // Populate skills filter
+            populateSessionSkillsFilter();
 
             // Render all games initially
             filterSessionGames();
@@ -2292,6 +2303,10 @@
             // Reset filters
             document.getElementById('sessionSearchInput').value = '';
             document.getElementById('sessionTopicFilter').value = '';
+            document.getElementById('sessionSkillsFilter').value = '';
+
+            // Populate skills filter
+            populateSessionSkillsFilter();
 
             // Render all games
             filterSessionGames();
@@ -2305,19 +2320,41 @@
             }, 100);
         }
 
+        function populateSessionSkillsFilter() {
+            const skillsFilter = document.getElementById('sessionSkillsFilter');
+
+            // Extract all unique hashtags from all games
+            const allSkills = new Set();
+            games.forEach(game => {
+                if (game.skills) {
+                    const hashtags = game.skills.match(/#\w+/g) || [];
+                    hashtags.forEach(tag => allSkills.add(tag));
+                }
+            });
+
+            // Sort and populate dropdown
+            const sortedSkills = Array.from(allSkills).sort();
+            skillsFilter.innerHTML = '<option value="">All Skills</option>' +
+                sortedSkills.map(skill => `<option value="${skill}">${skill}</option>`).join('');
+        }
+
         function filterSessionGames() {
             const searchTerm = document.getElementById('sessionSearchInput').value.toLowerCase();
             const topicFilter = document.getElementById('sessionTopicFilter').value;
+            const skillsFilter = document.getElementById('sessionSkillsFilter').value;
 
             let filteredGames = games.filter(game => {
                 const matchesSearch = !searchTerm ||
                     game.name.toLowerCase().includes(searchTerm) ||
                     game.topic.toLowerCase().includes(searchTerm) ||
+                    (game.author || '').toLowerCase().includes(searchTerm) ||
                     game.skills.toLowerCase().includes(searchTerm);
 
                 const matchesTopic = !topicFilter || game.topic === topicFilter;
 
-                return matchesSearch && matchesTopic;
+                const matchesSkills = !skillsFilter || game.skills.includes(skillsFilter);
+
+                return matchesSearch && matchesTopic && matchesSkills;
             });
 
             // Sort by topic, then by name
@@ -2331,7 +2368,16 @@
             const list = document.getElementById('sessionGamesList');
 
             if (filteredGames.length === 0) {
-                list.innerHTML = '<p style="color: var(--text-muted); text-align: center; padding: 2rem;">No games found</p>';
+                const activeFilters = [];
+                if (searchTerm) activeFilters.push('search');
+                if (topicFilter) activeFilters.push(`topic: ${topicFilter}`);
+                if (skillsFilter) activeFilters.push(`skill: ${skillsFilter}`);
+
+                const filterText = activeFilters.length > 0
+                    ? `No games match your filters (${activeFilters.join(', ')}). Try clearing some filters.`
+                    : 'No games found';
+
+                list.innerHTML = `<p style="color: var(--text-muted); text-align: center; padding: 2rem;">${filterText}</p>`;
             } else {
                 list.innerHTML = filteredGames.map(g => `
                     <label style="display: block; margin-bottom: 0.75rem; cursor: pointer; padding: 0.5rem; border-radius: 6px; transition: background 0.2s;"
@@ -2339,6 +2385,7 @@
                            onmouseout="this.style.background='transparent'">
                         <input type="checkbox" value="${g.id}" class="session-game-checkbox" style="margin-right: 0.75rem;">
                         <strong style="color: var(--primary);">${g.topic}</strong> - ${g.name}
+                        ${g.skills ? `<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; margin-left: 1.75rem;">${g.skills}</div>` : ''}
                     </label>
                 `).join('');
             }
