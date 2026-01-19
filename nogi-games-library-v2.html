@@ -130,23 +130,109 @@
             background: var(--border);
         }
 
+        .filter-toggle-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.875rem;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1rem;
+        }
+
+        .filter-toggle-btn:hover {
+            background: var(--border);
+        }
+
+        .filter-toggle-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        @media (min-width: 768px) {
+            .filter-toggle-btn {
+                display: none;
+            }
+        }
+
         .controls {
             background: var(--surface);
             padding: 1rem;
             border-radius: 12px;
             box-shadow: var(--shadow);
             margin-bottom: 1rem;
-            display: flex;
             gap: 0.75rem;
             flex-wrap: wrap;
             align-items: stretch;
         }
 
+        /* Mobile: Hide filters by default, show when active */
+        @media (max-width: 767px) {
+            .controls {
+                display: none;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 999;
+                border-radius: 16px 16px 0 0;
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+                max-height: 70vh;
+                overflow-y: auto;
+                animation: slideUp 0.3s ease-out;
+            }
+
+            .controls.active {
+                display: flex;
+            }
+
+            @keyframes slideUp {
+                from {
+                    transform: translateY(100%);
+                }
+                to {
+                    transform: translateY(0);
+                }
+            }
+        }
+
+        /* Desktop: Always show filters */
         @media (min-width: 768px) {
             .controls {
+                display: flex;
                 padding: 1.5rem;
                 margin-bottom: 2rem;
                 gap: 1rem;
+            }
+        }
+
+        .filter-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+        }
+
+        .filter-backdrop.active {
+            display: block;
+        }
+
+        @media (min-width: 768px) {
+            .filter-backdrop {
+                display: none !important;
             }
         }
 
@@ -458,6 +544,88 @@
             padding-top: 1rem;
             border-top: 1px solid var(--border);
             flex-wrap: wrap;
+            align-items: center;
+            position: relative;
+        }
+
+        .game-actions-main {
+            display: flex;
+            gap: 0.5rem;
+            flex: 1;
+            flex-wrap: wrap;
+        }
+
+        .game-actions-overflow {
+            position: relative;
+        }
+
+        .overflow-menu-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--text);
+            transition: all 0.2s;
+        }
+
+        .overflow-menu-btn:hover {
+            background: var(--border);
+            border-color: var(--secondary);
+        }
+
+        .overflow-menu {
+            position: absolute;
+            right: 0;
+            bottom: 100%;
+            margin-bottom: 0.5rem;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            min-width: 160px;
+            z-index: 100;
+            display: none;
+        }
+
+        .overflow-menu.active {
+            display: block;
+        }
+
+        .overflow-menu-item {
+            padding: 0.75rem 1rem;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .overflow-menu-item:hover {
+            background: var(--border);
+        }
+
+        .overflow-menu-item.danger {
+            color: var(--danger);
+        }
+
+        .overflow-menu-item:first-child {
+            border-radius: 6px 6px 0 0;
+        }
+
+        .overflow-menu-item:last-child {
+            border-radius: 0 0 6px 6px;
         }
 
         .modal {
@@ -640,10 +808,28 @@
         }
 
         .empty-state svg {
-            width: 100px;
-            height: 100px;
-            margin-bottom: 1rem;
-            opacity: 0.3;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 1.5rem;
+            opacity: 0.5;
+            color: var(--primary);
+        }
+
+        .empty-state h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .empty-state .btn {
+            margin-top: 0.5rem;
         }
 
         .toast {
@@ -731,21 +917,67 @@
         .primary-action {
             background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             color: white;
-            padding: 1rem 1.5rem;
+            padding: 1.25rem 1.75rem;
             border-radius: 12px;
             border: none;
             font-weight: 700;
-            font-size: 1.05rem;
+            font-size: 1.125rem;
             cursor: pointer;
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
-            transition: all 0.2s;
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+            transition: all 0.3s;
             width: 100%;
             margin-bottom: 1rem;
-            min-height: 56px;
+            min-height: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .primary-action::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .primary-action:hover::before {
+            left: 100%;
         }
 
         .primary-action:active {
             transform: scale(0.98);
+        }
+
+        @media (hover: hover) {
+            .primary-action:hover {
+                box-shadow: 0 8px 25px rgba(37, 99, 235, 0.5);
+                transform: translateY(-2px);
+            }
+        }
+
+        .secondary-action {
+            background: var(--surface);
+            color: var(--primary);
+            padding: 0.875rem 1.5rem;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            min-height: 48px;
+        }
+
+        @media (hover: hover) {
+            .secondary-action:hover {
+                background: var(--primary);
+                color: white;
+                transform: translateY(-1px);
+            }
         }
 
         @media (max-width: 640px) {
@@ -842,7 +1074,13 @@
                 </div>
             </div>
 
-            <div class="controls">
+            <button class="filter-toggle-btn" id="filterToggleBtn" onclick="toggleFilters()">
+                🔍 Filters & Search
+            </button>
+
+            <div class="filter-backdrop" id="filterBackdrop" onclick="toggleFilters()"></div>
+
+            <div class="controls" id="filterControls">
                 <div class="search-box">
                     <input type="search" id="searchInput" placeholder="🔍 Search games...">
                 </div>
@@ -879,8 +1117,10 @@
         </div>
 
         <div id="sessionsView" style="display: none;">
-            <div style="margin-bottom: 1rem;">
-                <button class="btn btn-primary" onclick="openSessionModal()">+ Create Session</button>
+            <div class="action-section">
+                <button class="primary-action" onclick="openSessionModal()">
+                    📋 Create Training Session
+                </button>
             </div>
             <div id="sessionsList"></div>
         </div>
@@ -1663,12 +1903,20 @@
             const grid = document.getElementById('gamesGrid');
 
             if (filtered.length === 0) {
+                const hasGames = games.length > 0;
                 grid.innerHTML = `
                     <div class="empty-state">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M12 12h.01M12 12h.01M12 12h.01M12 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            ${hasGames ? `
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            ` : `
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            `}
                         </svg>
-                        <p>No games found. Try adjusting your filters!</p>
+                        <h3>${hasGames ? 'No games match your filters' : 'Your library is empty'}</h3>
+                        <p>${hasGames ? 'Try clearing some filters or searching for something else.' : 'Start building your constraint-led games library!'}</p>
+                        ${!hasGames ? '<button class="btn btn-primary" onclick="openModal()">➕ Add Your First Game</button>' : ''}
+                        ${!hasGames ? '<button class="btn btn-secondary" onclick="switchTab(\'ai\')">🎲 Try AI Designer</button>' : ''}
                     </div>
                 `;
                 return;
@@ -1720,20 +1968,32 @@
                     ` : ''}
 
                     <div class="game-actions">
-                        <button class="btn btn-sm ${game.favorite ? 'btn-warning' : 'btn-secondary'}"
-                                onclick="toggleFavorite(${game.id})">
-                            ${game.favorite ? '⭐' : '☆'}
-                        </button>
-                        <button class="btn btn-sm ${game.lastUsed ? 'btn-secondary' : 'btn-success'}"
-                                onclick="markAsUsed(${game.id})">
-                            ${game.lastUsed ? '↩️ Unused' : '✓ Used'}
-                        </button>
-                        <button class="btn btn-success btn-sm" onclick="addGameToSession(${game.id})" title="Add to Session">
-                            📋 Session
-                        </button>
-                        <button class="btn btn-primary btn-sm" onclick="editGame(${game.id})">Edit</button>
-                        <button class="btn btn-secondary btn-sm" onclick="duplicateGame(${game.id})">Copy</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteGame(${game.id})">Delete</button>
+                        <div class="game-actions-main">
+                            <button class="btn btn-sm ${game.favorite ? 'btn-warning' : 'btn-secondary'}"
+                                    onclick="toggleFavorite(${game.id})" title="${game.favorite ? 'Remove from favorites' : 'Add to favorites'}">
+                                ${game.favorite ? '⭐' : '☆'}
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="addGameToSession(${game.id})" title="Add to Session">
+                                📋 Session
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="editGame(${game.id})">✏️ Edit</button>
+                        </div>
+                        <div class="game-actions-overflow">
+                            <button class="overflow-menu-btn" onclick="toggleOverflowMenu(${game.id}); event.stopPropagation();" title="More actions">
+                                ⋮
+                            </button>
+                            <div id="overflow-menu-${game.id}" class="overflow-menu">
+                                <button class="overflow-menu-item" onclick="markAsUsed(${game.id}); closeOverflowMenus();">
+                                    ${game.lastUsed ? '↩️ Mark as Unused' : '✓ Mark as Used'}
+                                </button>
+                                <button class="overflow-menu-item" onclick="duplicateGame(${game.id}); closeOverflowMenus();">
+                                    📋 Duplicate Game
+                                </button>
+                                <button class="overflow-menu-item danger" onclick="deleteGame(${game.id}); closeOverflowMenus();">
+                                    🗑️ Delete Game
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -1747,7 +2007,12 @@
             if (favorites.length === 0) {
                 grid.innerHTML = `
                     <div class="empty-state">
-                        <p>No favorites yet! Star your go-to games to see them here.</p>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                        </svg>
+                        <h3>No favorites yet!</h3>
+                        <p>Star your go-to games to quickly access them here.</p>
+                        <button class="btn btn-primary" onclick="switchTab('games')">Browse Games</button>
                     </div>
                 `;
                 return;
@@ -1803,6 +2068,51 @@
         }
 
         // Toggle favorite
+        // Overflow menu management
+        function toggleOverflowMenu(gameId) {
+            const menu = document.getElementById(`overflow-menu-${gameId}`);
+            const isActive = menu.classList.contains('active');
+
+            // Close all other menus first
+            closeOverflowMenus();
+
+            // Toggle this menu
+            if (!isActive) {
+                menu.classList.add('active');
+            }
+        }
+
+        function closeOverflowMenus() {
+            document.querySelectorAll('.overflow-menu.active').forEach(menu => {
+                menu.classList.remove('active');
+            });
+        }
+
+        // Close menus when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.game-actions-overflow')) {
+                closeOverflowMenus();
+            }
+        });
+
+        // Filter panel toggle for mobile
+        function toggleFilters() {
+            const filterControls = document.getElementById('filterControls');
+            const filterBackdrop = document.getElementById('filterBackdrop');
+            const filterToggleBtn = document.getElementById('filterToggleBtn');
+
+            filterControls.classList.toggle('active');
+            filterBackdrop.classList.toggle('active');
+            filterToggleBtn.classList.toggle('active');
+
+            // Prevent body scroll when filters are open on mobile
+            if (filterControls.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
         function toggleFavorite(id) {
             const game = games.find(g => g.id === id);
             if (game) {
@@ -2568,7 +2878,12 @@
             if (sessions.length === 0) {
                 list.innerHTML = `
                     <div class="empty-state">
-                        <p>No sessions yet! Create a session to organize multiple games.</p>
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                        </svg>
+                        <h3>No training sessions yet</h3>
+                        <p>Organize your games into training sessions to plan your practice.</p>
+                        <button class="btn btn-primary" onclick="openSessionModal()">📋 Create Your First Session</button>
                     </div>
                 `;
                 return;
