@@ -390,6 +390,16 @@
             text-transform: uppercase;
         }
 
+        .author-badge {
+            display: inline-block;
+            padding: 0.25rem 0.65rem;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
         .player-section {
             background: var(--bg);
             padding: 0.75rem;
@@ -847,6 +857,10 @@
                     <option value="Leg Locks">Leg Locks</option>
                     <option value="Takedowns">Takedowns</option>
                     <option value="Transitions">Transitions</option>
+                </select>
+
+                <select id="authorFilter">
+                    <option value="">All Authors</option>
                 </select>
 
                 <select id="sortBy">
@@ -1334,6 +1348,18 @@
                 </div>
 
                 <div class="form-group">
+                    <label>Author</label>
+                    <input type="text" id="gameAuthor" placeholder="Your name" required>
+                    <small>Who created this game?</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Contributors (optional)</label>
+                    <input type="text" id="gameContributors" placeholder="e.g., John, Sarah, Mike">
+                    <small>Comma-separated list of people who helped refine this game</small>
+                </div>
+
+                <div class="form-group">
                     <label>Skills (Hashtags)</label>
                     <input type="text" id="gameSkills" placeholder="e.g., #grips #pressure #timing">
                     <small>Use # to tag skills (e.g., #connection #wrestling #base)</small>
@@ -1596,19 +1622,32 @@
 
         // Render games
         function renderGames() {
+            // Update author filter options
+            const authorFilter = document.getElementById('authorFilter');
+            const currentAuthorFilter = authorFilter.value;
+            const uniqueAuthors = [...new Set(games.map(g => g.author).filter(Boolean))].sort();
+
+            authorFilter.innerHTML = '<option value="">All Authors</option>' +
+                uniqueAuthors.map(author =>
+                    `<option value="${author}" ${author === currentAuthorFilter ? 'selected' : ''}>${author}</option>`
+                ).join('');
+
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const topicFilter = document.getElementById('topicFilter').value;
+            const authorFilterValue = document.getElementById('authorFilter').value;
 
             let filtered = games.filter(game => {
                 const matchesSearch = !searchTerm ||
                     game.name.toLowerCase().includes(searchTerm) ||
                     (game.topPlayer || '').toLowerCase().includes(searchTerm) ||
                     (game.bottomPlayer || '').toLowerCase().includes(searchTerm) ||
+                    (game.author || '').toLowerCase().includes(searchTerm) ||
                     game.skills.toLowerCase().includes(searchTerm);
 
                 const matchesTopic = !topicFilter || game.topic === topicFilter;
+                const matchesAuthor = !authorFilterValue || game.author === authorFilterValue;
 
-                return matchesSearch && matchesTopic;
+                return matchesSearch && matchesTopic && matchesAuthor;
             });
 
             filtered = sortGames(filtered);
@@ -1637,8 +1676,14 @@
                             <span class="game-topic ${getTopicTagClass(game.topic)}">${game.topic}</span>
                             ${game.gameNumber ? `<span class="game-number">Game ${game.gameNumber}</span>` : ''}
                             ${(game.created || 0) > sevenDaysAgo ? '<span class="badge-new">New</span>' : ''}
+                            ${game.author ? `<span class="author-badge">✍️ ${game.author}</span>` : ''}
                         </div>
                         <h3 class="game-title">${game.name}</h3>
+                        ${game.contributors && game.contributors.length > 0 ? `
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
+                                👥 Contributors: ${game.contributors.join(', ')}
+                            </div>
+                        ` : ''}
                     </div>
 
                     <div class="player-section">
@@ -1803,6 +1848,8 @@
             document.getElementById('topPlayer').value = game.topPlayer;
             document.getElementById('bottomPlayer').value = game.bottomPlayer;
             document.getElementById('gameCoaching').value = game.coaching || '';
+            document.getElementById('gameAuthor').value = game.author || '';
+            document.getElementById('gameContributors').value = game.contributors ? game.contributors.join(', ') : '';
             document.getElementById('gameSkills').value = game.skills || '';
 
             document.getElementById('gameModal').classList.add('active');
@@ -1831,6 +1878,11 @@
         document.getElementById('gameForm').addEventListener('submit', (e) => {
             e.preventDefault();
 
+            const contributorsInput = document.getElementById('gameContributors').value;
+            const contributors = contributorsInput
+                ? contributorsInput.split(',').map(c => c.trim()).filter(c => c)
+                : [];
+
             const gameData = {
                 id: editingGameId || Date.now(),
                 name: document.getElementById('gameName').value,
@@ -1839,6 +1891,8 @@
                 topPlayer: document.getElementById('topPlayer').value,
                 bottomPlayer: document.getElementById('bottomPlayer').value,
                 coaching: document.getElementById('gameCoaching').value,
+                author: document.getElementById('gameAuthor').value,
+                contributors: contributors,
                 skills: document.getElementById('gameSkills').value,
                 favorite: false,
                 lastUsed: null,
@@ -2024,6 +2078,8 @@
                     topPlayer: gameData.topPlayer,
                     bottomPlayer: gameData.bottomPlayer,
                     coaching: gameData.coaching || '',
+                    author: gameData.author || '',
+                    contributors: gameData.contributors || [],
                     skills: gameData.skills || '',
                     favorite: gameData.favorite || false,
                     lastUsed: gameData.lastUsed || null,
@@ -2051,6 +2107,8 @@
                     topPlayer: `START: ${gameData.startPosition || 'N/A'}\n\nCONSTRAINTS:\n${constraints.map((c,i) => `${i+1}. ${c}`).join('\n')}\n\nWIN BY: ${gameData.winConditions.top || 'N/A'}`,
                     bottomPlayer: `WIN BY: ${gameData.winConditions.bottom || 'N/A'}`,
                     coaching: `COACHING CUES:\n${coachingCues.map((c,i) => `${i+1}. ${c}`).join('\n')}\n\nPROGRESSION:\n${progressions.map(p => `${p.num || ''}. ${p.text || p}`).join('\n')}\n\n${gameData.pedagogicalNote || ''}`,
+                    author: gameData.author || '',
+                    contributors: gameData.contributors || [],
                     skills: Array.isArray(gameData.tags) ? gameData.tags.join(' ') : (gameData.tags || ''),
                     favorite: false,
                     lastUsed: null,
@@ -2067,6 +2125,8 @@
                 topPlayer: gameData.topPlayer || gameData.top || 'No instructions provided',
                 bottomPlayer: gameData.bottomPlayer || gameData.bottom || 'No instructions provided',
                 coaching: gameData.coaching || gameData.notes || gameData.coachingNotes || '',
+                author: gameData.author || '',
+                contributors: gameData.contributors || [],
                 skills: gameData.skills || gameData.tags || '',
                 favorite: false,
                 lastUsed: null,
@@ -2887,6 +2947,7 @@
         // Search and filter
         document.getElementById('searchInput').addEventListener('input', renderGames);
         document.getElementById('topicFilter').addEventListener('change', renderGames);
+        document.getElementById('authorFilter').addEventListener('change', renderGames);
         document.getElementById('sortBy').addEventListener('input', renderGames);
 
         // Close modal on background click
