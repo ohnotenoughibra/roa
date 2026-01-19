@@ -1422,13 +1422,6 @@
                             <option value="Takedowns">Takedowns</option>
                             <option value="Transitions">Transitions</option>
                         </select>
-                        <select
-                            id="sessionSkillsFilter"
-                            style="padding: 0.625rem; border: 2px solid var(--border); border-radius: 6px; min-width: 140px;"
-                            onchange="filterSessionGames()"
-                        >
-                            <option value="">All Skills</option>
-                        </select>
                     </div>
 
                     <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
@@ -1445,7 +1438,7 @@
                         </div>
                     </div>
 
-                    <div id="sessionGamesList" style="max-height: 300px; overflow-y: auto; border: 2px solid var(--border); border-radius: 8px; padding: 1rem; background: var(--bg);">
+                    <div id="sessionGamesList" style="max-height: 400px; overflow-y: auto; border: 2px solid var(--border); border-radius: 8px; padding: 0.5rem; background: var(--bg);">
                     </div>
                 </div>
 
@@ -1734,6 +1727,9 @@
                         <button class="btn btn-sm ${game.lastUsed ? 'btn-secondary' : 'btn-success'}"
                                 onclick="markAsUsed(${game.id})">
                             ${game.lastUsed ? '↩️ Unused' : '✓ Used'}
+                        </button>
+                        <button class="btn btn-success btn-sm" onclick="addGameToSession(${game.id})" title="Add to Session">
+                            📋 Session
                         </button>
                         <button class="btn btn-primary btn-sm" onclick="editGame(${game.id})">Edit</button>
                         <button class="btn btn-secondary btn-sm" onclick="duplicateGame(${game.id})">Copy</button>
@@ -2281,10 +2277,6 @@
             // Reset filters
             document.getElementById('sessionSearchInput').value = '';
             document.getElementById('sessionTopicFilter').value = '';
-            document.getElementById('sessionSkillsFilter').value = '';
-
-            // Populate skills filter
-            populateSessionSkillsFilter();
 
             // Render all games initially
             filterSessionGames();
@@ -2303,10 +2295,6 @@
             // Reset filters
             document.getElementById('sessionSearchInput').value = '';
             document.getElementById('sessionTopicFilter').value = '';
-            document.getElementById('sessionSkillsFilter').value = '';
-
-            // Populate skills filter
-            populateSessionSkillsFilter();
 
             // Render all games
             filterSessionGames();
@@ -2320,28 +2308,22 @@
             }, 100);
         }
 
-        function populateSessionSkillsFilter() {
-            const skillsFilter = document.getElementById('sessionSkillsFilter');
+        function toggleGameDetails(gameId) {
+            const detailsDiv = document.getElementById(`game-details-${gameId}`);
+            const button = event.target;
 
-            // Extract all unique hashtags from all games
-            const allSkills = new Set();
-            games.forEach(game => {
-                if (game.skills) {
-                    const hashtags = game.skills.match(/#\w+/g) || [];
-                    hashtags.forEach(tag => allSkills.add(tag));
-                }
-            });
-
-            // Sort and populate dropdown
-            const sortedSkills = Array.from(allSkills).sort();
-            skillsFilter.innerHTML = '<option value="">All Skills</option>' +
-                sortedSkills.map(skill => `<option value="${skill}">${skill}</option>`).join('');
+            if (detailsDiv.style.display === 'none') {
+                detailsDiv.style.display = 'block';
+                button.textContent = 'Hide details';
+            } else {
+                detailsDiv.style.display = 'none';
+                button.textContent = 'Show details';
+            }
         }
 
         function filterSessionGames() {
             const searchTerm = document.getElementById('sessionSearchInput').value.toLowerCase();
             const topicFilter = document.getElementById('sessionTopicFilter').value;
-            const skillsFilter = document.getElementById('sessionSkillsFilter').value;
 
             let filteredGames = games.filter(game => {
                 const matchesSearch = !searchTerm ||
@@ -2352,9 +2334,7 @@
 
                 const matchesTopic = !topicFilter || game.topic === topicFilter;
 
-                const matchesSkills = !skillsFilter || game.skills.includes(skillsFilter);
-
-                return matchesSearch && matchesTopic && matchesSkills;
+                return matchesSearch && matchesTopic;
             });
 
             // Sort by topic, then by name
@@ -2371,7 +2351,6 @@
                 const activeFilters = [];
                 if (searchTerm) activeFilters.push('search');
                 if (topicFilter) activeFilters.push(`topic: ${topicFilter}`);
-                if (skillsFilter) activeFilters.push(`skill: ${skillsFilter}`);
 
                 const filterText = activeFilters.length > 0
                     ? `No games match your filters (${activeFilters.join(', ')}). Try clearing some filters.`
@@ -2380,13 +2359,33 @@
                 list.innerHTML = `<p style="color: var(--text-muted); text-align: center; padding: 2rem;">${filterText}</p>`;
             } else {
                 list.innerHTML = filteredGames.map(g => `
-                    <label style="display: block; margin-bottom: 0.75rem; cursor: pointer; padding: 0.5rem; border-radius: 6px; transition: background 0.2s;"
-                           onmouseover="this.style.background='var(--border)'"
-                           onmouseout="this.style.background='transparent'">
-                        <input type="checkbox" value="${g.id}" class="session-game-checkbox" style="margin-right: 0.75rem;">
-                        <strong style="color: var(--primary);">${g.topic}</strong> - ${g.name}
-                        ${g.skills ? `<div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem; margin-left: 1.75rem;">${g.skills}</div>` : ''}
-                    </label>
+                    <div style="border: 2px solid var(--border); border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem; background: var(--bg);">
+                        <label style="display: flex; align-items: flex-start; cursor: pointer;">
+                            <input type="checkbox" value="${g.id}" class="session-game-checkbox" style="margin-right: 0.75rem; margin-top: 0.25rem; flex-shrink: 0;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; margin-bottom: 0.25rem;">
+                                    <strong style="color: var(--primary);">${g.topic}</strong> - ${g.name}
+                                </div>
+                                <button type="button" onclick="toggleGameDetails(${g.id}); event.stopPropagation();"
+                                        style="background: none; border: none; color: var(--primary); font-size: 0.8rem; padding: 0.25rem 0; cursor: pointer; text-decoration: underline;">
+                                    Show details
+                                </button>
+                                <div id="game-details-${g.id}" style="display: none; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); font-size: 0.875rem;">
+                                    ${g.topPlayer ? `
+                                        <div style="margin-bottom: 0.5rem;">
+                                            <strong style="color: var(--accent);">Top Player:</strong> ${g.topPlayer}
+                                        </div>
+                                        <div style="margin-bottom: 0.5rem;">
+                                            <strong style="color: var(--accent);">Bottom Player:</strong> ${g.bottomPlayer}
+                                        </div>
+                                        ${g.coaching ? `<div style="margin-bottom: 0.5rem;"><strong style="color: var(--accent);">Coaching:</strong> ${g.coaching}</div>` : ''}
+                                    ` : ''}
+                                    ${g.skills ? `<div style="margin-bottom: 0.5rem;"><strong style="color: var(--accent);">Skills:</strong> ${g.skills}</div>` : ''}
+                                    ${g.author ? `<div style="font-size: 0.75rem; color: var(--text-muted);">By ${g.author}</div>` : ''}
+                                </div>
+                            </div>
+                        </label>
+                    </div>
                 `).join('');
             }
 
@@ -2408,6 +2407,119 @@
             document.getElementById('sessionModal').classList.remove('active');
             document.getElementById('sessionForm').reset();
             editingSessionId = null;
+        }
+
+        async function addGameToSession(gameId) {
+            const game = games.find(g => g.id === gameId);
+            if (!game) return;
+
+            // Create a custom modal for session selection
+            const modalHtml = `
+                <div id="addToSessionModal" class="modal active">
+                    <div class="modal-content" style="max-width: 500px;">
+                        <div class="modal-header">
+                            <h2 style="margin: 0;">Add to Session</h2>
+                            <button class="btn-close" onclick="closeAddToSessionModal()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <p style="margin-bottom: 1rem; color: var(--text-muted);">
+                                Adding: <strong style="color: var(--primary);">${game.topic} - ${game.name}</strong>
+                            </p>
+                            ${sessions.length > 0 ? `
+                                <div style="margin-bottom: 1.5rem;">
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Select existing session:</label>
+                                    <select id="existingSessionSelect" style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 6px; font-size: 1rem;">
+                                        <option value="">-- Choose a session --</option>
+                                        ${sessions.map(s => `<option value="${s.id}">${s.name} (${s.gameIds.length} games)</option>`).join('')}
+                                    </select>
+                                    <button class="btn btn-success" style="width: 100%; margin-top: 0.5rem;" onclick="addToExistingSession(${gameId})">
+                                        Add to Selected Session
+                                    </button>
+                                </div>
+                                <div style="text-align: center; margin: 1rem 0; color: var(--text-muted);">— OR —</div>
+                            ` : ''}
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Create new session:</label>
+                                <input type="text" id="newSessionName" placeholder="Enter session name..." style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 6px; font-size: 1rem; margin-bottom: 0.5rem;">
+                                <button class="btn btn-primary" style="width: 100%;" onclick="createSessionWithGame(${gameId})">
+                                    Create New Session
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Remove any existing modal
+            const existingModal = document.getElementById('addToSessionModal');
+            if (existingModal) existingModal.remove();
+
+            // Add modal to body
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+        function closeAddToSessionModal() {
+            const modal = document.getElementById('addToSessionModal');
+            if (modal) modal.remove();
+        }
+
+        function addToExistingSession(gameId) {
+            const sessionId = parseInt(document.getElementById('existingSessionSelect').value);
+            if (!sessionId) {
+                showToast('❌ Please select a session', 'error');
+                return;
+            }
+
+            const session = sessions.find(s => s.id === sessionId);
+            if (!session) return;
+
+            // Check if game is already in session
+            if (session.gameIds.includes(gameId)) {
+                showToast('ℹ️ Game already in this session', 'info');
+                closeAddToSessionModal();
+                return;
+            }
+
+            // Add game to session
+            session.gameIds.push(gameId);
+            saveSessions();
+
+            const game = games.find(g => g.id === gameId);
+            showToast(`✅ Added "${game.name}" to "${session.name}"`, 'success');
+            closeAddToSessionModal();
+
+            // Refresh sessions if on sessions tab
+            if (currentTab === 'sessions') {
+                renderSessions();
+            }
+        }
+
+        function createSessionWithGame(gameId) {
+            const sessionName = document.getElementById('newSessionName').value.trim();
+            if (!sessionName) {
+                showToast('❌ Please enter a session name', 'error');
+                return;
+            }
+
+            // Create new session
+            const newSession = {
+                id: Date.now(),
+                name: sessionName,
+                gameIds: [gameId],
+                created: Date.now()
+            };
+
+            sessions.push(newSession);
+            saveSessions();
+
+            const game = games.find(g => g.id === gameId);
+            showToast(`✅ Created session "${sessionName}" with "${game.name}"`, 'success');
+            closeAddToSessionModal();
+
+            // Refresh sessions if on sessions tab
+            if (currentTab === 'sessions') {
+                renderSessions();
+            }
         }
 
         document.getElementById('sessionForm').addEventListener('submit', (e) => {
