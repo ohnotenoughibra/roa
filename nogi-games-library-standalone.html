@@ -1,0 +1,4492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NoGi Games Library</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1e40af;
+            --secondary: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.1);
+
+            /* Topic color families - Simplified to 4 groups for better visual clarity */
+            /* Offensive (attacking) - Red/Orange tones */
+            --color-offensive: #ef4444;
+            --color-submissions: #ef4444;
+            --color-back-attacks: #ef4444;
+            --color-leg-locks: #f97316;
+            --color-takedowns: #f97316;
+
+            /* Defensive (protecting) - Blue tones */
+            --color-defensive: #3b82f6;
+            --color-guard-retention: #3b82f6;
+            --color-escapes: #2563eb;
+
+            /* Control (positional) - Purple tones */
+            --color-control: #8b5cf6;
+            --color-guard-passing: #8b5cf6;
+            --color-pinning: #7c3aed;
+            --color-standing: #a855f7;
+            --color-guarded: #a855f7;
+
+            /* Transition (movement) - Green tones */
+            --color-transition: #10b981;
+            --color-scrambles: #10b981;
+            --color-movement: #059669;
+        }
+
+        /* Dark mode theme */
+        [data-theme="dark"] {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding-bottom: 80px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                padding: 2rem;
+            }
+        }
+
+        header {
+            background: var(--surface);
+            padding: 1.25rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 1rem;
+            position: relative;
+        }
+
+        @media (min-width: 768px) {
+            header {
+                padding: 2rem;
+                margin-bottom: 2rem;
+            }
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            background: var(--border);
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.25rem;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: rotate(180deg) scale(1.1);
+        }
+
+        @media (min-width: 768px) {
+            .theme-toggle {
+                top: 2rem;
+                right: 2rem;
+            }
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+            padding-right: 60px;
+        }
+
+        @media (min-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: var(--surface);
+            color: var(--text-muted);
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            box-shadow: var(--shadow);
+        }
+
+        .tab.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: var(--border);
+        }
+
+        .filter-toggle-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            width: 100%;
+            padding: 0.875rem;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1rem;
+        }
+
+        .filter-toggle-btn:hover {
+            background: var(--border);
+        }
+
+        .filter-toggle-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        @media (min-width: 768px) {
+            .filter-toggle-btn {
+                display: none;
+            }
+        }
+
+        .controls {
+            background: var(--surface);
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 1rem;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: stretch;
+        }
+
+        /* Mobile: Hide filters by default, show when active */
+        @media (max-width: 767px) {
+            .controls {
+                display: none;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                z-index: 999;
+                border-radius: 16px 16px 0 0;
+                box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+                max-height: 70vh;
+                overflow-y: auto;
+                animation: slideUp 0.3s ease-out;
+            }
+
+            .controls.active {
+                display: flex;
+            }
+
+            @keyframes slideUp {
+                from {
+                    transform: translateY(100%);
+                }
+                to {
+                    transform: translateY(0);
+                }
+            }
+        }
+
+        /* Desktop: Always show filters */
+        @media (min-width: 768px) {
+            .controls {
+                display: flex;
+                padding: 1.5rem;
+                margin-bottom: 2rem;
+                gap: 1rem;
+            }
+        }
+
+        .filter-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 998;
+        }
+
+        .filter-backdrop.active {
+            display: block;
+        }
+
+        @media (min-width: 768px) {
+            .filter-backdrop {
+                display: none !important;
+            }
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 100%;
+            position: relative;
+        }
+
+        @media (min-width: 640px) {
+            .search-box {
+                min-width: 250px;
+            }
+        }
+
+        input[type="text"],
+        input[type="search"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s;
+            font-family: inherit;
+            -webkit-appearance: none;
+            appearance: none;
+            background: var(--surface);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        select {
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.25rem;
+            padding-right: 2.5rem;
+        }
+
+        .btn {
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            min-height: 44px;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        @media (hover: hover) {
+            .btn-primary:hover {
+                background: var(--primary-dark);
+                transform: translateY(-1px);
+                box-shadow: var(--shadow-lg);
+            }
+            .btn-success:hover { background: #059669; }
+            .btn-danger:hover { background: #dc2626; }
+            .btn-secondary:hover { background: #475569; }
+            .btn-warning:hover { background: #d97706; }
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            min-height: auto;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            min-height: auto;
+            width: 40px;
+            height: 40px;
+        }
+
+        .fab {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+
+        .fab:active {
+            transform: scale(0.95);
+        }
+
+        @media (hover: hover) {
+            .fab:hover {
+                transform: scale(1.1);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            }
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        @media (min-width: 640px) {
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+                gap: 1.5rem;
+            }
+        }
+
+        .game-card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.25rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
+            border-left: 4px solid var(--primary);
+            position: relative;
+        }
+
+        .game-card.favorite::before {
+            content: "⭐";
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.25rem;
+        }
+
+        @media (min-width: 768px) {
+            .game-card {
+                padding: 1.5rem;
+            }
+        }
+
+        @media (hover: hover) {
+            .game-card:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--shadow-lg);
+            }
+        }
+
+        .game-header {
+            margin-bottom: 1rem;
+        }
+
+        .game-title {
+            font-size: 1.375rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.625rem;
+            line-height: 1.3;
+        }
+
+        .game-meta {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .game-topic {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--primary);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .game-number {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: var(--bg);
+            color: var(--text);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-new {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background: var(--success);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .author-badge {
+            display: inline-block;
+            padding: 0.25rem 0.65rem;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .player-section {
+            background: var(--bg);
+            padding: 0.875rem;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .player-section:first-of-type {
+            background: linear-gradient(135deg, #dbeafe 0%, #e0f2fe 100%);
+            border-color: #93c5fd;
+        }
+
+        .player-section:nth-of-type(2) {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-color: #fca5a5;
+        }
+
+        .player-label {
+            font-weight: 700;
+            color: var(--text);
+            font-size: 0.875rem;
+            margin-bottom: 0.375rem;
+            display: block;
+        }
+
+        .player-text {
+            color: var(--text);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .game-coaching {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+            padding: 0.875rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            box-shadow: 0 1px 3px rgba(245, 158, 11, 0.1);
+        }
+
+        .game-coaching strong {
+            color: #f59e0b;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .hashtags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .hashtag {
+            background: #e0f2fe;
+            color: #0369a1;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 0.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+            align-items: center;
+            position: relative;
+        }
+
+        .game-actions-main {
+            display: flex;
+            gap: 0.5rem;
+            flex: 1;
+            flex-wrap: wrap;
+        }
+
+        .game-actions-overflow {
+            position: relative;
+        }
+
+        .overflow-menu-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: var(--text);
+            transition: all 0.2s;
+        }
+
+        .overflow-menu-btn:hover {
+            background: var(--border);
+            border-color: var(--secondary);
+        }
+
+        .overflow-menu {
+            position: absolute;
+            right: 0;
+            bottom: 100%;
+            margin-bottom: 0.5rem;
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            min-width: 160px;
+            z-index: 100;
+            display: none;
+        }
+
+        .overflow-menu.active {
+            display: block;
+        }
+
+        .overflow-menu-item {
+            padding: 0.75rem 1rem;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: background 0.2s;
+        }
+
+        .overflow-menu-item:hover {
+            background: var(--border);
+        }
+
+        .overflow-menu-item.danger {
+            color: var(--danger);
+        }
+
+        .overflow-menu-item:first-child {
+            border-radius: 6px 6px 0 0;
+        }
+
+        .overflow-menu-item:last-child {
+            border-radius: 0 0 6px 6px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 0;
+        }
+
+        @media (min-width: 768px) {
+            .modal.active {
+                align-items: center;
+                padding: 2rem;
+            }
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border-radius: 0;
+            padding: 1.25rem;
+            max-width: 100%;
+            width: 100%;
+            height: 100vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        @media (min-width: 768px) {
+            .modal-content {
+                border-radius: 12px;
+                padding: 2rem;
+                max-width: 700px;
+                height: auto;
+                max-height: 90vh;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.75rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            padding: 0;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            -webkit-tap-highlight-color: transparent;
+            transition: all 0.2s;
+        }
+
+        @media (hover: hover) {
+            .close-btn:hover {
+                background: var(--bg);
+            }
+        }
+
+        .close-btn:active {
+            background: var(--border);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 0.25rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .hint-box {
+            background: #e0f2fe;
+            border-left: 3px solid #0284c7;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: #0c4a6e;
+        }
+
+        .hint-box strong {
+            display: block;
+            margin-bottom: 0.25rem;
+            color: #0369a1;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (min-width: 640px) {
+            .stats {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (min-width: 768px) {
+            .stats {
+                gap: 1rem;
+                margin-bottom: 2rem;
+            }
+        }
+
+        .stat-card {
+            background: var(--surface);
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        @media (min-width: 768px) {
+            .stat-label {
+                font-size: 0.85rem;
+            }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+            grid-column: 1/-1;
+        }
+
+        .empty-state svg {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 1.5rem;
+            opacity: 0.5;
+            color: var(--primary);
+        }
+
+        .empty-state h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .empty-state .btn {
+            margin-top: 0.5rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(200px);
+            background: #059669;
+            color: white;
+            padding: 1.25rem 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(5, 150, 105, 0.4);
+            z-index: 2000;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            max-width: 90%;
+            font-weight: 600;
+            font-size: 1.05rem;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0) scale(1.05);
+        }
+
+        .toast.error {
+            background: #dc2626;
+            box-shadow: 0 8px 24px rgba(220, 38, 38, 0.4);
+        }
+
+        .toast.info {
+            background: #2563eb;
+            box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+        }
+
+        .toast-message {
+            flex: 1;
+        }
+
+        .toast-undo-btn {
+            background: rgba(255, 255, 255, 0.25);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .toast-undo-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: scale(1.05);
+        }
+
+        .toast-undo-btn:active {
+            transform: scale(0.95);
+        }
+
+        .session-item {
+            background: var(--surface);
+            padding: 1.25rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            border: 2px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: all 0.2s;
+        }
+
+        .session-item:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .session-header {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .session-header-left {
+            flex: 1;
+        }
+
+        .session-item-title {
+            font-weight: 700;
+            font-size: 1.125rem;
+            margin-bottom: 0.375rem;
+            color: var(--text);
+        }
+
+        .session-games {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .session-stat {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.625rem;
+            background: var(--border);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .session-stat.used {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .session-expand-icon {
+            font-size: 1.25rem;
+            transition: transform 0.3s;
+            color: var(--primary);
+        }
+
+        .session-expand-icon.expanded {
+            transform: rotate(180deg);
+        }
+
+        .session-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .session-content.expanded {
+            max-height: 10000px;
+            transition: max-height 0.5s ease-in;
+        }
+
+        .session-games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid var(--border);
+        }
+
+        .session-game-card {
+            background: var(--bg);
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            transition: all 0.2s;
+        }
+
+        .session-game-card.used {
+            border-color: #10b981;
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+        }
+
+        .session-game-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .session-actions {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .quick-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 12px;
+            border: 2px solid #bae6fd;
+        }
+
+        .quick-actions .btn {
+            flex: 1;
+            min-width: 140px;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .action-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .action-section-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+        }
+
+        .primary-action {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            padding: 1.25rem 1.75rem;
+            border-radius: 12px;
+            border: none;
+            font-weight: 700;
+            font-size: 1.125rem;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+            transition: all 0.3s;
+            width: 100%;
+            margin-bottom: 1rem;
+            min-height: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .primary-action::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .primary-action:hover::before {
+            left: 100%;
+        }
+
+        .primary-action:active {
+            transform: scale(0.98);
+        }
+
+        @media (hover: hover) {
+            .primary-action:hover {
+                box-shadow: 0 8px 25px rgba(37, 99, 235, 0.5);
+                transform: translateY(-2px);
+            }
+        }
+
+        .secondary-action {
+            background: var(--surface);
+            color: var(--primary);
+            padding: 0.875rem 1.5rem;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            min-height: 48px;
+        }
+
+        @media (hover: hover) {
+            .secondary-action:hover {
+                background: var(--primary);
+                color: white;
+                transform: translateY(-1px);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .btn-sm {
+                padding: 0.625rem 0.875rem;
+                font-size: 0.8rem;
+            }
+
+            .game-title {
+                font-size: 1.125rem;
+            }
+
+            .modal-title {
+                font-size: 1.25rem;
+            }
+        }
+
+        /* Topic color classes */
+        .topic-guard-passing { border-left-color: var(--color-guard-passing); }
+        .topic-guard-retention { border-left-color: var(--color-guard-retention); }
+        .topic-half-guard { border-left-color: var(--color-guard-retention); }
+        .topic-top-control { border-left-color: var(--color-pinning); }
+        .topic-mount { border-left-color: var(--color-pinning); }
+        .topic-back-control { border-left-color: var(--color-back-attacks); }
+        .topic-front-headlock { border-left-color: var(--color-pinning); }
+        .topic-turtle { border-left-color: var(--color-escapes); }
+        .topic-escapes { border-left-color: var(--color-escapes); }
+        .topic-submissions { border-left-color: var(--color-submissions); }
+        .topic-leg-locks { border-left-color: var(--color-leg-locks); }
+        .topic-takedowns { border-left-color: var(--color-takedowns); }
+        .topic-transitions { border-left-color: var(--color-scrambles); }
+
+        .topic-tag-guard-passing { background: var(--color-guard-passing); }
+        .topic-tag-guard-retention { background: var(--color-guard-retention); }
+        .topic-tag-half-guard { background: var(--color-guard-retention); }
+        .topic-tag-top-control { background: var(--color-pinning); }
+        .topic-tag-mount { background: var(--color-pinning); }
+        .topic-tag-back-control { background: var(--color-back-attacks); }
+        .topic-tag-front-headlock { background: var(--color-pinning); }
+        .topic-tag-turtle { background: var(--color-escapes); }
+        .topic-tag-escapes { background: var(--color-escapes); }
+        .topic-tag-submissions { background: var(--color-submissions); }
+        .topic-tag-leg-locks { background: var(--color-leg-locks); }
+        .topic-tag-takedowns { background: var(--color-takedowns); }
+        .topic-tag-transitions { background: var(--color-scrambles); }
+
+        /* Print Styles */
+        @media print {
+            body {
+                padding: 0;
+                background: white;
+                color: black;
+            }
+
+            header, .tabs, .filter-toggle-btn, #bulkActionsToolbar,
+            .controls, .stats, .action-section, .btn, button, .theme-toggle {
+                display: none !important;
+            }
+
+            .container {
+                max-width: 100%;
+                padding: 1rem;
+            }
+
+            .print-session {
+                page-break-after: always;
+            }
+
+            .print-session:last-child {
+                page-break-after: auto;
+            }
+
+            .print-session h1 {
+                font-size: 24pt;
+                margin-bottom: 1rem;
+                border-bottom: 2pt solid black;
+                padding-bottom: 0.5rem;
+            }
+
+            .print-game {
+                margin-bottom: 1.5rem;
+                page-break-inside: avoid;
+                border: 1pt solid #ccc;
+                padding: 0.75rem;
+            }
+
+            .print-game-title {
+                font-size: 14pt;
+                font-weight: bold;
+                margin-bottom: 0.5rem;
+            }
+
+            .print-game-content {
+                font-size: 11pt;
+                line-height: 1.4;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="Toggle dark mode">
+                🌙
+            </button>
+            <h1>🥋 NoGi Games Library</h1>
+            <p class="subtitle">Your comprehensive training game database</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('games')">All Games</button>
+            <button class="tab" onclick="switchTab('favorites')">⭐ Favorites</button>
+            <button class="tab" onclick="switchTab('sessions')">📋 Sessions</button>
+            <button class="tab" onclick="switchTab('stats')">📊 Stats</button>
+            <button class="tab" onclick="switchTab('ai')">🤖 AI Assistant</button>
+        </div>
+
+        <div id="gamesView">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalGames">0</div>
+                    <div class="stat-label">Games</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalFavorites">0</div>
+                    <div class="stat-label">Favorites</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalTopics">0</div>
+                    <div class="stat-label">Topics</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalSessions">0</div>
+                    <div class="stat-label">Sessions</div>
+                </div>
+            </div>
+
+            <div class="action-section">
+                <button class="primary-action" onclick="openModal()">
+                    ➕ Add New Game
+                </button>
+            </div>
+
+            <div class="action-section">
+                <div class="action-section-title">📥 Import & Export</div>
+                <div class="quick-actions">
+                    <button class="btn btn-primary" onclick="document.getElementById('importFile').click()">
+                        📥 Import File
+                    </button>
+                    <button class="btn btn-primary" onclick="pasteGames()">
+                        📋 Paste
+                    </button>
+                    <button class="btn btn-success" onclick="shareGames()">
+                        📤 Export
+                    </button>
+                    <button class="btn btn-success" onclick="copyGames()">
+                        📋 Copy
+                    </button>
+                    <input type="file" id="importFile" accept=".json,.txt,.text" style="display: none;" onchange="importGames(event)">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <button class="filter-toggle-btn" id="filterToggleBtn" onclick="toggleFilters()">
+                    🔍 Filters & Search
+                </button>
+                <button class="filter-toggle-btn" id="bulkSelectToggle" onclick="toggleBulkSelect()" style="display: inline-flex;">
+                    ☑️ Bulk Select
+                </button>
+            </div>
+
+            <!-- Bulk Actions Toolbar -->
+            <div id="bulkActionsToolbar" style="display: none; background: var(--surface); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; box-shadow: var(--shadow); border: 2px solid var(--primary);">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                        <span id="selectedCount" style="font-weight: 600; color: var(--primary);">0 selected</span>
+                        <button class="btn btn-secondary btn-sm" onclick="selectAllGames()">Select All</button>
+                        <button class="btn btn-secondary btn-sm" onclick="deselectAllGames()">Deselect All</button>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn btn-success btn-sm" onclick="bulkMarkAsUsed()">✓ Mark as Used</button>
+                        <button class="btn btn-secondary btn-sm" onclick="bulkMarkAsUnused()">↩️ Mark as Unused</button>
+                        <button class="btn btn-primary btn-sm" onclick="bulkAddToSession()">📋 Add to Session</button>
+                        <button class="btn btn-danger btn-sm" onclick="bulkDelete()">🗑️ Delete Selected</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-backdrop" id="filterBackdrop" onclick="toggleFilters()"></div>
+
+            <div class="controls" id="filterControls">
+                <div class="search-box">
+                    <input type="search" id="searchInput" placeholder="🔍 Search games...">
+                </div>
+
+                <select id="topicFilter">
+                    <option value="">All Topics</option>
+                    <option value="Guard Passing">Guard Passing</option>
+                    <option value="Guard Retention">Guard Retention</option>
+                    <option value="Half Guard">Half Guard</option>
+                    <option value="Top Control">Top Control</option>
+                    <option value="Mount">Mount</option>
+                    <option value="Back Control">Back Control</option>
+                    <option value="Front Headlock">Front Headlock</option>
+                    <option value="Turtle">Turtle</option>
+                    <option value="Escapes">Escapes</option>
+                    <option value="Submissions">Submissions</option>
+                    <option value="Leg Locks">Leg Locks</option>
+                    <option value="Takedowns">Takedowns</option>
+                    <option value="Transitions">Transitions</option>
+                </select>
+
+                <select id="authorFilter">
+                    <option value="">All Authors</option>
+                </select>
+
+                <select id="sortBy">
+                    <option value="recent">Recently Added</option>
+                    <option value="name">Name (A-Z)</option>
+                    <option value="topic">Topic</option>
+                    <option value="used">Recently Used</option>
+                </select>
+            </div>
+
+            <div class="games-grid" id="gamesGrid"></div>
+        </div>
+
+        <div id="favoritesView" style="display: none;">
+            <div class="games-grid" id="favoritesGrid"></div>
+        </div>
+
+        <div id="sessionsView" style="display: none;">
+            <div class="action-section">
+                <button class="primary-action" onclick="openSessionModal()">
+                    📋 Create Training Session
+                </button>
+            </div>
+
+            <!-- Templates Section -->
+            <div style="margin-bottom: 2rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                    <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--text);">
+                        💾 Session Templates
+                    </h3>
+                    <button class="btn btn-secondary btn-sm" onclick="renderTemplates()">
+                        🔄 Refresh
+                    </button>
+                </div>
+                <div id="templatesContainer"></div>
+            </div>
+
+            <!-- Sessions List -->
+            <div>
+                <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--text); margin-bottom: 1rem;">
+                    📋 Your Training Sessions
+                </h3>
+                <div id="sessionsList"></div>
+            </div>
+        </div>
+
+        <!-- Stats Dashboard -->
+        <div id="statsView" style="display: none;">
+            <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text);">
+                📊 Training Statistics
+            </h2>
+
+            <div id="statsContent"></div>
+        </div>
+
+        <!-- ==================== CONSTRAINT-LED AI GAME DESIGNER ==================== -->
+        <div id="aiView" style="display: none;">
+            <style>
+                /* AI Game Designer Styles - Mobile First */
+                .ai-container {
+                    max-width: 100%;
+                    margin: 0 auto;
+                }
+
+                .ai-header {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 1.5rem;
+                    border-radius: 12px;
+                    margin-bottom: 1.5rem;
+                    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+                }
+
+                .ai-header h2 {
+                    font-size: 1.5rem;
+                    margin-bottom: 0.5rem;
+                    font-weight: 700;
+                }
+
+                .ai-header p {
+                    opacity: 0.95;
+                    font-size: 0.95rem;
+                    line-height: 1.5;
+                }
+
+                .ai-input-section {
+                    background: white;
+                    padding: 1.5rem;
+                    border-radius: 12px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                    margin-bottom: 1.5rem;
+                }
+
+                .ai-textarea {
+                    width: 100%;
+                    min-height: 140px;
+                    padding: 1rem;
+                    border: 2px solid #e2e8f0;
+                    border-radius: 10px;
+                    font-size: 1rem;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    resize: vertical;
+                    transition: border-color 0.2s;
+                }
+
+                .ai-textarea:focus {
+                    outline: none;
+                    border-color: #667eea;
+                    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                }
+
+                .ai-examples {
+                    display: grid;
+                    gap: 0.75rem;
+                    margin-top: 1rem;
+                }
+
+                .ai-example-btn {
+                    background: #f8fafc;
+                    border: 2px solid #e2e8f0;
+                    padding: 1rem;
+                    border-radius: 10px;
+                    text-align: left;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    font-size: 0.95rem;
+                    color: #334155;
+                    min-height: 56px;
+                    display: flex;
+                    align-items: center;
+                }
+
+                .ai-example-btn:active {
+                    transform: scale(0.98);
+                }
+
+                .ai-example-btn:hover {
+                    background: #f1f5f9;
+                    border-color: #cbd5e1;
+                }
+
+                .ai-generate-btn {
+                    width: 100%;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    border: none;
+                    padding: 1.25rem;
+                    border-radius: 12px;
+                    font-size: 1.1rem;
+                    font-weight: 700;
+                    cursor: pointer;
+                    margin-top: 1.5rem;
+                    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+                    transition: all 0.3s;
+                    min-height: 60px;
+                }
+
+                .ai-generate-btn:active {
+                    transform: translateY(1px);
+                }
+
+                .ai-result-card {
+                    background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%);
+                    border-radius: 12px;
+                    padding: 1.5rem;
+                    margin-bottom: 1.5rem;
+                    box-shadow: 0 4px 16px rgba(150, 230, 161, 0.3);
+                }
+
+                .ai-result-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 1.5rem;
+                    gap: 1rem;
+                }
+
+                .ai-game-title {
+                    font-size: 1.4rem;
+                    font-weight: 800;
+                    color: #065f46;
+                    margin-bottom: 0.5rem;
+                }
+
+                .ai-game-tags {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 0.5rem;
+                    margin-bottom: 1rem;
+                }
+
+                .ai-tag {
+                    background: rgba(255, 255, 255, 0.9);
+                    color: #059669;
+                    padding: 0.35rem 0.75rem;
+                    border-radius: 20px;
+                    font-size: 0.8rem;
+                    font-weight: 600;
+                }
+
+                .ai-add-btn {
+                    background: #059669;
+                    color: white;
+                    border: none;
+                    padding: 0.875rem 1.5rem;
+                    border-radius: 10px;
+                    font-weight: 700;
+                    font-size: 1rem;
+                    cursor: pointer;
+                    box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+                    white-space: nowrap;
+                    min-height: 50px;
+                    transition: all 0.2s;
+                }
+
+                .ai-add-btn:active {
+                    transform: scale(0.95);
+                }
+
+                .ai-edit-btn {
+                    background: #6366f1;
+                    color: white;
+                    border: none;
+                    padding: 0.875rem 1.5rem;
+                    border-radius: 10px;
+                    font-weight: 700;
+                    font-size: 1rem;
+                    cursor: pointer;
+                    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+                    white-space: nowrap;
+                    min-height: 50px;
+                    transition: all 0.2s;
+                    margin-right: 0.75rem;
+                }
+
+                .ai-edit-btn:active {
+                    transform: scale(0.95);
+                }
+
+                .ai-edit-btn.editing {
+                    background: #f59e0b;
+                }
+
+                .ai-result-header {
+                    display: flex;
+                    gap: 0.75rem;
+                    align-items: flex-start;
+                    flex-wrap: wrap;
+                }
+
+                .ai-header-buttons {
+                    display: flex;
+                    gap: 0.5rem;
+                    flex-wrap: wrap;
+                }
+
+                [contenteditable="true"] {
+                    background: #fef9c3;
+                    padding: 0.5rem;
+                    border-radius: 6px;
+                    border: 2px solid #fbbf24;
+                    outline: none;
+                    min-height: 2rem;
+                }
+
+                [contenteditable="true"]:focus {
+                    border-color: #f59e0b;
+                    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+                }
+
+                .ai-constraint-box[contenteditable="true"],
+                .ai-cue[contenteditable="true"],
+                .ai-progression-list li[contenteditable="true"] {
+                    cursor: text;
+                }
+
+                .ai-game-content {
+                    background: white;
+                    border-radius: 10px;
+                    padding: 1.25rem;
+                }
+
+                .ai-section {
+                    margin-bottom: 1.25rem;
+                    padding-bottom: 1.25rem;
+                    border-bottom: 1px solid #e2e8f0;
+                }
+
+                .ai-section:last-child {
+                    border-bottom: none;
+                    margin-bottom: 0;
+                    padding-bottom: 0;
+                }
+
+                .ai-section-title {
+                    font-weight: 700;
+                    color: #0f172a;
+                    font-size: 0.85rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    margin-bottom: 0.5rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+                }
+
+                .ai-section-content {
+                    color: #334155;
+                    line-height: 1.6;
+                    font-size: 0.95rem;
+                }
+
+                .ai-win-conditions {
+                    display: grid;
+                    gap: 0.75rem;
+                }
+
+                .ai-win-box {
+                    background: #f8fafc;
+                    padding: 0.875rem;
+                    border-radius: 8px;
+                    border-left: 4px solid #3b82f6;
+                }
+
+                .ai-win-box.bottom {
+                    border-left-color: #ef4444;
+                }
+
+                .ai-win-label {
+                    font-weight: 700;
+                    font-size: 0.8rem;
+                    color: #3b82f6;
+                    margin-bottom: 0.25rem;
+                }
+
+                .ai-win-box.bottom .ai-win-label {
+                    color: #ef4444;
+                }
+
+                .ai-coaching-cues {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 0.5rem;
+                }
+
+                .ai-cue {
+                    background: #fef3c7;
+                    padding: 0.75rem;
+                    border-radius: 6px;
+                    border-left: 3px solid #f59e0b;
+                    font-size: 0.9rem;
+                    color: #78350f;
+                }
+
+                .ai-progression-list {
+                    list-style: none;
+                    padding: 0;
+                    margin: 0;
+                }
+
+                .ai-progression-list li {
+                    background: #f1f5f9;
+                    padding: 0.875rem;
+                    border-radius: 8px;
+                    margin-bottom: 0.5rem;
+                    position: relative;
+                    padding-left: 2.5rem;
+                    font-size: 0.9rem;
+                    color: #334155;
+                }
+
+                .ai-progression-list li::before {
+                    content: attr(data-number);
+                    position: absolute;
+                    left: 0.875rem;
+                    top: 0.875rem;
+                    background: #667eea;
+                    color: white;
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 700;
+                    font-size: 0.75rem;
+                }
+
+                .ai-constraint-box {
+                    background: #fef2f2;
+                    border: 2px solid #fecaca;
+                    padding: 1rem;
+                    border-radius: 8px;
+                    color: #991b1b;
+                    font-weight: 600;
+                }
+
+                @media (min-width: 640px) {
+                    .ai-examples {
+                        grid-template-columns: repeat(2, 1fr);
+                    }
+                }
+            </style>
+
+            <div class="ai-container">
+                <!-- Header -->
+                <div class="ai-header">
+                    <h2>🎯 AI Game Designer</h2>
+                    <p>Constraint-led approach: Describe your training problem and get a custom game with specific start positions, strong constraints, and clear win conditions.</p>
+                </div>
+
+                <!-- Input Section -->
+                <div class="ai-input-section">
+                    <label for="aiProblemInput" style="display: block; font-weight: 600; margin-bottom: 0.75rem; color: #0f172a;">
+                        What problem do you want to solve?
+                    </label>
+                    <textarea
+                        id="aiProblemInput"
+                        class="ai-textarea"
+                        placeholder="e.g., My students get flattened from turtle and can't escape..."></textarea>
+
+                    <div style="margin-top: 0.75rem;">
+                        <label style="display: block; font-size: 0.85rem; color: #64748b; margin-bottom: 0.5rem;">
+                            💡 Or try these common scenarios:
+                        </label>
+                        <div class="ai-examples">
+                            <button class="ai-example-btn" onclick="fillExample(0)">
+                                Students get their guard passed when they sit up
+                            </button>
+                            <button class="ai-example-btn" onclick="fillExample(1)">
+                                Can't escape side control - get stuck flat
+                            </button>
+                            <button class="ai-example-btn" onclick="fillExample(2)">
+                                Turtle position - students get flattened or back taken
+                            </button>
+                            <button class="ai-example-btn" onclick="fillExample(3)">
+                                Passing knee shield - students get swept or can't advance
+                            </button>
+                        </div>
+                    </div>
+
+                    <button class="ai-generate-btn" onclick="generateConstraintGame()">
+                        ✨ Generate Constraint-Led Game
+                    </button>
+                </div>
+
+                <!-- Result Card (hidden by default) -->
+                <div id="aiResultCard" style="display: none;">
+                    <!-- Game will be inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="fab" onclick="openAddModal()" title="Add Game">+</button>
+
+    <!-- Game Modal -->
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Add New Game</h2>
+                <button class="close-btn" onclick="closeModal()">×</button>
+            </div>
+
+            <form id="gameForm">
+                <input type="hidden" id="gameId">
+
+                <div class="hint-box">
+                    <strong>💡 Tip:</strong>
+                    Use your keyboard's mic button to speak instead of typing!
+                </div>
+
+                <div class="form-group">
+                    <label>Game Name</label>
+                    <input type="text" id="gameName" placeholder="e.g., 3 Touch Game" required>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label>Topic</label>
+                        <select id="gameTopic" required>
+                            <option value="">Select...</option>
+                            <option value="Guard Passing">Guard Passing</option>
+                            <option value="Guard Retention">Guard Retention</option>
+                            <option value="Half Guard">Half Guard</option>
+                            <option value="Top Control">Top Control</option>
+                            <option value="Mount">Mount</option>
+                            <option value="Back Control">Back Control</option>
+                            <option value="Front Headlock">Front Headlock</option>
+                            <option value="Turtle">Turtle</option>
+                            <option value="Escapes">Escapes</option>
+                            <option value="Submissions">Submissions</option>
+                            <option value="Leg Locks">Leg Locks</option>
+                            <option value="Takedowns">Takedowns</option>
+                            <option value="Transitions">Transitions</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Game # (optional)</label>
+                        <input type="text" id="gameNumber" placeholder="e.g., 1, 2, A, B">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Top Player</label>
+                    <textarea id="topPlayer" placeholder="Describe top player's objective and rules..." required></textarea>
+                    <small>What does the top player need to do?</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Bottom Player</label>
+                    <textarea id="bottomPlayer" placeholder="Describe bottom player's objective and rules..." required></textarea>
+                    <small>What does the bottom player need to do?</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Coaching Notes (optional)</label>
+                    <textarea id="gameCoaching" placeholder="Key coaching points..."></textarea>
+                    <small>Important details to emphasize during the game</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Author</label>
+                    <input type="text" id="gameAuthor" placeholder="Your name" required>
+                    <small>Who created this game?</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Contributors (optional)</label>
+                    <input type="text" id="gameContributors" placeholder="e.g., John, Sarah, Mike">
+                    <small>Comma-separated list of people who helped refine this game</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Skills (Hashtags)</label>
+                    <input type="text" id="gameSkills" placeholder="e.g., #grips #pressure #timing">
+                    <small>Use # to tag skills (e.g., #connection #wrestling #base)</small>
+                </div>
+
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" id="gameUsed" style="width: auto; margin: 0;">
+                        <span>Mark as used in training</span>
+                    </label>
+                    <small>Track which games you've already practiced</small>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap;">
+                    <button type="submit" class="btn btn-success" style="flex: 1;">Save Game</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Session Modal -->
+    <div class="modal" id="sessionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="sessionModalTitle">Create Training Session</h2>
+                <button class="close-btn" onclick="closeSessionModal()">×</button>
+            </div>
+
+            <form id="sessionForm">
+                <div class="form-group">
+                    <label>Session Name</label>
+                    <input type="text" id="sessionName" placeholder="e.g., Competition Prep" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Games</label>
+
+                    <!-- Search and Filter Controls -->
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap;">
+                        <input
+                            type="search"
+                            id="sessionSearchInput"
+                            placeholder="🔍 Search games..."
+                            style="flex: 1; min-width: 180px; padding: 0.625rem; border: 2px solid var(--border); border-radius: 6px;"
+                            oninput="filterSessionGames()"
+                        >
+                        <select
+                            id="sessionTopicFilter"
+                            style="padding: 0.625rem; border: 2px solid var(--border); border-radius: 6px; min-width: 140px;"
+                            onchange="filterSessionGames()"
+                        >
+                            <option value="">All Topics</option>
+                            <option value="Guard Passing">Guard Passing</option>
+                            <option value="Guard Retention">Guard Retention</option>
+                            <option value="Half Guard">Half Guard</option>
+                            <option value="Top Control">Top Control</option>
+                            <option value="Mount">Mount</option>
+                            <option value="Back Control">Back Control</option>
+                            <option value="Front Headlock">Front Headlock</option>
+                            <option value="Turtle">Turtle</option>
+                            <option value="Escapes">Escapes</option>
+                            <option value="Submissions">Submissions</option>
+                            <option value="Leg Locks">Leg Locks</option>
+                            <option value="Takedowns">Takedowns</option>
+                            <option value="Transitions">Transitions</option>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <small style="color: var(--text-muted);">
+                                <span id="sessionGamesCount">0</span> games shown
+                            </small>
+                            <span id="sessionSelectedCount" style="display: none; background: var(--primary); color: white; padding: 0.25rem 0.625rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600;">
+                            </span>
+                        </div>
+                        <div style="display: flex; gap: 0.25rem;">
+                            <button type="button" class="btn btn-secondary" style="padding: 0.375rem 0.75rem; font-size: 0.85rem;" onclick="selectAllSessionGames()">
+                                Select All
+                            </button>
+                            <button type="button" class="btn btn-secondary" style="padding: 0.375rem 0.75rem; font-size: 0.85rem;" onclick="deselectAllSessionGames()">
+                                Clear
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="sessionGamesList" style="max-height: 450px; overflow-y: auto; border: 2px solid var(--border); border-radius: 8px; padding: 0.75rem; background: var(--bg);">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 0.75rem; margin-top: 2rem; flex-wrap: wrap;">
+                    <button type="submit" id="sessionSubmitBtn" class="btn btn-success" style="flex: 1; min-width: 180px;">Create Session</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAsTemplate(); event.preventDefault();" title="Save this selection as a reusable template">
+                        💾 Save as Template
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="closeSessionModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        let games = [];
+        let sessions = [];
+        let templates = []; // Session templates
+        let editingGameId = null;
+        let editingSessionId = null;
+        let currentTab = 'games';
+        let undoState = null; // Stores {type: 'game'|'session', data: {...}, action: 'delete'}
+        let bulkSelectMode = false;
+        let selectedGameIds = new Set();
+
+        // Theme management
+        function initTheme() {
+            // Check for saved theme preference or default to system preference
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            const theme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+            setTheme(theme);
+
+            // Listen for system theme changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('theme')) {
+                    setTheme(e.matches ? 'dark' : 'light');
+                }
+            });
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            const toggle = document.getElementById('themeToggle');
+            if (toggle) {
+                toggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+                toggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+            }
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            setTheme(newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
+        // Initialize
+        function init() {
+            initTheme();
+            loadGames();
+            loadSessions();
+            loadTemplates();
+            renderGames();
+            updateStats();
+        }
+
+        // Tab switching
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.getElementById('gamesView').style.display = tab === 'games' ? 'block' : 'none';
+            document.getElementById('favoritesView').style.display = tab === 'favorites' ? 'block' : 'none';
+            document.getElementById('sessionsView').style.display = tab === 'sessions' ? 'block' : 'none';
+            document.getElementById('statsView').style.display = tab === 'stats' ? 'block' : 'none';
+            document.getElementById('aiView').style.display = tab === 'ai' ? 'block' : 'none';
+
+            if (tab === 'favorites') renderFavorites();
+            if (tab === 'sessions') {
+                renderTemplates();
+                renderSessions();
+            }
+            if (tab === 'stats') renderStats();
+        }
+
+        // Load data
+        function loadGames() {
+            const stored = localStorage.getItem('nogiGamesV2');
+            if (stored) {
+                games = JSON.parse(stored);
+            } else {
+                // Sample games in the user's format
+                games = [
+                    {
+                        id: Date.now() + 1,
+                        name: "3 Touch Behind Knee",
+                        topic: "Standing",
+                        gameNumber: "1",
+                        topPlayer: "3 touch behind knee or hands on the mat, then only can connect circle",
+                        bottomPlayer: "Prevent/defend",
+                        coaching: "",
+                        skills: "#connection #wrestling #control",
+                        favorite: false,
+                        lastUsed: null,
+                        created: Date.now()
+                    },
+                    {
+                        id: Date.now() + 2,
+                        name: "Connection Progress Game",
+                        topic: "Standing",
+                        gameNumber: "2",
+                        topPlayer: "Start with connection, goal is put hands on the mat, then only can move to another connection (front head, single, tight waist)",
+                        bottomPlayer: "Disconnect and face",
+                        coaching: "",
+                        skills: "#wrestling #handfighting #positioning",
+                        favorite: false,
+                        lastUsed: null,
+                        created: Date.now() + 1
+                    },
+                    {
+                        id: Date.now() + 3,
+                        name: "Outside Touch Game",
+                        topic: "Guarded",
+                        gameNumber: "1",
+                        topPlayer: "Touch outside with either leg 3 times alternating, then connect hands anywhere from hips to shoulder",
+                        bottomPlayer: "Bring them on their ass or wrestle up",
+                        coaching: "",
+                        skills: "#wrestling #positioning #offense",
+                        favorite: false,
+                        lastUsed: null,
+                        created: Date.now() + 2
+                    },
+                    {
+                        id: Date.now() + 4,
+                        name: "Knee Pit Touch Game",
+                        topic: "Guarded",
+                        gameNumber: "2",
+                        topPlayer: "Touch knee pits with both legs 3 times alternating, then connect hands anywhere from hips to shoulder",
+                        bottomPlayer: "Bring them on their ass or wrestle up",
+                        coaching: "",
+                        skills: "#wrestling #guard #control",
+                        favorite: false,
+                        lastUsed: null,
+                        created: Date.now() + 3
+                    },
+                    {
+                        id: Date.now() + 5,
+                        name: "Hip to Chest Progression",
+                        topic: "Pinning",
+                        gameNumber: "1",
+                        topPlayer: "Start around the hips connected hands, move to one arm in chest to chest or chest to back",
+                        bottomPlayer: "Bring feet inside, wrestle up or reverse",
+                        coaching: "",
+                        skills: "#pinning #control #transitions",
+                        favorite: false,
+                        lastUsed: null,
+                        created: Date.now() + 4
+                    },
+                    {
+                        id: Date.now() + 6,
+                        name: "Mount Submission Game",
+                        topic: "Pinning",
+                        gameNumber: "2",
+                        topPlayer: "Start mounted with double under hooks, only way to win is submission under elbows",
+                        bottomPlayer: "Bring elbows to body = win",
+                        coaching: "",
+                        skills: "#mount #submissions #defense #frames",
+                        favorite: false,
+                        lastUsed: null,
+                        created: Date.now() + 5
+                    }
+                ];
+                saveGames();
+            }
+        }
+
+        function loadSessions() {
+            const stored = localStorage.getItem('nogiSessions');
+            if (stored) {
+                sessions = JSON.parse(stored);
+            }
+        }
+
+        function saveGames() {
+            localStorage.setItem('nogiGamesV2', JSON.stringify(games));
+            updateStats();
+        }
+
+        function saveSessions() {
+            localStorage.setItem('nogiSessions', JSON.stringify(sessions));
+            updateStats();
+        }
+
+        // Session Templates
+        function loadTemplates() {
+            const stored = localStorage.getItem('nogiTemplates');
+            if (stored) {
+                templates = JSON.parse(stored);
+            }
+        }
+
+        function saveTemplates() {
+            localStorage.setItem('nogiTemplates', JSON.stringify(templates));
+        }
+
+        function saveAsTemplate() {
+            const name = document.getElementById('sessionName').value;
+            const checkboxes = document.querySelectorAll('#sessionGamesList input[type="checkbox"]:checked');
+            const gameIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+            if (!name || gameIds.length === 0) {
+                showToast('❌ Please enter a name and select games first', 'error');
+                return;
+            }
+
+            const templateName = prompt('Template name:', name + ' Template');
+            if (!templateName) return;
+
+            const template = {
+                id: Date.now(),
+                name: templateName,
+                gameIds: gameIds,
+                created: Date.now()
+            };
+
+            templates.push(template);
+            saveTemplates();
+            showToast(`✅ Template "${templateName}" saved!`, 'success');
+        }
+
+        function createFromTemplate(templateId) {
+            const template = templates.find(t => t.id === templateId);
+            if (!template) return;
+
+            editingSessionId = null;
+            document.getElementById('sessionModalTitle').textContent = 'Create Session from Template';
+            document.getElementById('sessionSubmitBtn').textContent = 'Create Session';
+            document.getElementById('sessionName').value = template.name.replace(' Template', '');
+            document.getElementById('sessionModal').classList.add('active');
+
+            // Reset filters
+            document.getElementById('sessionSearchInput').value = '';
+            document.getElementById('sessionTopicFilter').value = '';
+
+            // Render all games
+            filterSessionGames();
+
+            // Check the games from template
+            setTimeout(() => {
+                template.gameIds.forEach(gameId => {
+                    const checkbox = document.querySelector(`.session-game-checkbox[value="${gameId}"]`);
+                    if (checkbox) checkbox.checked = true;
+                });
+                updateSelectedCount();
+            }, 100);
+        }
+
+        function deleteTemplate(id) {
+            const template = templates.find(t => t.id === id);
+            if (!template) return;
+
+            templates = templates.filter(t => t.id !== id);
+            saveTemplates();
+            renderTemplates();
+            showToast(`🗑️ Template "${template.name}" deleted`, 'info');
+        }
+
+        function renderTemplates() {
+            const container = document.getElementById('templatesContainer');
+            if (!container) return;
+
+            if (templates.length === 0) {
+                container.innerHTML = `
+                    <p style="color: var(--text-muted); text-align: center; padding: 2rem;">
+                        No templates yet. Save your first session as a template!
+                    </p>
+                `;
+                return;
+            }
+
+            container.innerHTML = templates.map(t => {
+                const templateGames = t.gameIds.map(id => games.find(g => g.id === id)).filter(Boolean);
+                return `
+                    <div style="background: var(--surface); border: 2px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem;">
+                        <div style="font-weight: 700; margin-bottom: 0.5rem;">${t.name}</div>
+                        <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                            ${templateGames.length} games
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-primary btn-sm" onclick="createFromTemplate(${t.id})">
+                                Use Template
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteTemplate(${t.id})">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Statistics Dashboard
+        function renderStats() {
+            const container = document.getElementById('statsContent');
+
+            // Calculate statistics
+            const totalGames = games.length;
+            const usedGames = games.filter(g => g.lastUsed).length;
+            const favorites = games.filter(g => g.favorite).length;
+
+            // Topic distribution
+            const topicCounts = {};
+            games.forEach(g => {
+                topicCounts[g.topic] = (topicCounts[g.topic] || 0) + 1;
+            });
+
+            // Most practiced (by usage)
+            const usedGamesList = games.filter(g => g.lastUsed).sort((a, b) => b.lastUsed - a.lastUsed);
+
+            // Last 30 days activity
+            const thirtyDaysAgo = Date.now() - (30 * 24 * 60 * 60 * 1000);
+            const recentActivity = games.filter(g => g.lastUsed && g.lastUsed > thirtyDaysAgo);
+
+            container.innerHTML = `
+                <!-- Summary Cards -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                    <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow-lg);">
+                        <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">${totalGames}</div>
+                        <div style="opacity: 0.9;">Total Games</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow-lg);">
+                        <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">${usedGames}</div>
+                        <div style="opacity: 0.9;">Games Practiced</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow-lg);">
+                        <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">${favorites}</div>
+                        <div style="opacity: 0.9;">Favorites</div>
+                    </div>
+                    <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow-lg);">
+                        <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">${recentActivity.length}</div>
+                        <div style="opacity: 0.9;">Last 30 Days</div>
+                    </div>
+                </div>
+
+                <!-- Topic Distribution -->
+                <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text);">
+                        📊 Games by Topic
+                    </h3>
+                    ${Object.entries(topicCounts).sort((a, b) => b[1] - a[1]).map(([topic, count]) => {
+                        const percentage = (count / totalGames * 100).toFixed(1);
+                        return `
+                            <div style="margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <span style="font-weight: 600;">${topic}</span>
+                                    <span style="color: var(--text-muted);">${count} games (${percentage}%)</span>
+                                </div>
+                                <div style="background: var(--border); height: 24px; border-radius: 12px; overflow: hidden;">
+                                    <div style="background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%); height: 100%; width: ${percentage}%; transition: width 0.5s;"></div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+
+                <!-- Recently Practiced -->
+                <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 2rem;">
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text);">
+                        🔥 Recently Practiced
+                    </h3>
+                    ${usedGamesList.length === 0 ? `
+                        <p style="color: var(--text-muted); text-align: center; padding: 2rem;">
+                            No games practiced yet. Start training!
+                        </p>
+                    ` : `
+                        <div style="display: grid; gap: 0.75rem;">
+                            ${usedGamesList.slice(0, 10).map(g => {
+                                const daysAgo = Math.floor((Date.now() - g.lastUsed) / (24 * 60 * 60 * 1000));
+                                return `
+                                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; background: var(--bg); border-radius: 8px; border-left: 4px solid var(--primary);">
+                                        <div>
+                                            <div style="font-weight: 600;">${g.name}</div>
+                                            <div style="font-size: 0.85rem; color: var(--text-muted);">${g.topic}</div>
+                                        </div>
+                                        <div style="text-align: right; font-size: 0.85rem; color: var(--text-muted);">
+                                            ${daysAgo === 0 ? 'Today' : daysAgo === 1 ? 'Yesterday' : daysAgo + ' days ago'}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    `}
+                </div>
+
+                <!-- Unused Games -->
+                ${totalGames - usedGames > 0 ? `
+                    <div style="background: var(--surface); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow);">
+                        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; color: var(--text);">
+                            💡 Suggestion
+                        </h3>
+                        <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 1.5rem; border-radius: 8px; border-left: 4px solid #f59e0b;">
+                            <p style="font-weight: 600; margin-bottom: 0.5rem;">You have ${totalGames - usedGames} unused games!</p>
+                            <p style="font-size: 0.95rem; color: var(--text);">Try practicing some new games to diversify your training.</p>
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        // Update statistics
+        function updateStats() {
+            document.getElementById('totalGames').textContent = games.length;
+            document.getElementById('totalFavorites').textContent = games.filter(g => g.favorite).length;
+            document.getElementById('totalSessions').textContent = sessions.length;
+
+            const topics = new Set(games.map(g => g.topic));
+            document.getElementById('totalTopics').textContent = topics.size;
+        }
+
+        // Get topic class
+        function getTopicClass(topic) {
+            return 'topic-' + topic.toLowerCase().replace(/ /g, '-');
+        }
+
+        function getTopicTagClass(topic) {
+            return 'topic-tag-' + topic.toLowerCase().replace(/ /g, '-');
+        }
+
+        // Sort games
+        function sortGames(gamesList) {
+            const sortBy = document.getElementById('sortBy')?.value || 'recent';
+
+            return [...gamesList].sort((a, b) => {
+                switch(sortBy) {
+                    case 'name':
+                        return a.name.localeCompare(b.name);
+                    case 'topic':
+                        return a.topic.localeCompare(b.topic);
+                    case 'used':
+                        return (b.lastUsed || 0) - (a.lastUsed || 0);
+                    case 'recent':
+                    default:
+                        return (b.created || 0) - (a.created || 0);
+                }
+            });
+        }
+
+        // Render games
+        function renderGames() {
+            // Update author filter options
+            const authorFilter = document.getElementById('authorFilter');
+            const currentAuthorFilter = authorFilter.value;
+            const uniqueAuthors = [...new Set(games.map(g => g.author).filter(Boolean))].sort();
+
+            authorFilter.innerHTML = '<option value="">All Authors</option>' +
+                uniqueAuthors.map(author =>
+                    `<option value="${author}" ${author === currentAuthorFilter ? 'selected' : ''}>${author}</option>`
+                ).join('');
+
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const topicFilter = document.getElementById('topicFilter').value;
+            const authorFilterValue = document.getElementById('authorFilter').value;
+
+            let filtered = games.filter(game => {
+                const matchesSearch = !searchTerm ||
+                    game.name.toLowerCase().includes(searchTerm) ||
+                    (game.topPlayer || '').toLowerCase().includes(searchTerm) ||
+                    (game.bottomPlayer || '').toLowerCase().includes(searchTerm) ||
+                    (game.author || '').toLowerCase().includes(searchTerm) ||
+                    game.skills.toLowerCase().includes(searchTerm);
+
+                const matchesTopic = !topicFilter || game.topic === topicFilter;
+                const matchesAuthor = !authorFilterValue || game.author === authorFilterValue;
+
+                return matchesSearch && matchesTopic && matchesAuthor;
+            });
+
+            filtered = sortGames(filtered);
+
+            const grid = document.getElementById('gamesGrid');
+
+            if (filtered.length === 0) {
+                const hasGames = games.length > 0;
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            ${hasGames ? `
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            ` : `
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            `}
+                        </svg>
+                        <h3>${hasGames ? 'No games match your filters' : 'Your library is empty'}</h3>
+                        <p>${hasGames ? 'Try clearing some filters or searching for something else.' : 'Start building your constraint-led games library!'}</p>
+                        ${!hasGames ? '<button class="btn btn-primary" onclick="openModal()">➕ Add Your First Game</button>' : ''}
+                        ${!hasGames ? '<button class="btn btn-secondary" onclick="switchTab(\'ai\')">🎲 Try AI Designer</button>' : ''}
+                    </div>
+                `;
+                return;
+            }
+
+            const now = Date.now();
+            const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
+
+            grid.innerHTML = filtered.map(game => `
+                <div class="game-card ${getTopicClass(game.topic)} ${game.favorite ? 'favorite' : ''}">
+                    ${bulkSelectMode ? `
+                        <div style="position: absolute; top: 1rem; right: 1rem; z-index: 10;">
+                            <input type="checkbox" class="bulk-select-checkbox" value="${game.id}"
+                                   ${selectedGameIds.has(game.id) ? 'checked' : ''}
+                                   onchange="toggleGameSelection(${game.id})"
+                                   style="width: 24px; height: 24px; cursor: pointer;">
+                        </div>
+                    ` : ''}
+                    <div class="game-header">
+                        <div class="game-meta">
+                            <span class="game-topic ${getTopicTagClass(game.topic)}">${game.topic}</span>
+                            ${game.gameNumber ? `<span class="game-number">Game ${game.gameNumber}</span>` : ''}
+                            ${(game.created || 0) > sevenDaysAgo ? '<span class="badge-new">New</span>' : ''}
+                            ${game.author ? `<span class="author-badge">✍️ ${game.author}</span>` : ''}
+                        </div>
+                        <h3 class="game-title">${game.name}</h3>
+                        ${game.contributors && game.contributors.length > 0 ? `
+                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
+                                👥 Contributors: ${game.contributors.join(', ')}
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="player-section">
+                        <span class="player-label">🔵 Top Player:</span>
+                        <div class="player-text">${game.topPlayer}</div>
+                    </div>
+
+                    <div class="player-section">
+                        <span class="player-label">🔴 Bottom Player:</span>
+                        <div class="player-text">${game.bottomPlayer}</div>
+                    </div>
+
+                    ${game.coaching ? `
+                        <div class="game-coaching">
+                            <strong>💡 Coaching:</strong>
+                            ${game.coaching}
+                        </div>
+                    ` : ''}
+
+                    ${game.skills ? `
+                        <div class="hashtags">
+                            ${(game.skills.match(/#\w+/g) || []).map(tag =>
+                                `<span class="hashtag">${tag}</span>`
+                            ).join('')}
+                        </div>
+                    ` : ''}
+
+                    <div class="game-actions">
+                        <div class="game-actions-main">
+                            <button class="btn btn-sm ${game.favorite ? 'btn-warning' : 'btn-secondary'}"
+                                    onclick="toggleFavorite(${game.id})" title="${game.favorite ? 'Remove from favorites' : 'Add to favorites'}">
+                                ${game.favorite ? '⭐' : '☆'}
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="addGameToSession(${game.id})" title="Add to Session">
+                                📋 Session
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="editGame(${game.id})">✏️ Edit</button>
+                        </div>
+                        <div class="game-actions-overflow">
+                            <button class="overflow-menu-btn" onclick="toggleOverflowMenu(${game.id}); event.stopPropagation();" title="More actions">
+                                ⋮
+                            </button>
+                            <div id="overflow-menu-${game.id}" class="overflow-menu">
+                                <button class="overflow-menu-item" onclick="markAsUsed(${game.id}); closeOverflowMenus();">
+                                    ${game.lastUsed ? '↩️ Mark as Unused' : '✓ Mark as Used'}
+                                </button>
+                                <button class="overflow-menu-item" onclick="duplicateGame(${game.id}); closeOverflowMenus();">
+                                    📋 Duplicate Game
+                                </button>
+                                <button class="overflow-menu-item danger" onclick="deleteGame(${game.id}); closeOverflowMenus();">
+                                    🗑️ Delete Game
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render favorites
+        function renderFavorites() {
+            const favorites = games.filter(g => g.favorite);
+            const grid = document.getElementById('favoritesGrid');
+
+            if (favorites.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                        </svg>
+                        <h3>No favorites yet!</h3>
+                        <p>Star your go-to games to quickly access them here.</p>
+                        <button class="btn btn-primary" onclick="switchTab('games')">Browse Games</button>
+                    </div>
+                `;
+                return;
+            }
+
+            const sorted = sortGames(favorites);
+
+            grid.innerHTML = sorted.map(game => `
+                <div class="game-card ${getTopicClass(game.topic)} favorite">
+                    <div class="game-header">
+                        <div class="game-meta">
+                            <span class="game-topic ${getTopicTagClass(game.topic)}">${game.topic}</span>
+                            ${game.gameNumber ? `<span class="game-number">Game ${game.gameNumber}</span>` : ''}
+                        </div>
+                        <h3 class="game-title">${game.name}</h3>
+                    </div>
+
+                    <div class="player-section">
+                        <span class="player-label">🔵 Top Player:</span>
+                        <div class="player-text">${game.topPlayer}</div>
+                    </div>
+
+                    <div class="player-section">
+                        <span class="player-label">🔴 Bottom Player:</span>
+                        <div class="player-text">${game.bottomPlayer}</div>
+                    </div>
+
+                    ${game.coaching ? `
+                        <div class="game-coaching">
+                            <strong>💡 Coaching:</strong>
+                            ${game.coaching}
+                        </div>
+                    ` : ''}
+
+                    ${game.skills ? `
+                        <div class="hashtags">
+                            ${(game.skills.match(/#\w+/g) || []).map(tag =>
+                                `<span class="hashtag">${tag}</span>`
+                            ).join('')}
+                        </div>
+                    ` : ''}
+
+                    <div class="game-actions">
+                        <button class="btn btn-warning btn-sm" onclick="toggleFavorite(${game.id})">⭐</button>
+                        <button class="btn btn-sm ${game.lastUsed ? 'btn-secondary' : 'btn-success'}"
+                                onclick="markAsUsed(${game.id})">
+                            ${game.lastUsed ? '↩️ Unused' : '✓ Used'}
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="editGame(${game.id})">Edit</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Toggle favorite
+        // Overflow menu management
+        function toggleOverflowMenu(gameId) {
+            const menu = document.getElementById(`overflow-menu-${gameId}`);
+            const isActive = menu.classList.contains('active');
+
+            // Close all other menus first
+            closeOverflowMenus();
+
+            // Toggle this menu
+            if (!isActive) {
+                menu.classList.add('active');
+            }
+        }
+
+        function closeOverflowMenus() {
+            document.querySelectorAll('.overflow-menu.active').forEach(menu => {
+                menu.classList.remove('active');
+            });
+        }
+
+        // Close menus when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.game-actions-overflow')) {
+                closeOverflowMenus();
+            }
+        });
+
+        // Filter panel toggle for mobile
+        function toggleFilters() {
+            const filterControls = document.getElementById('filterControls');
+            const filterBackdrop = document.getElementById('filterBackdrop');
+            const filterToggleBtn = document.getElementById('filterToggleBtn');
+
+            filterControls.classList.toggle('active');
+            filterBackdrop.classList.toggle('active');
+            filterToggleBtn.classList.toggle('active');
+
+            // Prevent body scroll when filters are open on mobile
+            if (filterControls.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
+        function toggleFavorite(id) {
+            const game = games.find(g => g.id === id);
+            if (game) {
+                game.favorite = !game.favorite;
+                saveGames();
+                renderGames();
+                if (currentTab === 'favorites') renderFavorites();
+                showToast(game.favorite ? '⭐ Added to favorites' : 'Removed from favorites');
+            }
+        }
+
+        // Mark as used
+        function markAsUsed(id) {
+            const game = games.find(g => g.id === id);
+            if (game) {
+                if (game.lastUsed) {
+                    // Toggle to unused
+                    game.lastUsed = null;
+                    saveGames();
+                    renderGames();
+                    if (currentTab === 'favorites') renderFavorites();
+                    showToast('↩️ Marked as unused', 'info');
+                } else {
+                    // Toggle to used
+                    game.lastUsed = Date.now();
+                    saveGames();
+                    renderGames();
+                    if (currentTab === 'favorites') renderFavorites();
+                    showToast('✓ Marked as used today', 'success');
+                }
+            }
+        }
+
+        // Duplicate game
+        function duplicateGame(id) {
+            const game = games.find(g => g.id === id);
+            if (game) {
+                const newGame = {
+                    ...game,
+                    id: Date.now(),
+                    name: game.name + ' (Copy)',
+                    favorite: false,
+                    lastUsed: null,
+                    created: Date.now()
+                };
+                games.push(newGame);
+                saveGames();
+                renderGames();
+                showToast('✓ Game duplicated');
+            }
+        }
+
+        // Bulk Operations
+        function toggleBulkSelect() {
+            bulkSelectMode = !bulkSelectMode;
+            selectedGameIds.clear();
+
+            const toggle = document.getElementById('bulkSelectToggle');
+            const toolbar = document.getElementById('bulkActionsToolbar');
+
+            if (bulkSelectMode) {
+                toggle.classList.add('active');
+                toolbar.style.display = 'block';
+            } else {
+                toggle.classList.remove('active');
+                toolbar.style.display = 'none';
+            }
+
+            renderGames();
+        }
+
+        function toggleGameSelection(gameId) {
+            if (selectedGameIds.has(gameId)) {
+                selectedGameIds.delete(gameId);
+            } else {
+                selectedGameIds.add(gameId);
+            }
+            updateBulkSelectedCount();
+        }
+
+        function updateBulkSelectedCount() {
+            document.getElementById('selectedCount').textContent = `${selectedGameIds.size} selected`;
+        }
+
+        function selectAllGames() {
+            const grid = document.getElementById('gamesGrid');
+            const checkboxes = grid.querySelectorAll('.bulk-select-checkbox');
+            checkboxes.forEach(cb => {
+                selectedGameIds.add(parseInt(cb.value));
+                cb.checked = true;
+            });
+            updateBulkSelectedCount();
+        }
+
+        function deselectAllGames() {
+            selectedGameIds.clear();
+            const grid = document.getElementById('gamesGrid');
+            const checkboxes = grid.querySelectorAll('.bulk-select-checkbox');
+            checkboxes.forEach(cb => cb.checked = false);
+            updateBulkSelectedCount();
+        }
+
+        function bulkMarkAsUsed() {
+            if (selectedGameIds.size === 0) {
+                showToast('❌ No games selected', 'error');
+                return;
+            }
+
+            selectedGameIds.forEach(id => {
+                const game = games.find(g => g.id === id);
+                if (game) game.lastUsed = Date.now();
+            });
+
+            saveGames();
+            renderGames();
+            showToast(`✓ ${selectedGameIds.size} game(s) marked as used`, 'success');
+            selectedGameIds.clear();
+            updateBulkSelectedCount();
+        }
+
+        function bulkMarkAsUnused() {
+            if (selectedGameIds.size === 0) {
+                showToast('❌ No games selected', 'error');
+                return;
+            }
+
+            selectedGameIds.forEach(id => {
+                const game = games.find(g => g.id === id);
+                if (game) game.lastUsed = null;
+            });
+
+            saveGames();
+            renderGames();
+            showToast(`↩️ ${selectedGameIds.size} game(s) marked as unused`, 'info');
+            selectedGameIds.clear();
+            updateBulkSelectedCount();
+        }
+
+        function bulkDelete() {
+            if (selectedGameIds.size === 0) {
+                showToast('❌ No games selected', 'error');
+                return;
+            }
+
+            const count = selectedGameIds.size;
+            games = games.filter(g => !selectedGameIds.has(g.id));
+            selectedGameIds.clear();
+
+            saveGames();
+            renderGames();
+            updateBulkSelectedCount();
+            showToast(`🗑️ ${count} game(s) deleted`, 'info');
+        }
+
+        function bulkAddToSession() {
+            if (selectedGameIds.size === 0) {
+                showToast('❌ No games selected', 'error');
+                return;
+            }
+
+            // Open session modal with selected games
+            editingSessionId = null;
+            document.getElementById('sessionModalTitle').textContent = 'Create Session from Selection';
+            document.getElementById('sessionSubmitBtn').textContent = 'Create Session';
+            document.getElementById('sessionName').value = '';
+            document.getElementById('sessionModal').classList.add('active');
+
+            // Reset filters
+            document.getElementById('sessionSearchInput').value = '';
+            document.getElementById('sessionTopicFilter').value = '';
+
+            // Render all games
+            filterSessionGames();
+
+            // Check the selected games
+            setTimeout(() => {
+                selectedGameIds.forEach(gameId => {
+                    const checkbox = document.querySelector(`.session-game-checkbox[value="${gameId}"]`);
+                    if (checkbox) checkbox.checked = true;
+                });
+                updateSelectedCount();
+
+                // Clear bulk selection after
+                selectedGameIds.clear();
+                bulkSelectMode = false;
+                document.getElementById('bulkSelectToggle').classList.remove('active');
+                document.getElementById('bulkActionsToolbar').style.display = 'none';
+            }, 100);
+        }
+
+        // Modal functions
+        function openAddModal() {
+            editingGameId = null;
+            document.getElementById('modalTitle').textContent = 'Add New Game';
+            document.getElementById('gameForm').reset();
+            document.getElementById('gameId').value = '';
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        function editGame(id) {
+            const game = games.find(g => g.id === id);
+            if (!game) return;
+
+            editingGameId = id;
+            document.getElementById('modalTitle').textContent = 'Edit Game';
+            document.getElementById('gameId').value = id;
+            document.getElementById('gameName').value = game.name;
+            document.getElementById('gameTopic').value = game.topic;
+            document.getElementById('gameNumber').value = game.gameNumber || '';
+            document.getElementById('topPlayer').value = game.topPlayer;
+            document.getElementById('bottomPlayer').value = game.bottomPlayer;
+            document.getElementById('gameCoaching').value = game.coaching || '';
+            document.getElementById('gameAuthor').value = game.author || '';
+            document.getElementById('gameContributors').value = game.contributors ? game.contributors.join(', ') : '';
+            document.getElementById('gameSkills').value = game.skills || '';
+            document.getElementById('gameUsed').checked = !!game.lastUsed;
+
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('gameModal').classList.remove('active');
+            document.getElementById('gameForm').reset();
+            editingGameId = null;
+        }
+
+        function deleteGame(id) {
+            const game = games.find(g => g.id === id);
+            if (!game) return;
+
+            const gameName = game.name;
+
+            // Store for undo
+            undoState = {
+                type: 'game',
+                action: 'delete',
+                data: {...game}
+            };
+
+            games = games.filter(g => g.id !== id);
+            saveGames();
+            renderGames();
+            if (currentTab === 'favorites') renderFavorites();
+
+            showToast(`🗑️ "${gameName}" deleted`, 'info', true);
+            console.log('Game deleted:', id, gameName);
+        }
+
+        // Form submission
+        document.getElementById('gameForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const contributorsInput = document.getElementById('gameContributors').value;
+            const contributors = contributorsInput
+                ? contributorsInput.split(',').map(c => c.trim()).filter(c => c)
+                : [];
+
+            const isUsed = document.getElementById('gameUsed').checked;
+
+            const gameData = {
+                id: editingGameId || Date.now(),
+                name: document.getElementById('gameName').value,
+                topic: document.getElementById('gameTopic').value,
+                gameNumber: document.getElementById('gameNumber').value,
+                topPlayer: document.getElementById('topPlayer').value,
+                bottomPlayer: document.getElementById('bottomPlayer').value,
+                coaching: document.getElementById('gameCoaching').value,
+                author: document.getElementById('gameAuthor').value,
+                contributors: contributors,
+                skills: document.getElementById('gameSkills').value,
+                favorite: false,
+                lastUsed: isUsed ? Date.now() : null,
+                created: Date.now()
+            };
+
+            if (editingGameId) {
+                const index = games.findIndex(g => g.id === editingGameId);
+                const oldGame = games[index];
+                games[index] = {
+                    ...gameData,
+                    favorite: oldGame.favorite,
+                    created: oldGame.created,
+                    lastUsed: isUsed ? (oldGame.lastUsed || Date.now()) : null
+                };
+                console.log('Game updated:', gameData);
+            } else {
+                games.push(gameData);
+                console.log('Game added:', gameData);
+            }
+
+            saveGames();
+            renderGames();
+            closeModal();
+            showToast(editingGameId ? '✅ Game updated successfully!' : '✅ Game added successfully!', 'success');
+        });
+
+        // Export/Import
+        async function shareGames() {
+            const dataStr = JSON.stringify(games, null, 2);
+            const fileName = `nogi-games-${Date.now()}.json`;
+
+            // Check if Web Share API is available (iOS Safari, modern browsers)
+            if (navigator.share && navigator.canShare) {
+                try {
+                    const file = new File([dataStr], fileName, { type: 'application/json' });
+                    const shareData = {
+                        files: [file],
+                        title: 'NoGi Games Library',
+                        text: `My NoGi training games library (${games.length} games)`
+                    };
+
+                    if (navigator.canShare(shareData)) {
+                        await navigator.share(shareData);
+                        showToast(`✅ ${games.length} game(s) shared successfully!`, 'success');
+                        return;
+                    }
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.log('Share failed, falling back to download');
+                    } else {
+                        return; // User cancelled
+                    }
+                }
+            }
+
+            // Fallback to download
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            link.click();
+            URL.revokeObjectURL(url);
+            showToast(`📤 Exported ${games.length} game(s) to file successfully!`, 'success');
+        }
+
+        async function copyGames() {
+            const dataStr = JSON.stringify(games, null, 2);
+
+            try {
+                await navigator.clipboard.writeText(dataStr);
+                showToast(`📋 ${games.length} game(s) copied to clipboard!`, 'success');
+            } catch (err) {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = dataStr;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast(`📋 ${games.length} game(s) copied to clipboard!`, 'success');
+                } catch (e) {
+                    showToast('❌ Could not copy. Please use Export instead.', 'error');
+                }
+                document.body.removeChild(textarea);
+            }
+        }
+
+        function exportGames() {
+            shareGames(); // Keep this for backward compatibility
+        }
+
+        function importGames(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                console.log('No file selected');
+                return;
+            }
+
+            console.log('Importing file:', file.name);
+            showToast(`📥 Reading ${file.name}...`, 'info');
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const content = e.target.result;
+                    console.log('File content length:', content.length);
+                    console.log('First 100 chars:', content.substring(0, 100));
+
+                    const imported = parseImportedContent(content, file.name);
+                    console.log('Parsed games:', imported);
+
+                    if (!imported || imported.length === 0) {
+                        showToast('❌ No valid games found in the file', 'error');
+                        console.error('No games found after parsing');
+                        return;
+                    }
+
+                    // Import directly without confirmation (better mobile UX)
+                    const beforeCount = games.length;
+                    games = [...games, ...imported];
+                    saveGames();
+                    renderGames();
+                    const afterCount = games.length;
+                    console.log(`Games before: ${beforeCount}, after: ${afterCount}`);
+                    showToast(`✅ ${imported.length} game(s) added! Total: ${afterCount}`, 'success');
+                } catch (err) {
+                    console.error('Import error:', err);
+                    showToast(`❌ Error: ${err.message}`, 'error');
+                    alert(`Error importing file: ${err.message}\n\nCheck the browser console (F12) for details.`);
+                }
+            };
+
+            reader.onerror = (err) => {
+                console.error('File read error:', err);
+                showToast('❌ Could not read file', 'error');
+            };
+
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function parseImportedContent(content, filename) {
+            console.log('Parsing content from:', filename);
+
+            // Try JSON first
+            try {
+                const parsed = JSON.parse(content);
+                console.log('Successfully parsed as JSON:', parsed);
+
+                // Case 1: Array of games (standard export format)
+                if (Array.isArray(parsed)) {
+                    console.log(`Found array of ${parsed.length} games`);
+                    return parsed.map(convertToLibraryFormat);
+                }
+
+                // Case 2: Single game object (constraint-led or library format)
+                if (typeof parsed === 'object') {
+                    console.log('Found single game object');
+                    return [convertToLibraryFormat(parsed)];
+                }
+
+                console.warn('Parsed JSON but not array or object');
+                return [];
+            } catch (jsonErr) {
+                console.log('Not valid JSON, trying text format:', jsonErr.message);
+            }
+
+            // Parse as plain text
+            console.log('Attempting to parse as text format');
+            return parseTextFormat(content);
+        }
+
+        function convertToLibraryFormat(gameData) {
+            console.log('Converting game:', gameData);
+
+            // Already in library format
+            if (gameData.topPlayer && gameData.bottomPlayer) {
+                console.log('Game is in library format');
+                return {
+                    id: Date.now() + Math.random(),
+                    name: gameData.name || 'Imported Game',
+                    topic: gameData.topic || 'Guard Passing',
+                    gameNumber: gameData.gameNumber || '',
+                    topPlayer: gameData.topPlayer,
+                    bottomPlayer: gameData.bottomPlayer,
+                    coaching: gameData.coaching || '',
+                    author: gameData.author || '',
+                    contributors: gameData.contributors || [],
+                    skills: gameData.skills || '',
+                    favorite: gameData.favorite || false,
+                    lastUsed: gameData.lastUsed || null,
+                    created: Date.now()
+                };
+            }
+
+            // Constraint-led format (from AI designer)
+            if (gameData.constraints && gameData.winConditions && gameData.coachingCues) {
+                const constraints = Array.isArray(gameData.constraints)
+                    ? gameData.constraints
+                    : [gameData.constraints];
+                const coachingCues = Array.isArray(gameData.coachingCues)
+                    ? gameData.coachingCues
+                    : [gameData.coachingCues];
+                const progressions = Array.isArray(gameData.progressions)
+                    ? gameData.progressions
+                    : [];
+
+                return {
+                    id: Date.now() + Math.random(),
+                    name: gameData.title || 'Imported Constraint-Led Game',
+                    topic: gameData.category || 'General',
+                    gameNumber: '',
+                    topPlayer: `START: ${gameData.startPosition || 'N/A'}\n\nCONSTRAINTS:\n${constraints.map((c,i) => `${i+1}. ${c}`).join('\n')}\n\nWIN BY: ${gameData.winConditions.top || 'N/A'}`,
+                    bottomPlayer: `WIN BY: ${gameData.winConditions.bottom || 'N/A'}`,
+                    coaching: `COACHING CUES:\n${coachingCues.map((c,i) => `${i+1}. ${c}`).join('\n')}\n\nPROGRESSION:\n${progressions.map(p => `${p.num || ''}. ${p.text || p}`).join('\n')}\n\n${gameData.pedagogicalNote || ''}`,
+                    author: gameData.author || '',
+                    contributors: gameData.contributors || [],
+                    skills: Array.isArray(gameData.tags) ? gameData.tags.join(' ') : (gameData.tags || ''),
+                    favorite: false,
+                    lastUsed: null,
+                    created: Date.now()
+                };
+            }
+
+            // Generic object - try to extract what we can
+            return {
+                id: Date.now() + Math.random(),
+                name: gameData.title || gameData.name || 'Imported Game',
+                topic: gameData.topic || gameData.category || 'General',
+                gameNumber: gameData.gameNumber || '',
+                topPlayer: gameData.topPlayer || gameData.top || 'No instructions provided',
+                bottomPlayer: gameData.bottomPlayer || gameData.bottom || 'No instructions provided',
+                coaching: gameData.coaching || gameData.notes || gameData.coachingNotes || '',
+                author: gameData.author || '',
+                contributors: gameData.contributors || [],
+                skills: gameData.skills || gameData.tags || '',
+                favorite: false,
+                lastUsed: null,
+                created: Date.now()
+            };
+        }
+
+        function parseTextFormat(content) {
+            const games = [];
+            const lines = content.split('\n');
+            let currentGame = null;
+            let currentSection = null;
+
+            for (let line of lines) {
+                line = line.trim();
+
+                // Skip empty lines
+                if (!line) continue;
+
+                // Check for section markers
+                if (line.match(/^(GAME|TITLE|NAME):/i)) {
+                    if (currentGame) games.push(convertToLibraryFormat(currentGame));
+                    currentGame = { title: line.replace(/^(GAME|TITLE|NAME):\s*/i, '') };
+                    currentSection = null;
+                } else if (currentGame) {
+                    if (line.match(/^(TOPIC|CATEGORY):/i)) {
+                        currentGame.topic = line.replace(/^(TOPIC|CATEGORY):\s*/i, '');
+                    } else if (line.match(/^START( POSITION)?:/i)) {
+                        currentGame.startPosition = line.replace(/^START( POSITION)?:\s*/i, '');
+                        currentSection = 'startPosition';
+                    } else if (line.match(/^CONSTRAINTS?:/i)) {
+                        currentGame.constraints = [];
+                        currentSection = 'constraints';
+                    } else if (line.match(/^(TOP PLAYER|TOP WIN|WIN TOP):/i)) {
+                        currentGame.winConditions = currentGame.winConditions || {};
+                        currentGame.winConditions.top = line.replace(/^(TOP PLAYER|TOP WIN|WIN TOP):\s*/i, '');
+                        currentSection = 'topWin';
+                    } else if (line.match(/^(BOTTOM PLAYER|BOTTOM WIN|WIN BOTTOM):/i)) {
+                        currentGame.winConditions = currentGame.winConditions || {};
+                        currentGame.winConditions.bottom = line.replace(/^(BOTTOM PLAYER|BOTTOM WIN|WIN BOTTOM):\s*/i, '');
+                        currentSection = 'bottomWin';
+                    } else if (line.match(/^(COACHING|CUES|COACHING CUES):/i)) {
+                        currentGame.coachingCues = [];
+                        currentSection = 'coaching';
+                    } else if (line.match(/^(PROGRESSION|PROGRESSIONS):/i)) {
+                        currentGame.progressions = [];
+                        currentSection = 'progressions';
+                    } else if (line.match(/^TAGS?:/i)) {
+                        currentGame.tags = line.replace(/^TAGS?:\s*/i, '');
+                    } else if (line.match(/^---+$/)) {
+                        // Separator - start new game
+                        if (currentGame) games.push(convertToLibraryFormat(currentGame));
+                        currentGame = null;
+                        currentSection = null;
+                    } else {
+                        // Continue adding to current section
+                        if (currentSection === 'constraints' && currentGame.constraints) {
+                            currentGame.constraints.push(line.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, ''));
+                        } else if (currentSection === 'coaching' && currentGame.coachingCues) {
+                            currentGame.coachingCues.push(line.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, ''));
+                        } else if (currentSection === 'progressions' && currentGame.progressions) {
+                            currentGame.progressions.push({ text: line.replace(/^[-*•]\s*/, '').replace(/^\d+\.\s*/, '') });
+                        } else if (currentSection === 'startPosition') {
+                            currentGame.startPosition += ' ' + line;
+                        } else if (currentSection === 'topWin' && currentGame.winConditions) {
+                            currentGame.winConditions.top += ' ' + line;
+                        } else if (currentSection === 'bottomWin' && currentGame.winConditions) {
+                            currentGame.winConditions.bottom += ' ' + line;
+                        }
+                    }
+                }
+            }
+
+            // Add last game
+            if (currentGame) games.push(convertToLibraryFormat(currentGame));
+
+            return games;
+        }
+
+        async function pasteGames() {
+            try {
+                showToast('📋 Reading clipboard...', 'info');
+                const text = await navigator.clipboard.readText();
+                const imported = parseImportedContent(text, 'clipboard');
+
+                if (!imported || imported.length === 0) {
+                    showToast('❌ No valid games found in clipboard', 'error');
+                    return;
+                }
+
+                // Import directly without confirmation (better mobile UX)
+                const beforeCount = games.length;
+                games = [...games, ...imported];
+                saveGames();
+                renderGames();
+                showToast(`✅ ${imported.length} game(s) pasted! Total: ${games.length}`, 'success');
+            } catch (err) {
+                showToast(`❌ Could not paste: ${err.message}`, 'error');
+                console.error('Paste error:', err);
+            }
+        }
+
+        // Sessions
+        function openSessionModal() {
+            editingSessionId = null;
+            document.getElementById('sessionModalTitle').textContent = 'Create Training Session';
+            document.getElementById('sessionSubmitBtn').textContent = 'Create Session';
+            document.getElementById('sessionName').value = '';
+            document.getElementById('sessionModal').classList.add('active');
+
+            // Reset filters
+            document.getElementById('sessionSearchInput').value = '';
+            document.getElementById('sessionTopicFilter').value = '';
+
+            // Render all games initially
+            filterSessionGames();
+        }
+
+        function editSession(id) {
+            const session = sessions.find(s => s.id === id);
+            if (!session) return;
+
+            editingSessionId = id;
+            document.getElementById('sessionModalTitle').textContent = 'Edit Training Session';
+            document.getElementById('sessionSubmitBtn').textContent = 'Update Session';
+            document.getElementById('sessionName').value = session.name;
+            document.getElementById('sessionModal').classList.add('active');
+
+            // Reset filters
+            document.getElementById('sessionSearchInput').value = '';
+            document.getElementById('sessionTopicFilter').value = '';
+
+            // Render all games
+            filterSessionGames();
+
+            // Check the games that are in this session
+            setTimeout(() => {
+                session.gameIds.forEach(gameId => {
+                    const checkbox = document.querySelector(`.session-game-checkbox[value="${gameId}"]`);
+                    if (checkbox) checkbox.checked = true;
+                });
+            }, 100);
+        }
+
+        function toggleGameDetails(gameId) {
+            const detailsDiv = document.getElementById(`game-details-${gameId}`);
+            const button = event.target;
+
+            if (detailsDiv.style.display === 'none') {
+                detailsDiv.style.display = 'block';
+                button.textContent = 'Hide details';
+            } else {
+                detailsDiv.style.display = 'none';
+                button.textContent = 'Show details';
+            }
+        }
+
+        function filterSessionGames() {
+            const searchTerm = document.getElementById('sessionSearchInput').value.toLowerCase();
+            const topicFilter = document.getElementById('sessionTopicFilter').value;
+
+            let filteredGames = games.filter(game => {
+                const matchesSearch = !searchTerm ||
+                    game.name.toLowerCase().includes(searchTerm) ||
+                    game.topic.toLowerCase().includes(searchTerm) ||
+                    (game.author || '').toLowerCase().includes(searchTerm) ||
+                    game.skills.toLowerCase().includes(searchTerm);
+
+                const matchesTopic = !topicFilter || game.topic === topicFilter;
+
+                return matchesSearch && matchesTopic;
+            });
+
+            // Separate recently used games (last 7 days)
+            const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+            const recentlyUsed = filteredGames.filter(g => g.lastUsed && g.lastUsed > sevenDaysAgo);
+            const otherGames = filteredGames.filter(g => !g.lastUsed || g.lastUsed <= sevenDaysAgo);
+
+            // Sort both sections by topic, then by name
+            const sortByTopicAndName = (a, b) => {
+                if (a.topic !== b.topic) {
+                    return a.topic.localeCompare(b.topic);
+                }
+                return a.name.localeCompare(b.name);
+            };
+            recentlyUsed.sort(sortByTopicAndName);
+            otherGames.sort(sortByTopicAndName);
+
+            const list = document.getElementById('sessionGamesList');
+
+            const renderGameCheckbox = (g, showBadge = false) => `
+                <div style="border: 2px solid var(--border); border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem; background: ${showBadge ? 'linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%)' : 'var(--surface)'};">
+                    <label style="display: flex; align-items: flex-start; cursor: pointer;">
+                        <input type="checkbox" value="${g.id}" class="session-game-checkbox" onchange="updateSelectedCount()" style="margin-right: 0.75rem; margin-top: 0.25rem; flex-shrink: 0;">
+                        <div style="flex: 1;">
+                            <div style="font-weight: 600; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                <span><strong style="color: var(--primary);">${g.topic}</strong> - ${g.name}</span>
+                                ${showBadge ? '<span style="background: #10b981; color: white; padding: 0.125rem 0.375rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">RECENTLY USED</span>' : ''}
+                            </div>
+                            <button type="button" onclick="toggleGameDetails(${g.id}); event.stopPropagation();"
+                                    style="background: none; border: none; color: var(--primary); font-size: 0.8rem; padding: 0.25rem 0; cursor: pointer; text-decoration: underline;">
+                                Show details
+                            </button>
+                            <div id="game-details-${g.id}" style="display: none; margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); font-size: 0.875rem;">
+                                ${g.topPlayer ? `
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <strong style="color: var(--accent);">Top Player:</strong> ${g.topPlayer}
+                                    </div>
+                                    <div style="margin-bottom: 0.5rem;">
+                                        <strong style="color: var(--accent);">Bottom Player:</strong> ${g.bottomPlayer}
+                                    </div>
+                                    ${g.coaching ? `<div style="margin-bottom: 0.5rem;"><strong style="color: var(--accent);">Coaching:</strong> ${g.coaching}</div>` : ''}
+                                ` : ''}
+                                ${g.skills ? `<div style="margin-bottom: 0.5rem;"><strong style="color: var(--accent);">Skills:</strong> ${g.skills}</div>` : ''}
+                                ${g.author ? `<div style="font-size: 0.75rem; color: var(--text-muted);">By ${g.author}</div>` : ''}
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            `;
+
+            if (filteredGames.length === 0) {
+                const activeFilters = [];
+                if (searchTerm) activeFilters.push('search');
+                if (topicFilter) activeFilters.push(`topic: ${topicFilter}`);
+
+                const filterText = activeFilters.length > 0
+                    ? `No games match your filters (${activeFilters.join(', ')}). Try clearing some filters.`
+                    : 'No games found';
+
+                list.innerHTML = `<p style="color: var(--text-muted); text-align: center; padding: 2rem;">${filterText}</p>`;
+            } else {
+                let html = '';
+
+                // Recently used section
+                if (recentlyUsed.length > 0) {
+                    html += `
+                        <div style="margin-bottom: 1rem;">
+                            <div style="font-weight: 700; font-size: 0.875rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border);">
+                                ⚡ Recently Used (Last 7 Days)
+                            </div>
+                            ${recentlyUsed.map(g => renderGameCheckbox(g, true)).join('')}
+                        </div>
+                    `;
+                }
+
+                // All other games section
+                if (otherGames.length > 0) {
+                    if (recentlyUsed.length > 0) {
+                        html += `
+                            <div style="font-weight: 700; font-size: 0.875rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--border);">
+                                📚 All Games
+                            </div>
+                        `;
+                    }
+                    html += otherGames.map(g => renderGameCheckbox(g, false)).join('');
+                }
+
+                list.innerHTML = html;
+            }
+
+            // Update count
+            document.getElementById('sessionGamesCount').textContent = filteredGames.length;
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            const checked = document.querySelectorAll('.session-game-checkbox:checked').length;
+            const badge = document.getElementById('sessionSelectedCount');
+
+            if (checked > 0) {
+                badge.textContent = `✓ ${checked} selected`;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function selectAllSessionGames() {
+            const checkboxes = document.querySelectorAll('.session-game-checkbox');
+            checkboxes.forEach(cb => cb.checked = true);
+            updateSelectedCount();
+        }
+
+        function deselectAllSessionGames() {
+            const checkboxes = document.querySelectorAll('.session-game-checkbox');
+            checkboxes.forEach(cb => cb.checked = false);
+            updateSelectedCount();
+        }
+
+        function closeSessionModal() {
+            document.getElementById('sessionModal').classList.remove('active');
+            document.getElementById('sessionForm').reset();
+            editingSessionId = null;
+        }
+
+        async function addGameToSession(gameId) {
+            const game = games.find(g => g.id === gameId);
+            if (!game) return;
+
+            // Create a custom modal for session selection
+            const modalHtml = `
+                <div id="addToSessionModal" class="modal active">
+                    <div class="modal-content" style="max-width: 500px;">
+                        <div class="modal-header">
+                            <h2 style="margin: 0;">Add to Session</h2>
+                            <button class="btn-close" onclick="closeAddToSessionModal()">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <p style="margin-bottom: 1rem; color: var(--text-muted);">
+                                Adding: <strong style="color: var(--primary);">${game.topic} - ${game.name}</strong>
+                            </p>
+                            ${sessions.length > 0 ? `
+                                <div style="margin-bottom: 1.5rem;">
+                                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Select existing session:</label>
+                                    <select id="existingSessionSelect" style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 6px; font-size: 1rem;">
+                                        <option value="">-- Choose a session --</option>
+                                        ${sessions.map(s => `<option value="${s.id}">${s.name} (${s.gameIds.length} games)</option>`).join('')}
+                                    </select>
+                                    <button class="btn btn-success" style="width: 100%; margin-top: 0.5rem;" onclick="addToExistingSession(${gameId})">
+                                        Add to Selected Session
+                                    </button>
+                                </div>
+                                <div style="text-align: center; margin: 1rem 0; color: var(--text-muted);">— OR —</div>
+                            ` : ''}
+                            <div>
+                                <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Create new session:</label>
+                                <input type="text" id="newSessionName" placeholder="Enter session name..." style="width: 100%; padding: 0.75rem; border: 2px solid var(--border); border-radius: 6px; font-size: 1rem; margin-bottom: 0.5rem;">
+                                <button class="btn btn-primary" style="width: 100%;" onclick="createSessionWithGame(${gameId})">
+                                    Create New Session
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Remove any existing modal
+            const existingModal = document.getElementById('addToSessionModal');
+            if (existingModal) existingModal.remove();
+
+            // Add modal to body
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+        }
+
+        function closeAddToSessionModal() {
+            const modal = document.getElementById('addToSessionModal');
+            if (modal) modal.remove();
+        }
+
+        function addToExistingSession(gameId) {
+            const sessionId = parseInt(document.getElementById('existingSessionSelect').value);
+            if (!sessionId) {
+                showToast('❌ Please select a session', 'error');
+                return;
+            }
+
+            const session = sessions.find(s => s.id === sessionId);
+            if (!session) return;
+
+            // Check if game is already in session
+            if (session.gameIds.includes(gameId)) {
+                showToast('ℹ️ Game already in this session', 'info');
+                closeAddToSessionModal();
+                return;
+            }
+
+            // Add game to session
+            session.gameIds.push(gameId);
+            saveSessions();
+
+            const game = games.find(g => g.id === gameId);
+            showToast(`✅ Added "${game.name}" to "${session.name}"`, 'success');
+            closeAddToSessionModal();
+
+            // Refresh sessions if on sessions tab
+            if (currentTab === 'sessions') {
+                renderSessions();
+            }
+        }
+
+        function createSessionWithGame(gameId) {
+            const sessionName = document.getElementById('newSessionName').value.trim();
+            if (!sessionName) {
+                showToast('❌ Please enter a session name', 'error');
+                return;
+            }
+
+            // Create new session
+            const newSession = {
+                id: Date.now(),
+                name: sessionName,
+                gameIds: [gameId],
+                created: Date.now()
+            };
+
+            sessions.push(newSession);
+            saveSessions();
+
+            const game = games.find(g => g.id === gameId);
+            showToast(`✅ Created session "${sessionName}" with "${game.name}"`, 'success');
+            closeAddToSessionModal();
+
+            // Refresh sessions if on sessions tab
+            if (currentTab === 'sessions') {
+                renderSessions();
+            }
+        }
+
+        document.getElementById('sessionForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById('sessionName').value;
+            const checkboxes = document.querySelectorAll('#sessionGamesList input[type="checkbox"]:checked');
+            const gameIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+            if (gameIds.length === 0) {
+                showToast('❌ Please select at least one game', 'error');
+                return;
+            }
+
+            if (editingSessionId) {
+                // Update existing session
+                const index = sessions.findIndex(s => s.id === editingSessionId);
+                const oldSession = sessions[index];
+                sessions[index] = {
+                    id: editingSessionId,
+                    name: name,
+                    gameIds: gameIds,
+                    created: oldSession.created
+                };
+                showToast(`✅ Session "${name}" updated with ${gameIds.length} game(s)!`, 'success');
+            } else {
+                // Create new session
+                sessions.push({
+                    id: Date.now(),
+                    name: name,
+                    gameIds: gameIds,
+                    created: Date.now()
+                });
+                showToast(`✅ Session "${name}" created with ${gameIds.length} game(s)!`, 'success');
+            }
+
+            saveSessions();
+            closeSessionModal();
+            switchTab('sessions');
+            renderSessions();
+        });
+
+        function renderSessions() {
+            const list = document.getElementById('sessionsList');
+
+            if (sessions.length === 0) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                        </svg>
+                        <h3>No training sessions yet</h3>
+                        <p>Organize your games into training sessions to plan your practice.</p>
+                        <button class="btn btn-primary" onclick="openSessionModal()">📋 Create Your First Session</button>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = sessions.map(s => {
+                const sessionGames = s.gameIds.map(id => games.find(g => g.id === id)).filter(Boolean);
+                const usedGames = sessionGames.filter(g => g.lastUsed);
+                const unusedGames = sessionGames.filter(g => !g.lastUsed);
+
+                return `
+                    <div class="session-item">
+                        <div class="session-header" onclick="toggleSession(${s.id})">
+                            <div class="session-header-left">
+                                <div class="session-item-title">${s.name}</div>
+                                <div class="session-games">
+                                    <span class="session-stat">
+                                        📊 ${sessionGames.length} game${sessionGames.length !== 1 ? 's' : ''}
+                                    </span>
+                                    ${usedGames.length > 0 ? `
+                                        <span class="session-stat used">
+                                            ✓ ${usedGames.length} used
+                                        </span>
+                                    ` : ''}
+                                    ${unusedGames.length > 0 ? `
+                                        <span class="session-stat">
+                                            ○ ${unusedGames.length} unused
+                                        </span>
+                                    ` : ''}
+                                </div>
+                            </div>
+                            <div class="session-expand-icon" id="expand-icon-${s.id}">
+                                ▼
+                            </div>
+                        </div>
+
+                        <div class="session-content" id="session-content-${s.id}">
+                            <div class="session-games-grid">
+                                ${sessionGames.map(game => `
+                                    <div class="session-game-card ${game.lastUsed ? 'used' : ''}">
+                                        <div style="display: flex; align-items: start; justify-content: space-between; margin-bottom: 0.5rem;">
+                                            <div style="flex: 1;">
+                                                <div style="font-weight: 600; color: var(--primary); margin-bottom: 0.25rem;">
+                                                    ${game.topic}
+                                                </div>
+                                                <div style="font-weight: 700; font-size: 1.05rem;">
+                                                    ${game.name}
+                                                </div>
+                                            </div>
+                                            ${game.lastUsed ? `
+                                                <span style="background: #10b981; color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                                                    ✓ USED
+                                                </span>
+                                            ` : ''}
+                                        </div>
+                                        <div style="font-size: 0.875rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                                            <div><strong>🔵 Top:</strong> ${game.topPlayer}</div>
+                                            <div><strong>🔴 Bottom:</strong> ${game.bottomPlayer}</div>
+                                        </div>
+                                        ${game.coaching ? `
+                                            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border);">
+                                                <strong>💡</strong> ${game.coaching}
+                                            </div>
+                                        ` : ''}
+                                        ${game.skills ? `
+                                            <div style="margin-top: 0.5rem; font-size: 0.8rem;">
+                                                ${(game.skills.match(/#\w+/g) || []).map(tag =>
+                                                    `<span style="background: var(--border); padding: 0.125rem 0.375rem; border-radius: 4px; margin-right: 0.25rem;">${tag}</span>`
+                                                ).join('')}
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            <div class="session-actions">
+                                <button class="btn btn-success btn-sm" onclick="printSession(${s.id}); event.stopPropagation();">🖨️ Print</button>
+                                <button class="btn btn-primary btn-sm" onclick="editSession(${s.id}); event.stopPropagation();">✏️ Edit</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteSession(${s.id}); event.stopPropagation();">🗑️ Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleSession(sessionId) {
+            const content = document.getElementById(`session-content-${sessionId}`);
+            const icon = document.getElementById(`expand-icon-${sessionId}`);
+
+            content.classList.toggle('expanded');
+            icon.classList.toggle('expanded');
+        }
+
+        function deleteSession(id) {
+            const session = sessions.find(s => s.id === id);
+            if (!session) return;
+
+            const sessionName = session.name;
+
+            // Store for undo
+            undoState = {
+                type: 'session',
+                action: 'delete',
+                data: {...session}
+            };
+
+            sessions = sessions.filter(s => s.id !== id);
+            saveSessions();
+            renderSessions();
+
+            showToast(`🗑️ Session "${sessionName}" deleted`, 'info', true);
+            console.log('Session deleted:', id, sessionName);
+        }
+
+        function printSession(id) {
+            const session = sessions.find(s => s.id === id);
+            if (!session) return;
+
+            const sessionGames = session.gameIds.map(gameId => games.find(g => g.id === gameId)).filter(Boolean);
+
+            // Create print window content
+            const printContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${session.name} - Training Session</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 2rem; line-height: 1.6; }
+                        h1 { font-size: 24pt; border-bottom: 2pt solid black; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+                        .session-info { margin-bottom: 2rem; color: #666; }
+                        .game { margin-bottom: 2rem; page-break-inside: avoid; border: 1pt solid #ccc; padding: 1rem; }
+                        .game-title { font-size: 14pt; font-weight: bold; margin-bottom: 0.5rem; color: #000; }
+                        .game-topic { display: inline-block; background: #e0e0e0; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 10pt; margin-bottom: 0.5rem; }
+                        .game-section { margin-bottom: 0.75rem; }
+                        .game-label { font-weight: bold; color: #333; }
+                        .game-content { margin-left: 1rem; }
+                        .footer { margin-top: 2rem; text-align: center; color: #999; font-size: 9pt; border-top: 1pt solid #ccc; padding-top: 1rem; }
+                    </style>
+                </head>
+                <body>
+                    <h1>🥋 ${session.name}</h1>
+                    <div class="session-info">
+                        <p><strong>Games:</strong> ${sessionGames.length} | <strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                    </div>
+
+                    ${sessionGames.map((game, index) => `
+                        <div class="game">
+                            <div class="game-topic">${game.topic}</div>
+                            <div class="game-title">${index + 1}. ${game.name}</div>
+
+                            <div class="game-section">
+                                <div class="game-label">🔵 Top Player:</div>
+                                <div class="game-content">${game.topPlayer}</div>
+                            </div>
+
+                            <div class="game-section">
+                                <div class="game-label">🔴 Bottom Player:</div>
+                                <div class="game-content">${game.bottomPlayer}</div>
+                            </div>
+
+                            ${game.coaching ? `
+                                <div class="game-section">
+                                    <div class="game-label">💡 Coaching Points:</div>
+                                    <div class="game-content">${game.coaching}</div>
+                                </div>
+                            ` : ''}
+
+                            ${game.skills ? `
+                                <div class="game-section">
+                                    <div class="game-label">Skills:</div>
+                                    <div class="game-content">${game.skills}</div>
+                                </div>
+                            ` : ''}
+
+                            ${game.author ? `
+                                <div class="game-section" style="font-size: 9pt; color: #666;">
+                                    <em>Created by: ${game.author}</em>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+
+                    <div class="footer">
+                        <p>NoGi Games Library | Constraint-Led Training Approach</p>
+                        <p>Printed on ${new Date().toLocaleString()}</p>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            // Open print window
+            const printWindow = window.open('', '', 'width=800,height=600');
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+
+            // Wait for content to load then print
+            printWindow.onload = function() {
+                printWindow.print();
+            };
+        }
+
+        // Toast notification
+        function showToast(message, type = 'success', showUndo = false) {
+            const toast = document.getElementById('toast');
+
+            // Remove any existing type classes
+            toast.classList.remove('error', 'info', 'success');
+
+            // Add the new type class
+            if (type === 'error') {
+                toast.classList.add('error');
+            } else if (type === 'info') {
+                toast.classList.add('info');
+            }
+
+            // Build toast content
+            if (showUndo && undoState) {
+                toast.innerHTML = `
+                    <span class="toast-message">${message}</span>
+                    <button class="toast-undo-btn" onclick="performUndo()">UNDO</button>
+                `;
+            } else {
+                toast.innerHTML = `<span class="toast-message">${message}</span>`;
+            }
+
+            toast.classList.add('show');
+
+            // Longer duration for messages with undo
+            const duration = showUndo ? 5000 : (type === 'error' ? 4000 : 3000);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                // Clear undo state after toast disappears
+                if (showUndo) {
+                    setTimeout(() => { undoState = null; }, 400);
+                }
+            }, duration);
+        }
+
+        function performUndo() {
+            if (!undoState) return;
+
+            const toast = document.getElementById('toast');
+
+            if (undoState.type === 'game' && undoState.action === 'delete') {
+                // Restore deleted game
+                games.push(undoState.data);
+                saveGames();
+                renderGames();
+                if (currentTab === 'favorites') renderFavorites();
+                toast.classList.remove('show');
+                showToast(`✅ "${undoState.data.name}" restored`);
+            } else if (undoState.type === 'session' && undoState.action === 'delete') {
+                // Restore deleted session
+                sessions.push(undoState.data);
+                saveSessions();
+                renderSessions();
+                toast.classList.remove('show');
+                showToast(`✅ "${undoState.data.name}" restored`);
+            }
+
+            undoState = null;
+        }
+
+        // ==================== AI GAME GENERATOR ====================
+        // Enhanced game creation system with progressive complexity
+
+        let generatedGame = null;
+
+        // Game Design Principles Database
+        const GAME_DESIGN_PRINCIPLES = {
+            constraints: [
+                'Touch rules (3 touch, alternating touches)',
+                'Time limits (30s, 1min, 2min rounds)',
+                'Position restrictions (can only use certain grips/techniques)',
+                'Progression gates (must complete X before Y)',
+                'Handicaps (top player starts without grips, bottom has one arm)',
+                'Point systems (first to 3 points, defending = 1pt per 30s)',
+                'Equipment constraints (can only grip sleeves, one arm behind back)'
+            ],
+            winConditions: [
+                'Time-based (survive X seconds)',
+                'Position achievement (reach mount/back)',
+                'Submission only',
+                'Escape-based (recover guard)',
+                'Point accumulation',
+                'Technical completion (complete 3 passes)'
+            ],
+            skillProgression: [
+                'Isolation → Integration',
+                'Static → Dynamic',
+                'Compliant → Resistant',
+                'Simple → Complex',
+                'Slow → Fast'
+            ]
+        };
+
+        // ==================== CONSTRAINT-LED AI GAME DESIGNER ====================
+        // Modern pedagogical approach based on ecological dynamics
+
+        window.lastGeneratedGame = null;
+
+        const exampleProblems = [
+            "My students keep getting their guard passed when they sit up. They don't maintain distance and get smashed.",
+            "Students can't escape side control. They go flat on their back and give up instead of creating frames.",
+            "From turtle, my students get flattened out or back taken immediately. They don't know when to explode.",
+            "When passing knee shield, students get swept or stuck. They don't understand pressure sequencing."
+        ];
+
+        function fillExample(index) {
+            document.getElementById('aiProblemInput').value = exampleProblems[index];
+        }
+
+        function generateConstraintGame() {
+            const problem = document.getElementById('aiProblemInput').value.trim();
+
+            if (!problem) {
+                alert('Please describe your training problem first!');
+                return;
+            }
+
+            // Generate game using constraint-led algorithm
+            const game = analyzeAndCreateConstraintGame(problem);
+
+            if (game) {
+                window.lastGeneratedGame = game;
+                displayConstraintGame(game);
+                document.getElementById('aiResultCard').style.display = 'block';
+                document.getElementById('aiResultCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function analyzeAndCreateConstraintGame(problem) {
+            const p = problem.toLowerCase();
+
+            // Advanced keyword detection
+            const patterns = {
+                guardRetention: /guard.*(pass|retention|maintain|sit.*up|distance|smash)/i,
+                guardPass: /pass.*guard|knee.*shield|stuck.*passing|can't.*pass|smash.*through/i,
+                turtle: /turtle|flatten|defensive.*ball|back.*take.*turtle/i,
+                sideEscape: /side.*control.*escape|stuck.*side|flat.*back|can't.*escape.*side/i,
+                mountEscape: /mount.*escape|stuck.*mount|can't.*escape.*mount/i,
+                backEscape: /back.*escape|rear.*naked|hooks/i,
+                takedown: /takedown|wrestling|shoot|sprawl|standup/i,
+                legLock: /leg.*lock|heel.*hook|ankle|ashi|saddle/i,
+                frames: /frame|creating.*space|defensive.*structure/i,
+                grips: /grip|hand.*control|breaking.*grips/i
+            };
+
+            // GUARD RETENTION GAMES (Gordon Ryan / New Wave style)
+            if (patterns.guardRetention.test(p)) {
+                return {
+                    title: "Guard Retention Under Pressure",
+                    category: "Guard Retention",
+                    tags: ["#constraint-led", "#gordon-ryan-style", "#retention", "#distance-management"],
+                    startPosition: "Bottom player seated guard, feet on top player's hips. Top player standing with grips on bottom's ankles.",
+                    constraints: [
+                        "Bottom MUST keep at least one foot on top player's body (hip/chest/shoulder) at all times - if both feet lose contact for 2 seconds = loss",
+                        "Top player must break contact with BOTH feet before advancing - no grabbing pants/legs",
+                        "90-second rounds",
+                        "Bottom player's hands can only be used on mat or top player's hands (no gi grips)"
+                    ],
+                    winConditions: {
+                        top: "Pass to knee-on-belly or better, OR control both feet off hips for 3 consecutive seconds",
+                        bottom: "Sweep to top position, OR maintain feet-on-hips for full 90 seconds, OR off-balance top player (hands touch mat)"
+                    },
+                    coachingCues: [
+                        "Bottom: Feet are your distance managers - constant motion, never static",
+                        "Bottom: When they grab one ankle, IMMEDIATELY pummel other foot to their chest",
+                        "Top: Angle off 45° before grabbing - straight-on gets kicked",
+                        "Top: Control one ankle, step around it, pressure the free leg down"
+                    ],
+                    progressions: [
+                        {num: 1, text: "Start with bottom player able to use pistol grips on ankles (easier)"},
+                        {num: 2, text: "Progress to hands on mat only (intermediate) - current version"},
+                        {num: 3, text: "Add rule: bottom can only use one arm (advanced Gordon Ryan drill)"},
+                        {num: 4, text: "Competition version: bottom starts with top player already controlling one ankle"}
+                    ],
+                    pedagogicalNote: "CONSTRAINT POWER: Forcing feet-on-hips creates automatic distance management. Students learn retention through necessity, not instruction."
+                };
+            }
+            // KNEE SHIELD PASSING (Danaher system)
+            else if (patterns.guardPass.test(p) && /knee.*shield|half.*guard/i.test(p)) {
+                return {
+                    title: "Knee Shield Passing Sequence",
+                    category: "Guard Passing",
+                    tags: ["#constraint-led", "#danaher-system", "#knee-shield", "#pressure-passing"],
+                    startPosition: "Bottom in knee shield half guard (top leg framing across top player's chest, bottom leg half guard). Top player in passing posture.",
+                    constraints: [
+                        "Top player must complete 3 gates IN ORDER: (1) clear the knee shield to quarter position, (2) flatten bottom player's inside shoulder to mat, (3) free trapped leg. Only after all 3 can pass to side control",
+                        "Bottom player resets to knee shield if top player skips a gate or loses progress",
+                        "Top player cannot use leg weaves or fancy techniques - pressure passing only (chest-to-chest control)",
+                        "100-second rounds"
+                    ],
+                    winConditions: {
+                        top: "Complete all 3 gates AND establish side control within time",
+                        bottom: "Prevent top from completing Gate 3, OR sweep, OR recover to full guard"
+                    },
+                    coachingCues: [
+                        "Top: Gate 1 - Underhook far arm, pressure knee down with shoulder, walk around",
+                        "Top: Gate 2 - Crossface near shoulder to mat (kills bottom's frames)",
+                        "Bottom: Defend Gate 1 - keep knee shield active, re-pump if they pass it",
+                        "Bottom: If they clear shield, immediately create new frame with bottom arm on hip"
+                    ],
+                    progressions: [
+                        {num: 1, text: "Beginner: Start at Gate 2 (knee shield already cleared) - practice flattening"},
+                        {num: 2, text: "Intermediate: Start at Gate 1 (current version) - full sequence"},
+                        {num: 3, text: "Advanced: Bottom can use lockdown on trapped leg - top must break it as Gate 2.5"},
+                        {num: 4, text: "Competition: Remove gates - free passing but add bottom can attempt sweeps"}
+                    ],
+                    pedagogicalNote: "SEQUENTIAL CONSTRAINTS: Breaking pass into gates prevents rushing. Students learn that passing is step-by-step problem-solving, not explosion."
+                };
+            }
+            // TURTLE ESCAPE (Craig Jones / B-Team style)
+            else if (patterns.turtle.test(p)) {
+                return {
+                    title: "Turtle Explosion Timing",
+                    category: "Scrambles",
+                    tags: ["#constraint-led", "#b-team-style", "#timing", "#turtle"],
+                    startPosition: "Bottom in defensive turtle (elbows to knees, tight ball). Top has seatbelt grip (one arm over shoulder, one under armpit) but NO hooks yet.",
+                    constraints: [
+                        "Bottom player has 3 escape options ONLY: (1) sit-through to guard, (2) stand-up, (3) granby roll. Must choose ONE direction and commit fully",
+                        "Top player CANNOT flatten bottom - if bottom's chest touches mat, bottom wins the round",
+                        "Bottom has 5-second window to escape after coach says 'GO' - if no explosion in 5 seconds, top gets the back automatically",
+                        "60-second rounds (short = intensity)"
+                    ],
+                    winConditions: {
+                        top: "Secure both hooks + back control, OR bottom fails to explode within 5-second window",
+                        bottom: "Escape to guard, neutral, or top position within 5-second explosion window"
+                    },
+                    coachingCues: [
+                        "Bottom: Pick ONE direction based on where their weight is - commit 100%",
+                        "Bottom: Sit-through if they're heavy on your back, stand if they're light",
+                        "Top: Seatbelt tight, follow their movement, get hooks DURING their escape attempt",
+                        "Top: If they sit through, follow to their back; if they stand, drag them down"
+                    ],
+                    progressions: [
+                        {num: 1, text: "Start: 10-second window (beginner - more time to think)"},
+                        {num: 2, text: "Progress: 5-second window (intermediate - current version)"},
+                        {num: 3, text: "Advanced: 3-second window + top player can use one hook at start"},
+                        {num: 4, text: "Competition: Remove window - continuous scramble but bottom must escape within 60 seconds"}
+                    ],
+                    pedagogicalNote: "TIME PRESSURE CREATES DECISION-MAKING: Short explosion window mimics competition reality. Turtle is transitional - hesitation = back take."
+                };
+            }
+            // SIDE CONTROL ESCAPE (New Wave escapes)
+            else if (patterns.sideEscape.test(p)) {
+                return {
+                    title: "Frame Escape From Side Control",
+                    category: "Escapes",
+                    tags: ["#constraint-led", "#frames", "#new-wave-escapes", "#side-control"],
+                    startPosition: "Top player in tight side control (crossface, far arm underhook). Bottom player flat on back initially.",
+                    constraints: [
+                        "Bottom player MUST create and maintain both frames (bottom frame on far hip, top frame on near shoulder) before attempting escape - coach checks frames",
+                        "Bottom player loses if both elbows touch ribs simultaneously (means flat/defensive failure)",
+                        "Top player cannot submit - position only",
+                        "120-second rounds - bottom must escape within time"
+                    ],
+                    winConditions: {
+                        top: "Maintain side control for 120 seconds, OR force bottom's elbows to ribs for 5 seconds, OR advance to mount",
+                        bottom: "Create frames AND recover to guard (half or full), OR reverse to top position"
+                    },
+                    coachingCues: [
+                        "Bottom: Turn to side FIRST, then build frames - can't frame while flat",
+                        "Bottom: Bottom frame is on their FAR hip (creates distance), not near",
+                        "Top: Swim your shoulder OVER their top frame to kill it",
+                        "Top: Pressure their bottom elbow to their ribs - kills bottom frame"
+                    ],
+                    progressions: [
+                        {num: 1, text: "Start: Top player maintains loose side control (gives space for frames)"},
+                        {num: 2, text: "Progress: Top player starts tight but allows bottom to turn to side"},
+                        {num: 3, text: "Advanced: Top player starts crushing, bottom must create frames from worst position"},
+                        {num: 4, text: "Competition: Add 30-second timer where top can submit after frames are broken"}
+                    ],
+                    pedagogicalNote: "FRAMES BEFORE MOVEMENT: Constraining escape to frame-creation first breaks bad habit of flailing. Elbow-to-ribs rule forces defensive structure."
+                };
+            }
+            // TAKEDOWN ENTRIES (Wrestling fundamentals)
+            else if (patterns.takedown.test(p)) {
+                return {
+                    title: "Takedown Entry - Setup Required",
+                    category: "Takedowns",
+                    tags: ["#constraint-led", "#wrestling", "#takedowns", "#setups"],
+                    startPosition: "Both standing in neutral, good wrestling stance (feet staggered, hands up, head up).",
+                    constraints: [
+                        "Attacker MUST establish one of these controls BEFORE shooting: (1) collar tie, (2) wrist control, (3) underhook. Direct naked shots = reset with no point",
+                        "Attacker has maximum 5 seconds from establishing control to shoot - forces urgency",
+                        "Defender scores 1 point if they successfully sprawl AND get front headlock",
+                        "Attacker scores 1 point if they secure takedown position (don't need finish). First to 5 points."
+                    ],
+                    winConditions: {
+                        top: "Score 5 points via successful takedown entries (position secured, not necessarily finished)",
+                        bottom: "Score 5 points via successful sprawls to front headlock"
+                    },
+                    coachingCues: [
+                        "Attacker: Grip → pull to break posture → shoot as they react (3-step process)",
+                        "Attacker: Collar tie pull brings head down = shoot opposite side",
+                        "Defender: Feel the grip, start preparing sprawl, hands ready for head",
+                        "Defender: Sprawl = hips back fast, hands on head, chest on their back"
+                    ],
+                    progressions: [
+                        {num: 1, text: "Start: Attacker begins with control already established (focus on shot)"},
+                        {num: 2, text: "Progress: Attacker must establish control (current version)"},
+                        {num: 3, text: "Advanced: Add 3-second window instead of 5 (faster reactions required)"},
+                        {num: 4, text: "Competition: Add finishes required - must complete takedown, not just entry"}
+                    ],
+                    pedagogicalNote: "SETUPS > SHOTS: Requiring control before shooting teaches wrestling reality - random shots get stuffed. Point system creates competitive urgency."
+                };
+            }
+            // DEFAULT: General positional problem-solving game
+            else {
+                return {
+                    title: "Positional Problem-Solving Game",
+                    category: "Positional Sparring",
+                    tags: ["#constraint-led", "#problem-solving", "#custom"],
+                    startPosition: "Start in the position where the problem occurs (coach demonstrates specific situation from description).",
+                    constraints: [
+                        "Identify the exact moment where students fail - start 3 seconds before that moment",
+                        "Top player has specific goal related to the problem described",
+                        "Bottom player must solve the specific problem identified",
+                        "90-second rounds - short, intense, focused on one skill"
+                    ],
+                    winConditions: {
+                        top: "Successfully execute the action that causes the problem (e.g., if problem is 'getting passed', top wins by passing)",
+                        bottom: "Prevent the problem situation from occurring, OR recover to advantageous position"
+                    },
+                    coachingCues: [
+                        "Focus on the MOMENT of failure - what happens right before it goes wrong?",
+                        "Bottom: What is your body position when the problem occurs? Fix that first",
+                        "Top: Create the problem deliberately - help partner learn by applying pressure",
+                        "Both: This is not sparring - this is problem-solving. Slow down if needed"
+                    ],
+                    progressions: [
+                        {num: 1, text: "Start in worst position (just after problem occurs) and work backward"},
+                        {num: 2, text: "Progress to starting just before problem occurs (anticipation training)"},
+                        {num: 3, text: "Add complexity: earlier start position, more variables"},
+                        {num: 4, text: "Free sparring from the position - apply solution in chaos"}
+                    ],
+                    pedagogicalNote: `PROBLEM-SPECIFIC DESIGN: Based on your description: "${problem.substring(0, 100)}..." - Design the exact constraints that force students to solve THIS problem.`
+                };
+            }
+        }
+
+        function displayConstraintGame(game) {
+            const card = document.getElementById('aiResultCard');
+
+            const constraintsList = game.constraints.map(c => `<div class="ai-constraint-box">🔒 ${c}</div>`).join('');
+
+            const progressionItems = game.progressions.map(p =>
+                `<li data-number="${p.num}">${p.text}</li>`
+            ).join('');
+
+            const coachingCues = game.coachingCues.map(c =>
+                `<div class="ai-cue">💡 ${c}</div>`
+            ).join('');
+
+            card.innerHTML = `
+                <div class="ai-result-card">
+                    <div class="ai-result-header">
+                        <div style="flex: 1;">
+                            <h3 class="ai-game-title" id="aiGameTitle">${game.title}</h3>
+                            <div class="ai-game-tags">
+                                <span class="ai-tag" id="aiGameCategory">${game.category}</span>
+                                ${game.tags.map(tag => `<span class="ai-tag">${tag}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="ai-header-buttons">
+                            <button class="ai-edit-btn" id="aiEditBtn" onclick="toggleEditMode()">
+                                ✏️ Edit
+                            </button>
+                            <button class="ai-add-btn" onclick="addGeneratedGameToLibrary()">
+                                + Add to Library
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="ai-game-content">
+                        <div class="ai-section">
+                            <div class="ai-section-title">
+                                📍 START POSITION
+                            </div>
+                            <div class="ai-section-content" id="aiStartPosition">
+                                ${game.startPosition}
+                            </div>
+                        </div>
+
+                        <div class="ai-section">
+                            <div class="ai-section-title">
+                                🔒 CONSTRAINTS (MOST IMPORTANT)
+                            </div>
+                            <div style="display: grid; gap: 0.75rem;" id="aiConstraints">
+                                ${constraintsList}
+                            </div>
+                        </div>
+
+                        <div class="ai-section">
+                            <div class="ai-section-title">
+                                🎯 WIN CONDITIONS
+                            </div>
+                            <div class="ai-win-conditions">
+                                <div class="ai-win-box top">
+                                    <div class="ai-win-label">🔵 TOP PLAYER WINS BY:</div>
+                                    <div id="aiWinTop">${game.winConditions.top}</div>
+                                </div>
+                                <div class="ai-win-box bottom">
+                                    <div class="ai-win-label">🔴 BOTTOM PLAYER WINS BY:</div>
+                                    <div id="aiWinBottom">${game.winConditions.bottom}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ai-section">
+                            <div class="ai-section-title">
+                                💬 KEY COACHING CUES
+                            </div>
+                            <div class="ai-coaching-cues" id="aiCoachingCues">
+                                ${coachingCues}
+                            </div>
+                        </div>
+
+                        <div class="ai-section">
+                            <div class="ai-section-title">
+                                📈 PROGRESSION PATH (SCAFFOLDING)
+                            </div>
+                            <ol class="ai-progression-list" id="aiProgressions">
+                                ${progressionItems}
+                            </ol>
+                        </div>
+
+                        ${game.pedagogicalNote ? `
+                        <div class="ai-section">
+                            <div class="ai-section-title">
+                                🧠 PEDAGOGICAL NOTE
+                            </div>
+                            <div class="ai-section-content" id="aiPedagogicalNote" style="font-style: italic; color: #6366f1; font-weight: 500;">
+                                ${game.pedagogicalNote}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        let isEditMode = false;
+
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const editBtn = document.getElementById('aiEditBtn');
+
+            if (isEditMode) {
+                // Enable editing
+                editBtn.textContent = '💾 Done Editing';
+                editBtn.classList.add('editing');
+
+                // Make fields editable
+                document.getElementById('aiGameTitle').contentEditable = 'true';
+                document.getElementById('aiStartPosition').contentEditable = 'true';
+                document.getElementById('aiWinTop').contentEditable = 'true';
+                document.getElementById('aiWinBottom').contentEditable = 'true';
+
+                // Make constraints editable
+                const constraints = document.querySelectorAll('#aiConstraints .ai-constraint-box');
+                constraints.forEach(c => c.contentEditable = 'true');
+
+                // Make coaching cues editable
+                const cues = document.querySelectorAll('#aiCoachingCues .ai-cue');
+                cues.forEach(c => c.contentEditable = 'true');
+
+                // Make progressions editable
+                const progressions = document.querySelectorAll('#aiProgressions li');
+                progressions.forEach(p => p.contentEditable = 'true');
+
+                // Make pedagogical note editable if exists
+                const pedNote = document.getElementById('aiPedagogicalNote');
+                if (pedNote) pedNote.contentEditable = 'true';
+
+                showToast('✏️ Edit mode enabled - click fields to modify');
+            } else {
+                // Disable editing
+                editBtn.textContent = '✏️ Edit';
+                editBtn.classList.remove('editing');
+
+                // Make fields non-editable
+                document.getElementById('aiGameTitle').contentEditable = 'false';
+                document.getElementById('aiStartPosition').contentEditable = 'false';
+                document.getElementById('aiWinTop').contentEditable = 'false';
+                document.getElementById('aiWinBottom').contentEditable = 'false';
+
+                const constraints = document.querySelectorAll('#aiConstraints .ai-constraint-box');
+                constraints.forEach(c => c.contentEditable = 'false');
+
+                const cues = document.querySelectorAll('#aiCoachingCues .ai-cue');
+                cues.forEach(c => c.contentEditable = 'false');
+
+                const progressions = document.querySelectorAll('#aiProgressions li');
+                progressions.forEach(p => p.contentEditable = 'false');
+
+                const pedNote = document.getElementById('aiPedagogicalNote');
+                if (pedNote) pedNote.contentEditable = 'false';
+
+                showToast('💾 Changes saved to preview');
+            }
+        }
+
+        function addGeneratedGameToLibrary() {
+            if (!window.lastGeneratedGame) {
+                alert('No game to add!');
+                return;
+            }
+
+            // Read current values from the display (includes any edits)
+            const title = document.getElementById('aiGameTitle').textContent;
+            const category = document.getElementById('aiGameCategory').textContent;
+            const startPosition = document.getElementById('aiStartPosition').textContent;
+            const winTop = document.getElementById('aiWinTop').textContent;
+            const winBottom = document.getElementById('aiWinBottom').textContent;
+
+            // Get constraints
+            const constraintElements = document.querySelectorAll('#aiConstraints .ai-constraint-box');
+            const constraints = Array.from(constraintElements).map(el =>
+                el.textContent.replace(/^🔒\s*/, '').trim()
+            );
+
+            // Get coaching cues
+            const cueElements = document.querySelectorAll('#aiCoachingCues .ai-cue');
+            const coachingCues = Array.from(cueElements).map(el =>
+                el.textContent.replace(/^💡\s*/, '').trim()
+            );
+
+            // Get progressions
+            const progressionElements = document.querySelectorAll('#aiProgressions li');
+            const progressions = Array.from(progressionElements).map((el, idx) => ({
+                num: idx + 1,
+                text: el.textContent.trim()
+            }));
+
+            // Get pedagogical note if exists
+            const pedNoteEl = document.getElementById('aiPedagogicalNote');
+            const pedagogicalNote = pedNoteEl ? pedNoteEl.textContent : '';
+
+            // Get tags from original game
+            const tags = window.lastGeneratedGame.tags;
+
+            // Convert to library format
+            const libraryGame = {
+                id: Date.now(),
+                name: title,
+                topic: category,
+                gameNumber: '',
+                topPlayer: `START: ${startPosition}\n\nCONSTRAINTS:\n${constraints.map((c,i) => `${i+1}. ${c}`).join('\n')}\n\nWIN BY: ${winTop}`,
+                bottomPlayer: `WIN BY: ${winBottom}`,
+                coaching: `COACHING CUES:\n${coachingCues.map((c,i) => `${i+1}. ${c}`).join('\n')}\n\nPROGRESSION:\n${progressions.map(p => `${p.num}. ${p.text}`).join('\n')}\n\n${pedagogicalNote}`,
+                skills: tags.join(' '),
+                favorite: false,
+                lastUsed: null,
+                created: Date.now()
+            };
+
+            // Add to games array
+            games.push(libraryGame);
+            saveGames();
+            renderGames();
+            showToast('✅ Game added to your library!');
+
+            // Reset edit mode
+            isEditMode = false;
+
+            // Switch to games tab
+            setTimeout(() => {
+                const gamesTab = document.querySelectorAll('.tab')[0];
+                if (gamesTab) gamesTab.click();
+            }, 1000);
+        }
+
+        // Search and filter
+        document.getElementById('searchInput').addEventListener('input', renderGames);
+        document.getElementById('topicFilter').addEventListener('change', renderGames);
+        document.getElementById('authorFilter').addEventListener('change', renderGames);
+        document.getElementById('sortBy').addEventListener('input', renderGames);
+
+        // Close modal on background click
+        document.getElementById('gameModal').addEventListener('click', (e) => {
+            if (e.target.id === 'gameModal') closeModal();
+        });
+
+        document.getElementById('sessionModal').addEventListener('click', (e) => {
+            if (e.target.id === 'sessionModal') closeSessionModal();
+        });
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
