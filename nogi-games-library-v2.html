@@ -1899,6 +1899,63 @@
     <!-- Panel backdrop -->
     <div id="quickSessionBackdrop" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999;" onclick="toggleQuickSessionPanel()"></div>
 
+    <!-- Training Timer -->
+    <div id="timerButton" style="position: fixed; bottom: 20px; left: 20px; z-index: 99;">
+        <button onclick="toggleTimerPanel()" style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none; font-size: 1.5rem; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s;">
+            ⏱️
+        </button>
+    </div>
+
+    <!-- Timer Panel -->
+    <div id="timerPanel" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-radius: 16px 16px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.2); z-index: 1000; padding: 1.5rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text); margin: 0;">⏱️ Training Timer</h3>
+            <button onclick="toggleTimerPanel()" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='none'">×</button>
+        </div>
+
+        <!-- Timer Display -->
+        <div id="timerDisplay" style="text-align: center; margin-bottom: 1.5rem;">
+            <div style="font-size: 4rem; font-weight: 700; color: var(--primary); font-variant-numeric: tabular-nums; margin-bottom: 0.5rem;" id="timerTime">0:00</div>
+            <div id="timerRound" style="font-size: 1.1rem; color: var(--text-muted); font-weight: 600;"></div>
+        </div>
+
+        <!-- Quick Presets -->
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1rem;">
+            <button onclick="setTimer(180)" class="btn btn-secondary">3 min</button>
+            <button onclick="setTimer(300)" class="btn btn-secondary">5 min</button>
+            <button onclick="setTimer(600)" class="btn btn-secondary">10 min</button>
+        </div>
+
+        <!-- Custom Time -->
+        <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem;">
+            <input type="number" id="customMinutes" placeholder="Minutes" min="1" max="60" style="flex: 1; padding: 0.875rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; background: var(--surface); color: var(--text);">
+            <button onclick="setCustomTimer()" class="btn btn-secondary">Set</button>
+        </div>
+
+        <!-- Round Mode -->
+        <div style="background: var(--bg); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; margin-bottom: 0.75rem;">
+                <input type="checkbox" id="roundMode" onchange="toggleRoundMode()" style="width: 20px; height: 20px; cursor: pointer;">
+                <span style="font-weight: 600; color: var(--text);">Round Mode (Auto-Switch)</span>
+            </label>
+            <div id="roundConfig" style="display: none;">
+                <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.5rem;">
+                    <input type="number" id="roundCount" value="3" min="1" max="10" style="width: 60px; padding: 0.5rem; border: 2px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--text);">
+                    <span style="color: var(--text-muted); font-size: 0.9rem;">rounds</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem;">
+            <button id="startPauseBtn" onclick="startPauseTimer()" class="btn btn-success" disabled>Start</button>
+            <button onclick="resetTimer()" class="btn btn-danger">Reset</button>
+        </div>
+    </div>
+
+    <!-- Timer backdrop -->
+    <div id="timerBackdrop" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999;" onclick="toggleTimerPanel()"></div>
+
     <!-- Game Modal -->
     <div class="modal" id="gameModal">
         <div class="modal-content">
@@ -2094,6 +2151,13 @@
         let selectedGameIds = new Set();
         let quickSessionMode = false;
         let quickSessionQueue = [];
+        let timerInterval = null;
+        let timerSeconds = 0;
+        let timerDuration = 0;
+        let timerRunning = false;
+        let timerRoundMode = false;
+        let timerCurrentRound = 1;
+        let timerTotalRounds = 3;
 
         // Theme management
         function initTheme() {
@@ -3021,6 +3085,162 @@
                 quickSessionQueue = [];
                 updateQuickQueueUI();
                 showToast('Queue cleared', 'info');
+            }
+        }
+
+        // Training Timer Functions
+        function toggleTimerPanel() {
+            const panel = document.getElementById('timerPanel');
+            const backdrop = document.getElementById('timerBackdrop');
+
+            if (panel.style.display === 'block') {
+                panel.style.display = 'none';
+                backdrop.style.display = 'none';
+            } else {
+                panel.style.display = 'block';
+                backdrop.style.display = 'block';
+            }
+        }
+
+        function setTimer(seconds) {
+            timerDuration = seconds;
+            timerSeconds = seconds;
+            timerCurrentRound = 1;
+            updateTimerDisplay();
+            document.getElementById('startPauseBtn').disabled = false;
+            document.getElementById('startPauseBtn').textContent = 'Start';
+            timerRunning = false;
+        }
+
+        function setCustomTimer() {
+            const minutes = parseInt(document.getElementById('customMinutes').value);
+            if (!minutes || minutes < 1) {
+                showToast('❌ Enter valid minutes', 'error');
+                return;
+            }
+            setTimer(minutes * 60);
+            showToast(`Timer set to ${minutes} minute${minutes > 1 ? 's' : ''}`, 'success');
+        }
+
+        function toggleRoundMode() {
+            timerRoundMode = document.getElementById('roundMode').checked;
+            document.getElementById('roundConfig').style.display = timerRoundMode ? 'block' : 'none';
+
+            if (timerRoundMode) {
+                timerTotalRounds = parseInt(document.getElementById('roundCount').value) || 3;
+            }
+
+            updateTimerDisplay();
+        }
+
+        function startPauseTimer() {
+            if (timerRunning) {
+                // Pause
+                clearInterval(timerInterval);
+                timerRunning = false;
+                document.getElementById('startPauseBtn').textContent = 'Resume';
+                document.getElementById('startPauseBtn').classList.remove('btn-danger');
+                document.getElementById('startPauseBtn').classList.add('btn-success');
+            } else {
+                // Start/Resume
+                timerRunning = true;
+                document.getElementById('startPauseBtn').textContent = 'Pause';
+                document.getElementById('startPauseBtn').classList.remove('btn-success');
+                document.getElementById('startPauseBtn').classList.add('btn-danger');
+
+                timerInterval = setInterval(() => {
+                    timerSeconds--;
+
+                    if (timerSeconds <= 0) {
+                        // Timer finished
+                        clearInterval(timerInterval);
+
+                        // Vibrate if supported
+                        if (navigator.vibrate) {
+                            navigator.vibrate([200, 100, 200]);
+                        }
+
+                        // Play sound (beep)
+                        try {
+                            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                            const oscillator = audioContext.createOscillator();
+                            const gainNode = audioContext.createGain();
+
+                            oscillator.connect(gainNode);
+                            gainNode.connect(audioContext.destination);
+
+                            oscillator.frequency.value = 800;
+                            oscillator.type = 'sine';
+
+                            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+                            oscillator.start(audioContext.currentTime);
+                            oscillator.stop(audioContext.currentTime + 0.5);
+                        } catch (e) {
+                            console.log('Audio not supported');
+                        }
+
+                        if (timerRoundMode && timerCurrentRound < timerTotalRounds) {
+                            // Next round
+                            timerCurrentRound++;
+                            timerSeconds = timerDuration;
+                            showToast(`⏱️ Round ${timerCurrentRound} of ${timerTotalRounds}`, 'info');
+                            updateTimerDisplay();
+                        } else {
+                            // All done
+                            timerRunning = false;
+                            document.getElementById('startPauseBtn').textContent = 'Start';
+                            document.getElementById('startPauseBtn').classList.remove('btn-danger');
+                            document.getElementById('startPauseBtn').classList.add('btn-success');
+
+                            if (timerRoundMode) {
+                                showToast('🎉 All rounds complete!', 'success');
+                            } else {
+                                showToast('⏱️ Time\'s up!', 'success');
+                            }
+
+                            updateTimerDisplay();
+                        }
+                    } else {
+                        updateTimerDisplay();
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            timerSeconds = timerDuration;
+            timerCurrentRound = 1;
+            document.getElementById('startPauseBtn').textContent = 'Start';
+            document.getElementById('startPauseBtn').classList.remove('btn-danger');
+            document.getElementById('startPauseBtn').classList.add('btn-success');
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timerSeconds / 60);
+            const seconds = timerSeconds % 60;
+            document.getElementById('timerTime').textContent =
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            if (timerRoundMode) {
+                document.getElementById('timerRound').textContent =
+                    `Round ${timerCurrentRound} of ${timerTotalRounds}`;
+            } else {
+                document.getElementById('timerRound').textContent = '';
+            }
+
+            // Change color when low on time
+            const display = document.getElementById('timerTime');
+            if (timerSeconds <= 10 && timerSeconds > 0) {
+                display.style.color = 'var(--danger)';
+            } else if (timerSeconds === 0) {
+                display.style.color = 'var(--success)';
+            } else {
+                display.style.color = 'var(--primary)';
             }
         }
 
