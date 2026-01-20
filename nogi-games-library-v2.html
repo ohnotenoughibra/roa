@@ -1319,6 +1319,24 @@
                 </div>
             </div>
 
+            <!-- Quick Access Widget -->
+            <div id="quickAccessWidget" style="display: none; margin-bottom: 1.5rem;">
+                <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 1.25rem; border-radius: 12px; box-shadow: var(--shadow-lg);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                        <h3 style="font-size: 1.125rem; font-weight: 700; color: white; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                            ⚡ Quick Access
+                            <span style="font-size: 0.75rem; background: rgba(255,255,255,0.2); padding: 0.25rem 0.5rem; border-radius: 12px; font-weight: 600;">Recently Used</span>
+                        </h3>
+                        <button onclick="toggleQuickAccess()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.5rem 0.75rem; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+                            <span id="quickAccessToggleIcon">▼</span>
+                        </button>
+                    </div>
+                    <div id="quickAccessContent" style="display: grid; gap: 0.75rem;">
+                        <!-- Quick access games will be inserted here -->
+                    </div>
+                </div>
+            </div>
+
             <div class="action-section">
                 <button class="primary-action" onclick="openModal()">
                     ➕ Add New Game
@@ -2087,7 +2105,19 @@
             loadSessions();
             loadTemplates();
             renderGames();
+            renderQuickAccess();
             updateStats();
+
+            // Restore Quick Access collapsed state
+            const isExpanded = localStorage.getItem('quickAccessExpanded') !== 'false';
+            if (!isExpanded) {
+                const content = document.getElementById('quickAccessContent');
+                const icon = document.getElementById('quickAccessToggleIcon');
+                if (content && icon) {
+                    content.style.display = 'none';
+                    icon.textContent = '▶';
+                }
+            }
         }
 
         // Tab switching
@@ -2679,6 +2709,116 @@
             `).join('');
         }
 
+        // Quick Access Widget
+        function renderQuickAccess() {
+            const recentlyUsed = games
+                .filter(g => g.lastUsed)
+                .sort((a, b) => (b.lastUsed || 0) - (a.lastUsed || 0))
+                .slice(0, 5);
+
+            const widget = document.getElementById('quickAccessWidget');
+            const content = document.getElementById('quickAccessContent');
+
+            if (recentlyUsed.length === 0) {
+                widget.style.display = 'none';
+                return;
+            }
+
+            widget.style.display = 'block';
+
+            content.innerHTML = recentlyUsed.map(game => {
+                const lastUsedDate = new Date(game.lastUsed);
+                const now = new Date();
+                const diffDays = Math.floor((now - lastUsedDate) / (1000 * 60 * 60 * 24));
+
+                let timeAgo;
+                if (diffDays === 0) {
+                    timeAgo = 'Today';
+                } else if (diffDays === 1) {
+                    timeAgo = 'Yesterday';
+                } else if (diffDays < 7) {
+                    timeAgo = `${diffDays} days ago`;
+                } else {
+                    timeAgo = `${Math.floor(diffDays / 7)} weeks ago`;
+                }
+
+                return `
+                    <div style="background: white; border-radius: 8px; padding: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.15)'" onmouseout="this.style.transform=''; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.1)'">
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="font-weight: 700; font-size: 0.95rem; color: var(--text); margin-bottom: 0.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                ${game.name}
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                <span style="font-size: 0.75rem; background: var(--primary); color: white; padding: 0.2rem 0.5rem; border-radius: 12px; font-weight: 600;">
+                                    ${game.topic}
+                                </span>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">
+                                    ${timeAgo}
+                                </span>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; flex-shrink: 0;">
+                            <button onclick="quickUseGame(${game.id})" style="background: var(--success); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; min-height: 36px;" onmouseover="this.style.background='#059669'" onmouseout="this.style.background='var(--success)'" title="Mark as used today">
+                                ✓ Use
+                            </button>
+                            <button onclick="viewGame(${game.id})" style="background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; font-size: 0.85rem; cursor: pointer; white-space: nowrap; transition: all 0.2s; min-height: 36px;" onmouseover="this.style.background='var(--primary-dark)'" onmouseout="this.style.background='var(--primary)'" title="View details">
+                                👁️ View
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleQuickAccess() {
+            const content = document.getElementById('quickAccessContent');
+            const icon = document.getElementById('quickAccessToggleIcon');
+
+            if (content.style.display === 'none') {
+                content.style.display = 'grid';
+                icon.textContent = '▼';
+                localStorage.setItem('quickAccessExpanded', 'true');
+            } else {
+                content.style.display = 'none';
+                icon.textContent = '▶';
+                localStorage.setItem('quickAccessExpanded', 'false');
+            }
+        }
+
+        function quickUseGame(id) {
+            const game = games.find(g => g.id === id);
+            if (game) {
+                game.lastUsed = Date.now();
+                saveGames();
+                renderQuickAccess();
+                renderGames();
+                if (currentTab === 'favorites') renderFavorites();
+                showToast(`✓ "${game.name}" marked as used today`, 'success');
+            }
+        }
+
+        function viewGame(id) {
+            // Scroll to the game in the main grid
+            switchTab('games');
+
+            // Small delay to let the tab switch
+            setTimeout(() => {
+                const gameCards = document.querySelectorAll('.game-card');
+                gameCards.forEach(card => {
+                    if (card.innerHTML.includes(`editGame(${id})`)) {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        // Highlight effect
+                        card.style.outline = '3px solid var(--primary)';
+                        card.style.outlineOffset = '4px';
+                        setTimeout(() => {
+                            card.style.outline = '';
+                            card.style.outlineOffset = '';
+                        }, 2000);
+                    }
+                });
+            }, 100);
+        }
+
         // Toggle favorite
         // Overflow menu management
         function toggleOverflowMenu(gameId) {
@@ -2744,6 +2884,7 @@
                     // Toggle to unused
                     game.lastUsed = null;
                     saveGames();
+                    renderQuickAccess();
                     renderGames();
                     if (currentTab === 'favorites') renderFavorites();
                     showToast('↩️ Marked as unused', 'info');
@@ -2751,6 +2892,7 @@
                     // Toggle to used
                     game.lastUsed = Date.now();
                     saveGames();
+                    renderQuickAccess();
                     renderGames();
                     if (currentTab === 'favorites') renderFavorites();
                     showToast('✓ Marked as used today', 'success');
@@ -2839,6 +2981,7 @@
             });
 
             saveGames();
+            renderQuickAccess();
             renderGames();
             showToast(`✓ ${selectedGameIds.size} game(s) marked as used`, 'success');
             selectedGameIds.clear();
@@ -2857,6 +3000,7 @@
             });
 
             saveGames();
+            renderQuickAccess();
             renderGames();
             showToast(`↩️ ${selectedGameIds.size} game(s) marked as unused`, 'info');
             selectedGameIds.clear();
@@ -2966,6 +3110,7 @@
 
             games = games.filter(g => g.id !== id);
             saveGames();
+            renderQuickAccess();
             renderGames();
             if (currentTab === 'favorites') renderFavorites();
 
@@ -3016,6 +3161,7 @@
             }
 
             saveGames();
+            renderQuickAccess();
             renderGames();
             closeModal();
             showToast(editingGameId ? '✅ Game updated successfully!' : '✅ Game added successfully!', 'success');
@@ -3119,6 +3265,7 @@
                     const beforeCount = games.length;
                     games = [...games, ...imported];
                     saveGames();
+                    renderQuickAccess();
                     renderGames();
                     const afterCount = games.length;
                     console.log(`Games before: ${beforeCount}, after: ${afterCount}`);
@@ -3327,6 +3474,7 @@
                 const beforeCount = games.length;
                 games = [...games, ...imported];
                 saveGames();
+                renderQuickAccess();
                 renderGames();
                 showToast(`✅ ${imported.length} game(s) pasted! Total: ${games.length}`, 'success');
             } catch (err) {
@@ -3943,6 +4091,7 @@
                 // Restore deleted game
                 games.push(undoState.data);
                 saveGames();
+                renderQuickAccess();
                 renderGames();
                 if (currentTab === 'favorites') renderFavorites();
                 toast.classList.remove('show');
