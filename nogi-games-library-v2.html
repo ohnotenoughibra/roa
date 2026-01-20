@@ -1829,48 +1829,200 @@
             <div class="ai-container">
                 <!-- Header -->
                 <div class="ai-header">
-                    <h2>🎯 AI Game Designer</h2>
-                    <p>Constraint-led approach: Describe your training problem and get a custom game with specific start positions, strong constraints, and clear win conditions.</p>
+                    <h2>🎯 AI Game Designer Pro</h2>
+                    <p>Advanced constraint-led game creation with multiple modes, difficulty variations, and online research</p>
                 </div>
 
-                <!-- Input Section -->
-                <div class="ai-input-section">
-                    <label for="aiProblemInput" style="display: block; font-weight: 600; margin-bottom: 0.75rem; color: #0f172a;">
-                        What problem do you want to solve?
-                    </label>
-                    <textarea
-                        id="aiProblemInput"
-                        class="ai-textarea"
-                        placeholder="e.g., My students get flattened from turtle and can't escape..."></textarea>
+                <!-- Mode Selector -->
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                    <button class="btn btn-primary" id="modeProblem" onclick="switchAIMode('problem')" style="flex: 1; min-width: 120px;">📝 Problem</button>
+                    <button class="btn btn-secondary" id="modeWizard" onclick="switchAIMode('wizard')" style="flex: 1; min-width: 120px;">🧙 Wizard</button>
+                    <button class="btn btn-secondary" id="modeRemix" onclick="switchAIMode('remix')" style="flex: 1; min-width: 120px;">🔄 Remix</button>
+                    <button class="btn btn-secondary" id="modeResearch" onclick="switchAIMode('research')" style="flex: 1; min-width: 120px;">🔍 Research</button>
+                </div>
 
-                    <div style="margin-top: 0.75rem;">
-                        <label style="display: block; font-size: 0.85rem; color: #64748b; margin-bottom: 0.5rem;">
-                            💡 Or try these common scenarios:
+                <!-- Problem Mode (default) -->
+                <div id="problemMode" class="ai-input-section">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
+                        <label style="font-weight: 600; color: var(--text);">
+                            What problem do you want to solve?
                         </label>
-                        <div class="ai-examples">
-                            <button class="ai-example-btn" onclick="fillExample(0)">
-                                Students get their guard passed when they sit up
-                            </button>
-                            <button class="ai-example-btn" onclick="fillExample(1)">
-                                Can't escape side control - get stuck flat
-                            </button>
-                            <button class="ai-example-btn" onclick="fillExample(2)">
-                                Turtle position - students get flattened or back taken
-                            </button>
-                            <button class="ai-example-btn" onclick="fillExample(3)">
-                                Passing knee shield - students get swept or can't advance
-                            </button>
+                        <button onclick="toggleTemplates()" class="btn btn-secondary btn-sm">
+                            📚 Templates
+                        </button>
+                    </div>
+
+                    <!-- Quick Templates (collapsible) -->
+                    <div id="quickTemplates" style="display: none; background: var(--bg); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <div style="margin-bottom: 1rem;">
+                            <div style="font-weight: 600; color: var(--text); margin-bottom: 0.5rem;">🔴 Guard Problems</div>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <button class="ai-example-btn" onclick="fillTemplate('guard-pass')">Getting passed when sitting up</button>
+                                <button class="ai-example-btn" onclick="fillTemplate('guard-pressure')">Can't retain against pressure passers</button>
+                                <button class="ai-example-btn" onclick="fillTemplate('guard-sweep')">Losing position when attempting sweeps</button>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <div style="font-weight: 600; color: var(--text); margin-bottom: 0.5rem;">🔵 Passing Problems</div>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <button class="ai-example-btn" onclick="fillTemplate('knee-shield')">Can't pass knee shield</button>
+                                <button class="ai-example-btn" onclick="fillTemplate('half-sweep')">Getting swept from half guard</button>
+                                <button class="ai-example-btn" onclick="fillTemplate('stuck-closed')">Stuck in closed guard</button>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <div style="font-weight: 600; color: var(--text); margin-bottom: 0.5rem;">🟡 Escape Problems</div>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <button class="ai-example-btn" onclick="fillTemplate('side-flat')">Getting stuck flat in side control</button>
+                                <button class="ai-example-btn" onclick="fillTemplate('mount-stuck')">Can't escape mount</button>
+                                <button class="ai-example-btn" onclick="fillTemplate('back-escape')">Losing back control escapes</button>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: var(--text); margin-bottom: 0.5rem;">🟢 Scramble Problems</div>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <button class="ai-example-btn" onclick="fillTemplate('turtle-flat')">Can't turn in from turtle</button>
+                                <button class="ai-example-btn" onclick="fillTemplate('takedown-shot')">Getting stuffed on takedown shots</button>
+                                <button class="ai-example-btn" onclick="fillTemplate('transition-lost')">Losing position in transitions</button>
+                            </div>
                         </div>
                     </div>
 
-                    <button class="ai-generate-btn" onclick="generateConstraintGame()">
-                        ✨ Generate Constraint-Led Game
-                    </button>
+                    <div style="position: relative;">
+                        <textarea
+                            id="aiProblemInput"
+                            class="ai-textarea"
+                            placeholder="e.g., My students get flattened from turtle and can't escape..."
+                            style="padding-right: 60px;"></textarea>
+                        <button onclick="startVoiceInput()" style="position: absolute; right: 10px; top: 10px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border: none; padding: 0.75rem; border-radius: 50%; cursor: pointer; font-size: 1.25rem; width: 48px; height: 48px; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);" title="Voice Input">
+                            🎤
+                        </button>
+                    </div>
+
+                    <div style="display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap;">
+                        <button class="ai-generate-btn" onclick="generateConstraintGame()" style="flex: 2; min-width: 200px;">
+                            ✨ Generate Game
+                        </button>
+                        <button class="btn btn-secondary" onclick="generate3Variations()" style="flex: 1; min-width: 150px;">
+                            🎲 3 Levels
+                        </button>
+                        <button class="btn btn-secondary" onclick="analyzeMyStyle()" style="flex: 1; min-width: 150px;">
+                            📊 My Style
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Wizard Mode (hidden by default) -->
+                <div id="wizardMode" class="ai-input-section" style="display: none;">
+                    <div style="background: var(--bg); padding: 1.5rem; border-radius: 12px;">
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="font-weight: 600; color: var(--text); display: block; margin-bottom: 0.5rem;">Step 1: Position</label>
+                            <select id="wizardPosition" class="ai-textarea" style="height: auto; padding: 0.875rem;">
+                                <option value="">Select position...</option>
+                                <option value="guard-retention">Guard Retention</option>
+                                <option value="guard-passing">Guard Passing</option>
+                                <option value="side-control">Side Control</option>
+                                <option value="mount">Mount</option>
+                                <option value="back-control">Back Control</option>
+                                <option value="turtle">Turtle</option>
+                                <option value="half-guard">Half Guard</option>
+                                <option value="takedowns">Takedowns</option>
+                                <option value="leg-locks">Leg Locks</option>
+                                <option value="transitions">Transitions</option>
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="font-weight: 600; color: var(--text); display: block; margin-bottom: 0.5rem;">Step 2: Problem Type</label>
+                            <select id="wizardProblem" class="ai-textarea" style="height: auto; padding: 0.875rem;">
+                                <option value="">Select problem...</option>
+                                <option value="getting-passed">Getting passed/beaten</option>
+                                <option value="cant-escape">Can't escape</option>
+                                <option value="cant-advance">Can't advance position</option>
+                                <option value="getting-swept">Getting swept</option>
+                                <option value="losing-control">Losing control/position</option>
+                                <option value="timing">Bad timing/hesitation</option>
+                                <option value="frames">Poor frames/structure</option>
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="font-weight: 600; color: var(--text); display: block; margin-bottom: 0.5rem;">Step 3: Skill Level</label>
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">Beginner</span>
+                                <input type="range" id="wizardLevel" min="1" max="5" value="3" style="flex: 1;">
+                                <span style="font-size: 0.85rem; color: var(--text-muted);">Advanced</span>
+                            </div>
+                            <div style="text-align: center; margin-top: 0.5rem; font-weight: 600; color: var(--primary);" id="wizardLevelLabel">Intermediate</div>
+                        </div>
+
+                        <button class="ai-generate-btn" onclick="generateFromWizard()">
+                            🧙 Generate From Wizard
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Remix Mode -->
+                <div id="remixMode" class="ai-input-section" style="display: none;">
+                    <label style="font-weight: 600; color: var(--text); display: block; margin-bottom: 0.75rem;">
+                        Paste an existing game to remix
+                    </label>
+                    <textarea
+                        id="remixInput"
+                        class="ai-textarea"
+                        placeholder="Paste game description or name from your library..."
+                        style="min-height: 150px;"></textarea>
+
+                    <div style="display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="remixFromLibrary()" style="flex: 1;">
+                            📚 Choose from Library
+                        </button>
+                        <button class="ai-generate-btn" onclick="remixGame()" style="flex: 2;">
+                            🔄 Generate 3 Variations
+                        </button>
+                    </div>
+
+                    <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn btn-secondary btn-sm" onclick="remixDifficulty('easier')">⬇️ Make Easier</button>
+                        <button class="btn btn-secondary btn-sm" onclick="remixDifficulty('harder')">⬆️ Make Harder</button>
+                        <button class="btn btn-secondary btn-sm" onclick="remixDifficulty('faster')">⚡ Faster Pace</button>
+                        <button class="btn btn-secondary btn-sm" onclick="remixDifficulty('longer')">⏱️ Longer Rounds</button>
+                    </div>
+                </div>
+
+                <!-- Research Mode -->
+                <div id="researchMode" class="ai-input-section" style="display: none;">
+                    <label style="font-weight: 600; color: var(--text); display: block; margin-bottom: 0.75rem;">
+                        🔍 Research Games Online + Your Library
+                    </label>
+                    <textarea
+                        id="researchInput"
+                        class="ai-textarea"
+                        placeholder="e.g., 'Gordon Ryan guard retention drills' or 'Danaher leg lock warmups'"
+                        style="min-height: 100px;"></textarea>
+
+                    <div style="display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap;">
+                        <button class="ai-generate-btn" onclick="searchOnlineGames()" style="flex: 2;">
+                            🌐 Search Online + Library
+                        </button>
+                        <button class="btn btn-secondary" onclick="searchLibraryOnly()" style="flex: 1;">
+                            📚 Library Only
+                        </button>
+                    </div>
+
+                    <div id="researchResults" style="margin-top: 1.5rem; display: none;">
+                        <!-- Results will appear here -->
+                    </div>
                 </div>
 
                 <!-- Result Card (hidden by default) -->
-                <div id="aiResultCard" style="display: none;">
+                <div id="aiResultCard" style="display: none; margin-top: 1.5rem;">
                     <!-- Game will be inserted here -->
+                </div>
+
+                <!-- 3 Variations Display -->
+                <div id="variationsContainer" style="display: none; margin-top: 1.5rem;">
+                    <!-- Variations will be inserted here -->
                 </div>
             </div>
         </div>
@@ -4834,6 +4986,526 @@ Created with NoGi Games Library
 
         function fillExample(index) {
             document.getElementById('aiProblemInput').value = exampleProblems[index];
+        }
+
+        // AI Mode Switching
+        function switchAIMode(mode) {
+            // Update button states
+            ['modeProblem', 'modeWizard', 'modeRemix', 'modeResearch'].forEach(id => {
+                const btn = document.getElementById(id);
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-secondary');
+            });
+            document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.remove('btn-secondary');
+            document.getElementById('mode' + mode.charAt(0).toUpperCase() + mode.slice(1)).classList.add('btn-primary');
+
+            // Show/hide mode sections
+            document.getElementById('problemMode').style.display = mode === 'problem' ? 'block' : 'none';
+            document.getElementById('wizardMode').style.display = mode === 'wizard' ? 'block' : 'none';
+            document.getElementById('remixMode').style.display = mode === 'remix' ? 'block' : 'none';
+            document.getElementById('researchMode').style.display = mode === 'research' ? 'block' : 'none';
+
+            // Hide results when switching modes
+            document.getElementById('aiResultCard').style.display = 'none';
+            document.getElementById('variationsContainer').style.display = 'none';
+            if (mode === 'research') {
+                document.getElementById('researchResults').style.display = 'none';
+            }
+        }
+
+        // Template System
+        const problemTemplates = {
+            'guard-pass': "My students keep getting their guard passed when they sit up. They don't maintain distance and get smashed.",
+            'guard-pressure': "Students can't retain guard against heavy pressure passers. They get flattened and passed immediately.",
+            'guard-sweep': "When attempting sweeps from guard, students lose position and get passed instead.",
+            'knee-shield': "Students get stuck trying to pass knee shield half guard. They either get swept or can't advance.",
+            'half-sweep': "Getting swept constantly when trying to pass half guard. Can't establish control.",
+            'stuck-closed': "Students get stuck in closed guard and don't know how to open and pass effectively.",
+            'side-flat': "Students getting stuck flat in side control. They go defensive and can't create frames to escape.",
+            'mount-stuck': "Can't escape mount - students just accept the position and wait to get submitted.",
+            'back-escape': "Students lose back control escapes immediately. They don't understand hand fighting or hip movement.",
+            'turtle-flat': "From turtle position, students get flattened out or back taken. They don't know when to sit through.",
+            'takedown-shot': "Getting stuffed on every takedown shot. Students shoot from too far away with bad setups.",
+            'transition-lost': "Losing position during transitions and scrambles. Students hesitate instead of moving."
+        };
+
+        function toggleTemplates() {
+            const templates = document.getElementById('quickTemplates');
+            templates.style.display = templates.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function fillTemplate(key) {
+            document.getElementById('aiProblemInput').value = problemTemplates[key];
+            toggleTemplates();
+        }
+
+        // Voice Input
+        function startVoiceInput() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                showToast('❌ Voice input not supported in this browser', 'error');
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+
+            recognition.lang = 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = () => {
+                showToast('🎤 Listening... Describe your problem', 'info');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('aiProblemInput').value = transcript;
+                showToast('✅ Voice input captured!', 'success');
+            };
+
+            recognition.onerror = (event) => {
+                showToast('❌ Voice input error: ' + event.error, 'error');
+            };
+
+            recognition.start();
+        }
+
+        // Wizard Mode
+        document.getElementById('wizardLevel')?.addEventListener('input', (e) => {
+            const labels = ['Beginner', 'Intermediate', 'Advanced', 'Expert', 'Elite'];
+            document.getElementById('wizardLevelLabel').textContent = labels[e.target.value - 1];
+        });
+
+        function generateFromWizard() {
+            const position = document.getElementById('wizardPosition').value;
+            const problem = document.getElementById('wizardProblem').value;
+            const level = document.getElementById('wizardLevel').value;
+
+            if (!position || !problem) {
+                showToast('❌ Please complete all wizard steps', 'error');
+                return;
+            }
+
+            // Build problem description from wizard selections
+            const problemText = `Students have trouble with ${position.replace('-', ' ')} - specifically ${problem.replace('-', ' ')}. Skill level is ${['beginner', 'intermediate', 'advanced', 'expert', 'elite'][level - 1]}.`;
+
+            document.getElementById('aiProblemInput').value = problemText;
+            generateConstraintGame();
+        }
+
+        // Generate 3 Variations (Easy/Medium/Hard)
+        function generate3Variations() {
+            const problem = document.getElementById('aiProblemInput').value.trim();
+
+            if (!problem) {
+                showToast('❌ Please describe your training problem first', 'error');
+                return;
+            }
+
+            const baseGame = analyzeAndCreateConstraintGame(problem);
+            if (!baseGame) {
+                showToast('❌ Could not generate game from description', 'error');
+                return;
+            }
+
+            // Generate 3 difficulty levels
+            const variations = [
+                createVariation(baseGame, 'easy'),
+                baseGame, // Medium is the base
+                createVariation(baseGame, 'hard')
+            ];
+
+            displayVariations(variations);
+        }
+
+        function createVariation(baseGame, difficulty) {
+            const game = JSON.parse(JSON.stringify(baseGame)); // Deep clone
+
+            if (difficulty === 'easy') {
+                game.title = "🟢 " + game.title + " (Beginner)";
+                // Simplify constraints
+                game.constraints = game.constraints.slice(0, 2); // Fewer constraints
+                if (game.progressions && game.progressions[0]) {
+                    game.constraints.push(game.progressions[0].text);
+                }
+            } else if (difficulty === 'hard') {
+                game.title = "🔴 " + game.title + " (Advanced)";
+                // Add more constraints
+                if (game.progressions && game.progressions[2]) {
+                    game.constraints.push(game.progressions[2].text);
+                }
+                game.constraints.push("Reduced time: 60-second rounds (increased intensity)");
+            }
+
+            return game;
+        }
+
+        function displayVariations(variations) {
+            const container = document.getElementById('variationsContainer');
+            const labels = ['🟢 Easy (Beginner)', '🟡 Medium (Intermediate)', '🔴 Hard (Advanced)'];
+
+            container.innerHTML = '<h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; color: var(--text);">Three Difficulty Levels</h3>';
+
+            variations.forEach((game, index) => {
+                const card = document.createElement('div');
+                card.style.cssText = 'background: var(--surface); padding: 1.5rem; border-radius: 12px; margin-bottom: 1rem; border: 2px solid var(--border);';
+
+                card.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                        <div>
+                            <h4 style="font-size: 1.125rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">${labels[index]}</h4>
+                            <div style="font-size: 1rem; color: var(--text-muted);">${game.title}</div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <button onclick='saveVariationToLibrary(${index})' class="btn btn-success btn-sm">💾 Save</button>
+                            <button onclick='addVariationToQuickSession(${index})' class="btn btn-primary btn-sm">⚡ Quick Session</button>
+                        </div>
+                    </div>
+                    <div style="background: var(--bg); padding: 1rem; border-radius: 8px; margin-bottom: 0.75rem;">
+                        <strong>Start:</strong> ${game.startPosition}
+                    </div>
+                    <div style="margin-bottom: 0.75rem;">
+                        <strong>Constraints:</strong>
+                        <ul style="margin: 0.5rem 0 0 1.5rem;">
+                            ${game.constraints.map(c => `<li>${c}</li>`).join('')}
+                        </ul>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div>
+                            <strong>🔵 Top Wins:</strong> ${game.winConditions.top}
+                        </div>
+                        <div>
+                            <strong>🔴 Bottom Wins:</strong> ${game.winConditions.bottom}
+                        </div>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+
+            container.style.display = 'block';
+            container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            // Store variations for later use
+            window.currentVariations = variations;
+        }
+
+        function saveVariationToLibrary(index) {
+            const game = window.currentVariations[index];
+            addGameFromAI(game);
+        }
+
+        function addVariationToQuickSession(index) {
+            const game = window.currentVariations[index];
+            const savedGame = addGameFromAI(game);
+            if (savedGame) {
+                quickSessionQueue.push(savedGame);
+                updateQuickQueueUI();
+                showToast(`⚡ Added "${game.title}" to Quick Session!`, 'success');
+            }
+        }
+
+        // Analyze My Style
+        function analyzeMyStyle() {
+            if (games.length < 5) {
+                showToast('❌ Need at least 5 games in library to analyze your style', 'error');
+                return;
+            }
+
+            // Analyze existing games
+            const topicCounts = {};
+            const commonWords = {};
+            const avgConstraints = [];
+
+            games.forEach(game => {
+                // Count topics
+                topicCounts[game.topic] = (topicCounts[game.topic] || 0) + 1;
+
+                // Count constraint count
+                if (game.coaching) {
+                    const sentences = game.coaching.split('.').length;
+                    avgConstraints.push(sentences);
+                }
+
+                // Extract common words from coaching
+                if (game.coaching) {
+                    const words = game.coaching.toLowerCase().split(/\W+/);
+                    words.forEach(word => {
+                        if (word.length > 4) {
+                            commonWords[word] = (commonWords[word] || 0) + 1;
+                        }
+                    });
+                }
+            });
+
+            // Find most common topic
+            const favoriteTop = Object.entries(topicCounts).sort((a, b) => b[1] - a[1])[0];
+            const avgCon = avgConstraints.reduce((a, b) => a + b, 0) / avgConstraints.length;
+            const topWords = Object.entries(commonWords)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([word]) => word);
+
+            showToast(`📊 Your Style: Focus on ${favoriteTop[0]}, ${avgCon.toFixed(1)} coaching cues avg, Key terms: ${topWords.join(', ')}`, 'info');
+
+            // Generate a game matching their style
+            const styledProblem = `Create a ${favoriteTop[0]} game that emphasizes ${topWords.slice(0, 3).join(', ')}`;
+            document.getElementById('aiProblemInput').value = styledProblem;
+        }
+
+        // Remix Functions
+        function remixFromLibrary() {
+            if (games.length === 0) {
+                showToast('❌ No games in library to remix', 'error');
+                return;
+            }
+
+            // Create selection modal
+            const gamesList = games.map((g, i) => `
+                <div onclick="selectGameForRemix(${g.id})" style="padding: 1rem; border: 1px solid var(--border); border-radius: 8px; cursor: pointer; margin-bottom: 0.5rem; background: var(--surface);" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='var(--surface)'">
+                    <div style="font-weight: 600;">${g.name}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">${g.topic}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('remixInput').value = gamesList;
+            showToast('💡 Tap a game below to select it for remixing', 'info');
+        }
+
+        function selectGameForRemix(gameId) {
+            const game = games.find(g => g.id === gameId);
+            if (!game) return;
+
+            const description = `${game.name}\n\nTop Player: ${game.topPlayer}\n\nBottom Player: ${game.bottomPlayer}\n\n${game.coaching ? 'Coaching: ' + game.coaching : ''}`;
+            document.getElementById('remixInput').value = description;
+            window.remixBaseGame = game;
+            showToast('✅ Game selected! Click "Generate 3 Variations" to remix', 'success');
+        }
+
+        function remixGame() {
+            const input = document.getElementById('remixInput').value.trim();
+
+            if (!input) {
+                showToast('❌ Please enter a game to remix', 'error');
+                return;
+            }
+
+            // Create variations based on the input
+            const baseDescription = window.remixBaseGame ?
+                `${window.remixBaseGame.topic} game similar to: ${window.remixBaseGame.name}` :
+                input;
+
+            const baseGame = analyzeAndCreateConstraintGame(baseDescription);
+
+            if (baseGame) {
+                const variations = [
+                    createVariation(baseGame, 'easy'),
+                    baseGame,
+                    createVariation(baseGame, 'hard')
+                ];
+                displayVariations(variations);
+            }
+        }
+
+        function remixDifficulty(modifier) {
+            const input = document.getElementById('remixInput').value.trim();
+            if (!input) {
+                showToast('❌ Please enter a game first', 'error');
+                return;
+            }
+
+            let modifiedInput = input;
+            switch(modifier) {
+                case 'easier':
+                    modifiedInput += "\n\nMake this simpler with fewer constraints and longer rounds for beginners.";
+                    break;
+                case 'harder':
+                    modifiedInput += "\n\nMake this more challenging with tighter constraints and shorter rounds for advanced students.";
+                    break;
+                case 'faster':
+                    modifiedInput += "\n\nIncrease the pace with shorter rounds and more intensity.";
+                    break;
+                case 'longer':
+                    modifiedInput += "\n\nExtend the rounds for endurance and more time to problem-solve.";
+                    break;
+            }
+
+            document.getElementById('remixInput').value = modifiedInput;
+        }
+
+        // Online Research + Library Search
+        async function searchOnlineGames() {
+            const query = document.getElementById('researchInput').value.trim();
+
+            if (!query) {
+                showToast('❌ Please enter a search query', 'error');
+                return;
+            }
+
+            showToast('🔍 Searching online and your library...', 'info');
+
+            // Search library first
+            const libraryResults = searchLibraryGames(query);
+
+            // Simulate online research (in real implementation, this would call an LLM API)
+            const onlineResults = await simulateOnlineResearch(query);
+
+            displayResearchResults(libraryResults, onlineResults);
+        }
+
+        function searchLibraryOnly() {
+            const query = document.getElementById('researchInput').value.trim();
+
+            if (!query) {
+                showToast('❌ Please enter a search query', 'error');
+                return;
+            }
+
+            const results = searchLibraryGames(query);
+            displayResearchResults(results, []);
+        }
+
+        function searchLibraryGames(query) {
+            const q = query.toLowerCase();
+            return games.filter(game => {
+                return game.name.toLowerCase().includes(q) ||
+                    game.topic.toLowerCase().includes(q) ||
+                    (game.coaching && game.coaching.toLowerCase().includes(q)) ||
+                    (game.skills && game.skills.toLowerCase().includes(q));
+            });
+        }
+
+        async function simulateOnlineResearch(query) {
+            // This is a placeholder. In a real implementation, you'd call an LLM API
+            // For now, we'll return example suggestions based on keywords
+
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API delay
+
+            const suggestions = [];
+
+            if (query.toLowerCase().includes('guard')) {
+                suggestions.push({
+                    title: "Gordon Ryan Guard Retention System",
+                    source: "Online Research Suggestion",
+                    description: "Focus on foot placement and distance management. Keep feet on opponent's hips at all times. Use frames to create space when they get grips."
+                });
+            }
+
+            if (query.toLowerCase().includes('pass')) {
+                suggestions.push({
+                    title: "Danaher Sequential Passing Framework",
+                    source: "Online Research Suggestion",
+                    description: "Break passing into gates: 1) Clear knee shield, 2) Flatten shoulder, 3) Free trapped leg. Must complete each gate before advancing."
+                });
+            }
+
+            if (query.toLowerCase().includes('leg') || query.toLowerCase().includes('heel')) {
+                suggestions.push({
+                    title: "Modern Ashi Garami Entries",
+                    source: "Online Research Suggestion",
+                    description: "From seated guard, establish outside ashi first. Control the heel before attempting inside ashi transitions."
+                });
+            }
+
+            // Always add a generic suggestion
+            suggestions.push({
+                title: "Constraint-Led Approach for " + query,
+                source: "AI Recommendation",
+                description: "Create a game with clear start position, specific constraints, and explicit win conditions. Focus on the problem you want to solve."
+            });
+
+            return suggestions;
+        }
+
+        function displayResearchResults(libraryResults, onlineResults) {
+            const container = document.getElementById('researchResults');
+
+            let html = '';
+
+            if (libraryResults.length > 0) {
+                html += `
+                    <div style="margin-bottom: 1.5rem;">
+                        <h4 style="font-size: 1.125rem; font-weight: 700; color: var(--text); margin-bottom: 1rem;">📚 From Your Library (${libraryResults.length})</h4>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            ${libraryResults.slice(0, 5).map(game => `
+                                <div style="background: var(--surface); padding: 1rem; border-radius: 8px; border: 2px solid var(--primary);">
+                                    <div style="font-weight: 700; margin-bottom: 0.5rem;">${game.name}</div>
+                                    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">${game.topic}</div>
+                                    <div style="font-size: 0.9rem;">${game.topPlayer}</div>
+                                    <button onclick="useGameAsTemplate(${game.id})" class="btn btn-primary btn-sm" style="margin-top: 0.75rem;">🎯 Use as Template</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (onlineResults.length > 0) {
+                html += `
+                    <div>
+                        <h4 style="font-size: 1.125rem; font-weight: 700; color: var(--text); margin-bottom: 1rem;">🌐 Online Research Suggestions</h4>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            ${onlineResults.map(result => `
+                                <div style="background: var(--bg); padding: 1rem; border-radius: 8px; border: 1px solid var(--border);">
+                                    <div style="font-weight: 700; margin-bottom: 0.5rem;">${result.title}</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">${result.source}</div>
+                                    <div style="font-size: 0.9rem;">${result.description}</div>
+                                    <button onclick='createGameFromSuggestion(${JSON.stringify(result).replace(/'/g, "\\'")})'  class="btn btn-secondary btn-sm" style="margin-top: 0.75rem;">✨ Create Game</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (libraryResults.length === 0 && onlineResults.length === 0) {
+                html = '<div style="text-align: center; padding: 2rem; color: var(--text-muted);">No results found. Try a different search term.</div>';
+            }
+
+            container.innerHTML = html;
+            container.style.display = 'block';
+            container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function useGameAsTemplate(gameId) {
+            const game = games.find(g => g.id === gameId);
+            if (!game) return;
+
+            window.remixBaseGame = game;
+            switchAIMode('remix');
+            document.getElementById('remixInput').value = `${game.name}\n\n${game.topPlayer}\n\n${game.bottomPlayer}`;
+            showToast('✅ Game loaded into Remix mode!', 'success');
+        }
+
+        function createGameFromSuggestion(result) {
+            document.getElementById('aiProblemInput').value = result.description;
+            switchAIMode('problem');
+            showToast('💡 Suggestion loaded! Click "Generate Game" to create it', 'info');
+        }
+
+        // Helper function to add game from AI to library
+        function addGameFromAI(aiGame) {
+            const newGame = {
+                id: Date.now(),
+                name: aiGame.title,
+                topic: aiGame.category || 'General',
+                topPlayer: aiGame.startPosition || '',
+                bottomPlayer: aiGame.winConditions ? `Win: ${aiGame.winConditions.bottom}` : '',
+                coaching: aiGame.coachingCues ? aiGame.coachingCues.join('\n') : '',
+                skills: aiGame.tags ? aiGame.tags.join(' ') : '',
+                favorite: false,
+                lastUsed: null,
+                created: Date.now()
+            };
+
+            games.push(newGame);
+            saveGames();
+            renderGames();
+            renderQuickAccess();
+            updateStats();
+            showToast(`✅ "${newGame.name}" added to library!`, 'success');
+
+            return newGame;
         }
 
         function generateConstraintGame() {
