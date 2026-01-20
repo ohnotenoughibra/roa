@@ -5535,13 +5535,13 @@ Created with NoGi Games Library
                 guardRetention: /guard.*(pass|retention|maintain|sit.*up|distance|smash)/i,
                 guardPass: /pass.*guard|knee.*shield|stuck.*passing|can't.*pass|smash.*through/i,
                 turtle: /turtle|flatten|defensive.*ball|back.*take.*turtle/i,
-                sideEscape: /side.*control.*escape|stuck.*side|flat.*back|can't.*escape.*side/i,
-                mountEscape: /mount.*escape|stuck.*mount|can't.*escape.*mount/i,
-                backEscape: /back.*escape|rear.*naked|hooks/i,
+                sideEscape: /side.*control.*escape|stuck.*side|flat.*back|can't.*escape.*side|escape.*side.*control/i,
+                mountEscape: /mount.*escape|escape.*mount|stuck.*mount|can't.*escape.*mount/i,
+                backEscape: /back.*escape|escape.*back|rear.*naked|hooks.*escape/i,
                 takedown: /takedown|wrestling|shoot|sprawl|standup/i,
-                legLock: /leg.*lock|heel.*hook|ankle|ashi|saddle/i,
-                frames: /frame|creating.*space|defensive.*structure/i,
-                grips: /grip|hand.*control|breaking.*grips/i
+                legLock: /leg.*lock|heel.*hook|ankle.*lock|ashi|saddle|50.*50/i,
+                frames: /frame|creating.*space|defensive.*structure|framing/i,
+                grips: /grip|hand.*control|breaking.*grips|grip.*fight/i
             };
 
             // GUARD RETENTION GAMES (Gordon Ryan / New Wave style)
@@ -5670,6 +5670,181 @@ Created with NoGi Games Library
                         {num: 4, text: "Competition: Add 30-second timer where top can submit after frames are broken"}
                     ],
                     pedagogicalNote: "FRAMES BEFORE MOVEMENT: Constraining escape to frame-creation first breaks bad habit of flailing. Elbow-to-ribs rule forces defensive structure."
+                };
+            }
+            // MOUNT ESCAPE (Priit Mihkelson / Defensive BJJ)
+            else if (patterns.mountEscape.test(p)) {
+                return {
+                    title: "Mount Escape - Bridge & Trap to Half Guard",
+                    category: "Escapes",
+                    tags: ["#constraint-led", "#mount-escape", "#defensive-bjj", "#elbow-escape"],
+                    startPosition: "Top player in high mount (hips forward, knees tight to ribs). Bottom player on back with head turned to one side.",
+                    constraints: [
+                        "Bottom MUST complete 3 steps in order: (1) trap top's arm and leg on same side, (2) bridge explosively at 45° angle (not straight up), (3) turn into opponent to recover half guard. Skipping any step = reset",
+                        "Bottom player automatically loses if they turn AWAY from opponent (flat to stomach = back take)",
+                        "Top player cannot submit - must maintain mount or re-mount if escaped",
+                        "Bottom has 4 escape attempts per round (coach counts). If all 4 fail, top wins the round",
+                        "90-second rounds"
+                    ],
+                    winConditions: {
+                        top: "Maintain mount for full 90 seconds, OR bottom uses all 4 escape attempts without success",
+                        bottom: "Recover to half guard or better using bridge-and-trap escape"
+                    },
+                    coachingCues: [
+                        "Bottom: Step 1 - Trap arm (grab their wrist to chest) and same-side foot (hook with your foot)",
+                        "Bottom: Step 2 - Bridge toward trapped side at 45° angle, not straight up - explode with hips",
+                        "Bottom: Step 3 - As they fall, turn INTO them immediately - get on your side facing them",
+                        "Top: Base with free arm wide, free leg posted - if bridge is strong, you'll still fall",
+                        "Top: As they turn in, fight for underhook and try to flatten them back or re-mount"
+                    ],
+                    progressions: [
+                        {num: 1, text: "Beginner: Top starts in low mount (easier to trap) with hands high (easier arm trap)"},
+                        {num: 2, text: "Intermediate: Top starts in high mount (current version) - must time arm trap"},
+                        {num: 3, text: "Advanced: Reduce to 3 escape attempts - more pressure to execute correctly"},
+                        {num: 4, text: "Competition: Add elbow-knee escape option as alternative - bottom chooses which escape technique"}
+                    ],
+                    pedagogicalNote: "STEP-BY-STEP ENFORCEMENT: Breaking mount escape into mandatory sequential steps prevents rushing and develops timing. Turn-in constraint prevents turtle/back exposure."
+                };
+            }
+            // BACK ESCAPE (Danaher / Priit back defense)
+            else if (patterns.backEscape.test(p)) {
+                return {
+                    title: "Back Escape - Hand Fighting to Hip Escape",
+                    category: "Escapes",
+                    tags: ["#constraint-led", "#back-escape", "#danaher-system", "#hand-fighting"],
+                    startPosition: "Top player has back control with seatbelt grip (one arm over shoulder, one under armpit). Bottom player's back to mat, top player's chest on bottom's back. NO HOOKS YET.",
+                    constraints: [
+                        "Bottom MUST complete hand fighting sequence: (1) clear the choking-side hand by pushing elbow away or trapping wrist, (2) turn toward choking side while maintaining hand control, (3) hip escape to create space, (4) face opponent and recover guard",
+                        "Top player CANNOT secure hooks until bottom fails hand fighting - if both hooks are secured, round is over (top wins)",
+                        "Bottom automatically loses if they turn AWAY from choking side (exposes neck)",
+                        "Top player focuses on re-gripping and securing hooks as bottom escapes",
+                        "90-second rounds with reset if bottom faces opponent"
+                    ],
+                    winConditions: {
+                        top: "Secure both hooks with seatbelt grip, OR bottom turns away from choking side (neck exposed)",
+                        bottom: "Escape to face opponent and recover to guard or neutral position"
+                    },
+                    coachingCues: [
+                        "Bottom: First job is HANDS - clear the choking-side arm before moving your body",
+                        "Bottom: Grip fight continuously - if you lose the hand, you lose the position",
+                        "Bottom: Turn toward the choke side (safer) never away (danger - exposes neck)",
+                        "Bottom: Hip escape while facing them - create distance, get knees in, recover guard",
+                        "Top: Re-grip constantly - when they clear one grip, establish another immediately",
+                        "Top: As they turn, get your hooks in before they face you completely"
+                    ],
+                    progressions: [
+                        {num: 1, text: "Beginner: Start with bottom already turned to side (skip hand fighting, practice hip escape only)"},
+                        {num: 2, text: "Intermediate: Full sequence from flat (current version) - complete hand fighting required"},
+                        {num: 3, text: "Advanced: Top starts with one hook already in - bottom must clear it while escaping"},
+                        {num: 4, text: "Competition: Allow submissions - add urgency to escape timing"}
+                    ],
+                    pedagogicalNote: "HANDS BEFORE HIPS: Forcing hand fighting first prevents common mistake of ignoring grips. Turn-in constraint teaches safe escape direction away from rear naked choke."
+                };
+            }
+            // LEG LOCK DEFENSE (Lachlan Giles / Modern Leg Lock Escape)
+            else if (patterns.legLock.test(p)) {
+                return {
+                    title: "Ashi Garami Leg Lock Defense",
+                    category: "Leg Locks",
+                    tags: ["#constraint-led", "#leg-locks", "#ashi-defense", "#lachlan-giles"],
+                    startPosition: "Top player in standard ashi garami (outside leg control) with hands on bottom's heel. Bottom player on back with trapped leg extended.",
+                    constraints: [
+                        "Bottom MUST complete defensive hierarchy in order: (1) clear heel grip by controlling opponent's wrists/hands, (2) create space by sitting up and driving trapped knee toward opponent, (3) extract trapped leg by pulling knee toward chest while controlling their legs. Cannot skip steps",
+                        "Top player CANNOT break/hyperextend ankle or knee - this is position control only (safety)",
+                        "Bottom loses if top player secures heel grip with elbow tight to their body for 3 seconds (finished position)",
+                        "Bottom player can score by fully extracting leg AND passing opponent's guard",
+                        "90-second rounds - fast pace, high intensity"
+                    ],
+                    winConditions: {
+                        top: "Secure heel grip with proper finishing mechanics (heel to hip, elbow tight) and hold for 3 seconds",
+                        bottom: "Clear grips, extract trapped leg, and pass to top position OR knee-on-belly"
+                    },
+                    coachingCues: [
+                        "Bottom: First job - HANDS! Control their wrists, prevent heel grip at all costs",
+                        "Bottom: If they get heel grip, immediately sit up and address their hands - never lay back",
+                        "Bottom: Drive your trapped knee toward them (not away) - creates bad angle for them",
+                        "Bottom: Once hands are clear, pull knee to chest and backstep to extract leg",
+                        "Top: Hide your hands under their leg to establish heel grip before they can grip-fight",
+                        "Top: Elbow to hip connection is the finish - squeeze knees, extend their leg slightly"
+                    ],
+                    progressions: [
+                        {num: 1, text: "Beginner: Top starts without heel grip (must establish) - bottom practices grip fighting"},
+                        {num: 2, text: "Intermediate: Top starts with loose heel grip - bottom must clear it (current version)"},
+                        {num: 3, text: "Advanced: Top starts with tight heel grip - bottom must sit up and fight from worst position"},
+                        {num: 4, text: "Competition: Add saddle/50-50 entries - bottom must defend multiple leg entanglements"}
+                    ],
+                    pedagogicalNote: "HIERARCHY ENFORCEMENT: Leg lock escapes have specific priorities - hands first, posture second, extraction third. Skipping steps leads to injury. Constraints make proper defense automatic."
+                };
+            }
+            // FRAME CREATION (Defensive Structure / Priit Principles)
+            else if (patterns.frames.test(p)) {
+                return {
+                    title: "Frame Creation Under Pressure",
+                    category: "Defense",
+                    tags: ["#constraint-led", "#frames", "#defensive-structure", "#space-creation"],
+                    startPosition: "Top player in bottom player's closed guard. Top stands up to break guard and begin pass.",
+                    constraints: [
+                        "Bottom player MUST establish and maintain frames (hands/forearms on opponent's hips, shoulders, or biceps) throughout the guard pass attempt",
+                        "Bottom loses immediately if BOTH elbows touch their own ribs at the same time (means frames collapsed, defensive failure)",
+                        "Bottom must keep at least ONE frame active at all times - can switch frames but never zero",
+                        "Top player tries to smash past frames using pressure passing (no flying attacks or fancy techniques)",
+                        "If top passes frames to side control, bottom gets 5 seconds to re-establish frames or round ends",
+                        "120-second rounds"
+                    ],
+                    winConditions: {
+                        top: "Pass bottom's guard to side control or better AND bottom fails to re-establish frames within 5 seconds",
+                        bottom: "Maintain frames for full 120 seconds, OR use frames to off-balance top and sweep"
+                    },
+                    coachingCues: [
+                        "Bottom: Frames go on THEIR body (hips/shoulders/biceps) not your own - create distance outward",
+                        "Bottom: If they collapse one frame, immediately replace it with the other arm - constant motion",
+                        "Bottom: Elbows away from ribs - once elbows touch ribs you're defensive/flat/losing",
+                        "Bottom: Use frames to push them away AND create angles for re-guard or sweeps",
+                        "Top: Pressure the frames down toward their body - try to pin elbows to ribs",
+                        "Top: When one frame is active, attack the other side - they can't frame everywhere"
+                    ],
+                    progressions: [
+                        {num: 1, text: "Beginner: Top passes slowly (50% speed) - bottom focuses on maintaining frames"},
+                        {num: 2, text: "Intermediate: Top passes at full speed (current version) - bottom must actively fight"},
+                        {num: 3, text: "Advanced: Bottom must use frames to create sweep opportunity - maintaining isn't enough"},
+                        {num: 4, text: "Competition: Start from bottom in bad position (side control) - must create frames from flat"}
+                    ],
+                    pedagogicalNote: "FRAME-OR-FAIL: Elbow-to-ribs rule creates binary feedback - students immediately know when frames collapse. Prevents defensive turtle/shell position habits."
+                };
+            }
+            // GRIP FIGHTING (Standing / Guard Grips)
+            else if (patterns.grips.test(p)) {
+                return {
+                    title: "Grip Fighting - Control Before Attack",
+                    category: "Grips",
+                    tags: ["#constraint-led", "#grip-fighting", "#judo-grips", "#control"],
+                    startPosition: "Both players standing in neutral position (or bottom in open guard, top standing - coach specifies). No grips established yet.",
+                    constraints: [
+                        "Players compete for dominant grips for 15 seconds - NO attacks allowed during grip fight (only grip breaking and establishing)",
+                        "After 15 seconds, coach calls 'ATTACK' - whoever has better grips gets 15 seconds to execute a technique (takedown/sweep/pass)",
+                        "Dominant grips = 2+ grips on opponent while opponent has 0-1 grips. Equal grips = reset and restart grip fight",
+                        "Breaking opponent's grip scores 1 point. Establishing your grip scores 1 point. First to 5 points OR successful attack wins round",
+                        "60-second rounds total (15s grip fight + 15s attack + reset, repeat)"
+                    ],
+                    winConditions: {
+                        top: "Score 5 points from grip fighting, OR execute successful attack (takedown/pass) within attack window",
+                        bottom: "Score 5 points from grip fighting, OR execute successful sweep/submission within attack window"
+                    },
+                    coachingCues: [
+                        "Grip fighting phase: Active hands constantly moving - break their grips, establish yours",
+                        "Better grips = easier attacks - if you win the grip fight, the technique is easier",
+                        "Two-on-one: if they have your wrist, use your free hand to break their grip first",
+                        "Attack phase: Use your established grips immediately - don't let them re-grip",
+                        "Common dominant grips: collar+sleeve (standing), ankle+belt (guard passing), collar+wrist (guard)",
+                        "Re-grip if they break yours during attack phase - maintain your advantage"
+                    ],
+                    progressions: [
+                        {num: 1, text: "Beginner: 20-second grip fight window (more time to establish grips)"},
+                        {num: 2, text: "Intermediate: 15-second windows (current version) - standard timing"},
+                        {num: 3, text: "Advanced: 10-second grip fight window - faster decisions required"},
+                        {num: 4, text: "Competition: Continuous flow - no reset, constant grip fighting + attacking"}
+                    ],
+                    pedagogicalNote: "SEPARATE PHASES: Splitting grip fighting from attacking makes students realize grips are the setup, not the technique. Point system rewards active grip fighting over passive pulling."
                 };
             }
             // TAKEDOWN ENTRIES (Wrestling fundamentals)
