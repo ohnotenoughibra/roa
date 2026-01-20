@@ -1369,6 +1369,9 @@
                 <button class="filter-toggle-btn" id="bulkSelectToggle" onclick="toggleBulkSelect()" style="display: inline-flex;">
                     ☑️ Bulk Select
                 </button>
+                <button class="filter-toggle-btn" id="quickSessionToggle" onclick="toggleQuickSessionMode()" style="display: inline-flex;">
+                    ⚡ Quick Session
+                </button>
             </div>
 
             <!-- Bulk Actions Toolbar -->
@@ -1870,6 +1873,32 @@
 
     <button class="fab" onclick="openAddModal()" title="Add Game">+</button>
 
+    <!-- Quick Session Queue -->
+    <div id="quickSessionQueue" style="display: none; position: fixed; bottom: 90px; right: 20px; z-index: 99;">
+        <button onclick="toggleQuickSessionPanel()" style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; font-size: 1.25rem; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-direction: column; position: relative; transition: all 0.3s;">
+            <span style="font-size: 1.5rem;">📋</span>
+            <span id="queueCount" style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; border: 2px solid white;">0</span>
+        </button>
+    </div>
+
+    <!-- Quick Session Panel -->
+    <div id="quickSessionPanel" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-radius: 16px 16px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.2); z-index: 1000; max-height: 70vh; overflow-y: auto; padding: 1.25rem;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text); margin: 0;">⚡ Quick Session Queue</h3>
+            <button onclick="toggleQuickSessionPanel()" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 8px;" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='none'">×</button>
+        </div>
+        <div id="queueGames" style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem;">
+            <!-- Queued games will appear here -->
+        </div>
+        <div style="display: flex; gap: 0.75rem; padding-top: 1rem; border-top: 2px solid var(--border);">
+            <button onclick="saveQuickSession()" class="btn btn-success" style="flex: 1;">💾 Save Session</button>
+            <button onclick="clearQuickQueue()" class="btn btn-danger" style="flex: 1;">🗑️ Clear Queue</button>
+        </div>
+    </div>
+
+    <!-- Panel backdrop -->
+    <div id="quickSessionBackdrop" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999;" onclick="toggleQuickSessionPanel()"></div>
+
     <!-- Game Modal -->
     <div class="modal" id="gameModal">
         <div class="modal-content">
@@ -2063,6 +2092,8 @@
         let undoState = null; // Stores {type: 'game'|'session', data: {...}, action: 'delete'}
         let bulkSelectMode = false;
         let selectedGameIds = new Set();
+        let quickSessionMode = false;
+        let quickSessionQueue = [];
 
         // Theme management
         function initTheme() {
@@ -2560,7 +2591,13 @@
             const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
 
             grid.innerHTML = filtered.map(game => `
-                <div class="game-card ${getTopicClass(game.topic)} ${game.favorite ? 'favorite' : ''}">
+                <div class="game-card ${getTopicClass(game.topic)} ${game.favorite ? 'favorite' : ''}"
+                     ${quickSessionMode ? `onclick="addToQuickQueue(${game.id})" style="cursor: pointer;"` : ''}>
+                    ${quickSessionMode ? `
+                        <div style="position: absolute; top: 1rem; right: 1rem; z-index: 10; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 0.5rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
+                            ⚡ Tap to Add
+                        </div>
+                    ` : ''}
                     ${bulkSelectMode ? `
                         <div style="position: absolute; top: 1rem; right: 1rem; z-index: 10;">
                             <input type="checkbox" class="bulk-select-checkbox" value="${game.id}"
@@ -2609,7 +2646,7 @@
                         </div>
                     ` : ''}
 
-                    <div class="game-actions">
+                    <div class="game-actions" onclick="event.stopPropagation()">
                         <div class="game-actions-main">
                             <button class="btn btn-sm ${game.favorite ? 'btn-warning' : 'btn-secondary'}"
                                     onclick="toggleFavorite(${game.id})" title="${game.favorite ? 'Remove from favorites' : 'Add to favorites'}">
@@ -2817,6 +2854,174 @@
                     }
                 });
             }, 100);
+        }
+
+        // Quick Session Mode
+        function toggleQuickSessionMode() {
+            quickSessionMode = !quickSessionMode;
+            const toggle = document.getElementById('quickSessionToggle');
+            const queueBtn = document.getElementById('quickSessionQueue');
+
+            if (quickSessionMode) {
+                // Disable bulk select if active
+                if (bulkSelectMode) {
+                    toggleBulkSelect();
+                }
+
+                toggle.classList.add('active');
+                queueBtn.style.display = 'block';
+                showToast('⚡ Tap games to add to queue', 'info');
+            } else {
+                toggle.classList.remove('active');
+                if (quickSessionQueue.length === 0) {
+                    queueBtn.style.display = 'none';
+                }
+            }
+
+            renderGames();
+        }
+
+        function addToQuickQueue(gameId) {
+            const game = games.find(g => g.id === gameId);
+            if (!game) return;
+
+            // Check if already in queue
+            if (quickSessionQueue.find(g => g.id === gameId)) {
+                showToast('Game already in queue', 'info');
+                return;
+            }
+
+            quickSessionQueue.push(game);
+            updateQuickQueueUI();
+            showToast(`✓ "${game.name}" added to queue`, 'success');
+        }
+
+        function removeFromQuickQueue(gameId) {
+            quickSessionQueue = quickSessionQueue.filter(g => g.id !== gameId);
+            updateQuickQueueUI();
+
+            if (quickSessionQueue.length === 0) {
+                toggleQuickSessionPanel(true); // Close panel if empty
+            }
+        }
+
+        function moveQueueGame(index, direction) {
+            if (direction === 'up' && index > 0) {
+                [quickSessionQueue[index], quickSessionQueue[index - 1]] =
+                [quickSessionQueue[index - 1], quickSessionQueue[index]];
+            } else if (direction === 'down' && index < quickSessionQueue.length - 1) {
+                [quickSessionQueue[index], quickSessionQueue[index + 1]] =
+                [quickSessionQueue[index + 1], quickSessionQueue[index]];
+            }
+            renderQuickQueue();
+        }
+
+        function updateQuickQueueUI() {
+            const count = document.getElementById('queueCount');
+            const queueBtn = document.getElementById('quickSessionQueue');
+
+            count.textContent = quickSessionQueue.length;
+
+            if (quickSessionQueue.length > 0) {
+                queueBtn.style.display = 'block';
+            } else if (!quickSessionMode) {
+                queueBtn.style.display = 'none';
+            }
+
+            renderQuickQueue();
+        }
+
+        function renderQuickQueue() {
+            const container = document.getElementById('queueGames');
+
+            if (quickSessionQueue.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                        <p style="font-size: 1.1rem; margin-bottom: 0.5rem;">Queue is empty</p>
+                        <p style="font-size: 0.9rem;">Tap games in Quick Session mode to add them</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = quickSessionQueue.map((game, index) => `
+                <div style="background: var(--bg); border: 2px solid var(--border); border-radius: 8px; padding: 1rem; display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                        <button onclick="moveQueueGame(${index}, 'up')"
+                                ${index === 0 ? 'disabled' : ''}
+                                style="background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 0.25rem; cursor: pointer; font-size: 0.8rem; ${index === 0 ? 'opacity: 0.3; cursor: not-allowed;' : ''}"
+                                title="Move up">▲</button>
+                        <button onclick="moveQueueGame(${index}, 'down')"
+                                ${index === quickSessionQueue.length - 1 ? 'disabled' : ''}
+                                style="background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 0.25rem; cursor: pointer; font-size: 0.8rem; ${index === quickSessionQueue.length - 1 ? 'opacity: 0.3; cursor: not-allowed;' : ''}"
+                                title="Move down">▼</button>
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <div style="font-weight: 700; font-size: 0.95rem; color: var(--text); margin-bottom: 0.25rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            ${index + 1}. ${game.name}
+                        </div>
+                        <span style="font-size: 0.75rem; background: var(--primary); color: white; padding: 0.2rem 0.5rem; border-radius: 12px; font-weight: 600;">
+                            ${game.topic}
+                        </span>
+                    </div>
+                    <button onclick="removeFromQuickQueue(${game.id})" style="background: var(--danger); color: white; border: none; padding: 0.5rem; border-radius: 6px; cursor: pointer; font-size: 1.1rem; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;" title="Remove">×</button>
+                </div>
+            `).join('');
+        }
+
+        function toggleQuickSessionPanel(forceClose = false) {
+            const panel = document.getElementById('quickSessionPanel');
+            const backdrop = document.getElementById('quickSessionBackdrop');
+
+            if (forceClose || panel.style.display === 'block') {
+                panel.style.display = 'none';
+                backdrop.style.display = 'none';
+            } else {
+                panel.style.display = 'block';
+                backdrop.style.display = 'block';
+                renderQuickQueue();
+            }
+        }
+
+        async function saveQuickSession() {
+            if (quickSessionQueue.length === 0) {
+                showToast('❌ Queue is empty', 'error');
+                return;
+            }
+
+            const sessionName = prompt('Enter session name:', `Quick Session ${new Date().toLocaleDateString()}`);
+            if (!sessionName) return;
+
+            const newSession = {
+                id: Date.now(),
+                name: sessionName.trim(),
+                games: quickSessionQueue.map(g => g.id),
+                created: Date.now(),
+                isTemplate: false
+            };
+
+            sessions.push(newSession);
+            saveSessions();
+
+            showToast(`✅ Session "${sessionName}" saved with ${quickSessionQueue.length} games`, 'success');
+
+            // Clear queue and close
+            quickSessionQueue = [];
+            updateQuickQueueUI();
+            toggleQuickSessionPanel(true);
+
+            // Switch to sessions tab
+            switchTab('sessions');
+        }
+
+        function clearQuickQueue() {
+            if (quickSessionQueue.length === 0) return;
+
+            if (confirm(`Clear all ${quickSessionQueue.length} games from queue?`)) {
+                quickSessionQueue = [];
+                updateQuickQueueUI();
+                showToast('Queue cleared', 'info');
+            }
         }
 
         // Toggle favorite
