@@ -1217,6 +1217,58 @@
         .topic-tag-leg-locks { background: var(--color-leg-locks); }
         .topic-tag-takedowns { background: var(--color-takedowns); }
         .topic-tag-transitions { background: var(--color-scrambles); }
+
+        /* Print Styles */
+        @media print {
+            body {
+                padding: 0;
+                background: white;
+                color: black;
+            }
+
+            header, .tabs, .filter-toggle-btn, #bulkActionsToolbar,
+            .controls, .stats, .action-section, .btn, button, .theme-toggle {
+                display: none !important;
+            }
+
+            .container {
+                max-width: 100%;
+                padding: 1rem;
+            }
+
+            .print-session {
+                page-break-after: always;
+            }
+
+            .print-session:last-child {
+                page-break-after: auto;
+            }
+
+            .print-session h1 {
+                font-size: 24pt;
+                margin-bottom: 1rem;
+                border-bottom: 2pt solid black;
+                padding-bottom: 0.5rem;
+            }
+
+            .print-game {
+                margin-bottom: 1.5rem;
+                page-break-inside: avoid;
+                border: 1pt solid #ccc;
+                padding: 0.75rem;
+            }
+
+            .print-game-title {
+                font-size: 14pt;
+                font-weight: bold;
+                margin-bottom: 0.5rem;
+            }
+
+            .print-game-content {
+                font-size: 11pt;
+                line-height: 1.4;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1282,9 +1334,31 @@
                 </div>
             </div>
 
-            <button class="filter-toggle-btn" id="filterToggleBtn" onclick="toggleFilters()">
-                🔍 Filters & Search
-            </button>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <button class="filter-toggle-btn" id="filterToggleBtn" onclick="toggleFilters()">
+                    🔍 Filters & Search
+                </button>
+                <button class="filter-toggle-btn" id="bulkSelectToggle" onclick="toggleBulkSelect()" style="display: inline-flex;">
+                    ☑️ Bulk Select
+                </button>
+            </div>
+
+            <!-- Bulk Actions Toolbar -->
+            <div id="bulkActionsToolbar" style="display: none; background: var(--surface); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; box-shadow: var(--shadow); border: 2px solid var(--primary);">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                        <span id="selectedCount" style="font-weight: 600; color: var(--primary);">0 selected</span>
+                        <button class="btn btn-secondary btn-sm" onclick="selectAllGames()">Select All</button>
+                        <button class="btn btn-secondary btn-sm" onclick="deselectAllGames()">Deselect All</button>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn btn-success btn-sm" onclick="bulkMarkAsUsed()">✓ Mark as Used</button>
+                        <button class="btn btn-secondary btn-sm" onclick="bulkMarkAsUnused()">↩️ Mark as Unused</button>
+                        <button class="btn btn-primary btn-sm" onclick="bulkAddToSession()">📋 Add to Session</button>
+                        <button class="btn btn-danger btn-sm" onclick="bulkDelete()">🗑️ Delete Selected</button>
+                    </div>
+                </div>
+            </div>
 
             <div class="filter-backdrop" id="filterBackdrop" onclick="toggleFilters()"></div>
 
@@ -1944,6 +2018,8 @@
         let editingSessionId = null;
         let currentTab = 'games';
         let undoState = null; // Stores {type: 'game'|'session', data: {...}, action: 'delete'}
+        let bulkSelectMode = false;
+        let selectedGameIds = new Set();
 
         // Theme management
         function initTheme() {
@@ -2430,6 +2506,14 @@
 
             grid.innerHTML = filtered.map(game => `
                 <div class="game-card ${getTopicClass(game.topic)} ${game.favorite ? 'favorite' : ''}">
+                    ${bulkSelectMode ? `
+                        <div style="position: absolute; top: 1rem; right: 1rem; z-index: 10;">
+                            <input type="checkbox" class="bulk-select-checkbox" value="${game.id}"
+                                   ${selectedGameIds.has(game.id) ? 'checked' : ''}
+                                   onchange="toggleGameSelection(${game.id})"
+                                   style="width: 24px; height: 24px; cursor: pointer;">
+                        </div>
+                    ` : ''}
                     <div class="game-header">
                         <div class="game-meta">
                             <span class="game-topic ${getTopicTagClass(game.topic)}">${game.topic}</span>
@@ -2666,6 +2750,144 @@
                 renderGames();
                 showToast('✓ Game duplicated');
             }
+        }
+
+        // Bulk Operations
+        function toggleBulkSelect() {
+            bulkSelectMode = !bulkSelectMode;
+            selectedGameIds.clear();
+
+            const toggle = document.getElementById('bulkSelectToggle');
+            const toolbar = document.getElementById('bulkActionsToolbar');
+
+            if (bulkSelectMode) {
+                toggle.classList.add('active');
+                toolbar.style.display = 'block';
+            } else {
+                toggle.classList.remove('active');
+                toolbar.style.display = 'none';
+            }
+
+            renderGames();
+        }
+
+        function toggleGameSelection(gameId) {
+            if (selectedGameIds.has(gameId)) {
+                selectedGameIds.delete(gameId);
+            } else {
+                selectedGameIds.add(gameId);
+            }
+            updateBulkSelectedCount();
+        }
+
+        function updateBulkSelectedCount() {
+            document.getElementById('selectedCount').textContent = `${selectedGameIds.size} selected`;
+        }
+
+        function selectAllGames() {
+            const grid = document.getElementById('gamesGrid');
+            const checkboxes = grid.querySelectorAll('.bulk-select-checkbox');
+            checkboxes.forEach(cb => {
+                selectedGameIds.add(parseInt(cb.value));
+                cb.checked = true;
+            });
+            updateBulkSelectedCount();
+        }
+
+        function deselectAllGames() {
+            selectedGameIds.clear();
+            const grid = document.getElementById('gamesGrid');
+            const checkboxes = grid.querySelectorAll('.bulk-select-checkbox');
+            checkboxes.forEach(cb => cb.checked = false);
+            updateBulkSelectedCount();
+        }
+
+        function bulkMarkAsUsed() {
+            if (selectedGameIds.size === 0) {
+                showToast('❌ No games selected', 'error');
+                return;
+            }
+
+            selectedGameIds.forEach(id => {
+                const game = games.find(g => g.id === id);
+                if (game) game.lastUsed = Date.now();
+            });
+
+            saveGames();
+            renderGames();
+            showToast(`✓ ${selectedGameIds.size} game(s) marked as used`, 'success');
+            selectedGameIds.clear();
+            updateBulkSelectedCount();
+        }
+
+        function bulkMarkAsUnused() {
+            if (selectedGameIds.size === 0) {
+                showToast('❌ No games selected', 'error');
+                return;
+            }
+
+            selectedGameIds.forEach(id => {
+                const game = games.find(g => g.id === id);
+                if (game) game.lastUsed = null;
+            });
+
+            saveGames();
+            renderGames();
+            showToast(`↩️ ${selectedGameIds.size} game(s) marked as unused`, 'info');
+            selectedGameIds.clear();
+            updateBulkSelectedCount();
+        }
+
+        function bulkDelete() {
+            if (selectedGameIds.size === 0) {
+                showToast('❌ No games selected', 'error');
+                return;
+            }
+
+            const count = selectedGameIds.size;
+            games = games.filter(g => !selectedGameIds.has(g.id));
+            selectedGameIds.clear();
+
+            saveGames();
+            renderGames();
+            updateBulkSelectedCount();
+            showToast(`🗑️ ${count} game(s) deleted`, 'info');
+        }
+
+        function bulkAddToSession() {
+            if (selectedGameIds.size === 0) {
+                showToast('❌ No games selected', 'error');
+                return;
+            }
+
+            // Open session modal with selected games
+            editingSessionId = null;
+            document.getElementById('sessionModalTitle').textContent = 'Create Session from Selection';
+            document.getElementById('sessionSubmitBtn').textContent = 'Create Session';
+            document.getElementById('sessionName').value = '';
+            document.getElementById('sessionModal').classList.add('active');
+
+            // Reset filters
+            document.getElementById('sessionSearchInput').value = '';
+            document.getElementById('sessionTopicFilter').value = '';
+
+            // Render all games
+            filterSessionGames();
+
+            // Check the selected games
+            setTimeout(() => {
+                selectedGameIds.forEach(gameId => {
+                    const checkbox = document.querySelector(`.session-game-checkbox[value="${gameId}"]`);
+                    if (checkbox) checkbox.checked = true;
+                });
+                updateSelectedCount();
+
+                // Clear bulk selection after
+                selectedGameIds.clear();
+                bulkSelectMode = false;
+                document.getElementById('bulkSelectToggle').classList.remove('active');
+                document.getElementById('bulkActionsToolbar').style.display = 'none';
+            }, 100);
         }
 
         // Modal functions
@@ -3523,6 +3745,7 @@
                             </div>
 
                             <div class="session-actions">
+                                <button class="btn btn-success btn-sm" onclick="printSession(${s.id}); event.stopPropagation();">🖨️ Print</button>
                                 <button class="btn btn-primary btn-sm" onclick="editSession(${s.id}); event.stopPropagation();">✏️ Edit</button>
                                 <button class="btn btn-danger btn-sm" onclick="deleteSession(${s.id}); event.stopPropagation();">🗑️ Delete</button>
                             </div>
@@ -3559,6 +3782,93 @@
 
             showToast(`🗑️ Session "${sessionName}" deleted`, 'info', true);
             console.log('Session deleted:', id, sessionName);
+        }
+
+        function printSession(id) {
+            const session = sessions.find(s => s.id === id);
+            if (!session) return;
+
+            const sessionGames = session.gameIds.map(gameId => games.find(g => g.id === gameId)).filter(Boolean);
+
+            // Create print window content
+            const printContent = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>${session.name} - Training Session</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 2rem; line-height: 1.6; }
+                        h1 { font-size: 24pt; border-bottom: 2pt solid black; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+                        .session-info { margin-bottom: 2rem; color: #666; }
+                        .game { margin-bottom: 2rem; page-break-inside: avoid; border: 1pt solid #ccc; padding: 1rem; }
+                        .game-title { font-size: 14pt; font-weight: bold; margin-bottom: 0.5rem; color: #000; }
+                        .game-topic { display: inline-block; background: #e0e0e0; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 10pt; margin-bottom: 0.5rem; }
+                        .game-section { margin-bottom: 0.75rem; }
+                        .game-label { font-weight: bold; color: #333; }
+                        .game-content { margin-left: 1rem; }
+                        .footer { margin-top: 2rem; text-align: center; color: #999; font-size: 9pt; border-top: 1pt solid #ccc; padding-top: 1rem; }
+                    </style>
+                </head>
+                <body>
+                    <h1>🥋 ${session.name}</h1>
+                    <div class="session-info">
+                        <p><strong>Games:</strong> ${sessionGames.length} | <strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+                    </div>
+
+                    ${sessionGames.map((game, index) => `
+                        <div class="game">
+                            <div class="game-topic">${game.topic}</div>
+                            <div class="game-title">${index + 1}. ${game.name}</div>
+
+                            <div class="game-section">
+                                <div class="game-label">🔵 Top Player:</div>
+                                <div class="game-content">${game.topPlayer}</div>
+                            </div>
+
+                            <div class="game-section">
+                                <div class="game-label">🔴 Bottom Player:</div>
+                                <div class="game-content">${game.bottomPlayer}</div>
+                            </div>
+
+                            ${game.coaching ? `
+                                <div class="game-section">
+                                    <div class="game-label">💡 Coaching Points:</div>
+                                    <div class="game-content">${game.coaching}</div>
+                                </div>
+                            ` : ''}
+
+                            ${game.skills ? `
+                                <div class="game-section">
+                                    <div class="game-label">Skills:</div>
+                                    <div class="game-content">${game.skills}</div>
+                                </div>
+                            ` : ''}
+
+                            ${game.author ? `
+                                <div class="game-section" style="font-size: 9pt; color: #666;">
+                                    <em>Created by: ${game.author}</em>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+
+                    <div class="footer">
+                        <p>NoGi Games Library | Constraint-Led Training Approach</p>
+                        <p>Printed on ${new Date().toLocaleString()}</p>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            // Open print window
+            const printWindow = window.open('', '', 'width=800,height=600');
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+
+            // Wait for content to load then print
+            printWindow.onload = function() {
+                printWindow.print();
+            };
         }
 
         // Toast notification
