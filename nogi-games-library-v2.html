@@ -4343,6 +4343,7 @@
                             </div>
 
                             <div class="session-actions">
+                                <button class="btn btn-secondary btn-sm" onclick="shareSession(${s.id}); event.stopPropagation();">📤 Share</button>
                                 <button class="btn btn-success btn-sm" onclick="printSession(${s.id}); event.stopPropagation();">🖨️ Print</button>
                                 <button class="btn btn-primary btn-sm" onclick="editSession(${s.id}); event.stopPropagation();">✏️ Edit</button>
                                 <button class="btn btn-danger btn-sm" onclick="deleteSession(${s.id}); event.stopPropagation();">🗑️ Delete</button>
@@ -4467,6 +4468,63 @@
             printWindow.onload = function() {
                 printWindow.print();
             };
+        }
+
+        async function shareSession(id) {
+            const session = sessions.find(s => s.id === id);
+            if (!session) return;
+
+            const sessionGames = session.gameIds.map(gameId => games.find(g => g.id === gameId)).filter(Boolean);
+
+            // Create shareable text format
+            const shareText = `🥋 ${session.name}
+
+📋 ${sessionGames.length} Training Games
+📅 ${new Date().toLocaleDateString()}
+
+${sessionGames.map((game, index) => `
+${index + 1}. ${game.name} (${game.topic})
+
+🔵 Top Player: ${game.topPlayer}
+
+🔴 Bottom Player: ${game.bottomPlayer}
+${game.coaching ? `\n💡 Coaching: ${game.coaching}` : ''}
+${game.skills ? `\n🏷️ ${game.skills}` : ''}
+
+---`).join('\n')}
+
+Created with NoGi Games Library
+`;
+
+            // Try native share API first (works great on mobile)
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: `${session.name} - Training Session`,
+                        text: shareText
+                    });
+                    showToast('✅ Session shared!', 'success');
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        console.log('Share failed:', err);
+                        // Fallback to copy
+                        copySessionToClipboard(shareText);
+                    }
+                }
+            } else {
+                // Fallback: copy to clipboard
+                copySessionToClipboard(shareText);
+            }
+        }
+
+        async function copySessionToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('📋 Session copied to clipboard!', 'success');
+            } catch (err) {
+                showToast('❌ Could not copy session', 'error');
+                console.error('Copy failed:', err);
+            }
         }
 
         // Toast notification
