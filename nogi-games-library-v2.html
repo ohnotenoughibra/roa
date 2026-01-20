@@ -1961,6 +1961,65 @@
     <!-- Timer backdrop -->
     <div id="timerBackdrop" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 999;" onclick="toggleTimerPanel()"></div>
 
+    <!-- Onboarding Overlay -->
+    <div id="onboardingOverlay" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 2000; overflow-y: auto; padding: 2rem;">
+        <div style="max-width: 600px; margin: 0 auto; background: var(--surface); border-radius: 16px; padding: 2rem; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">🥋</div>
+                <h2 style="font-size: 2rem; font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Welcome to NoGi Games Library!</h2>
+                <p style="color: var(--text-muted); font-size: 1.1rem;">Your constraint-led training companion</p>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 2rem;">
+                <div style="display: flex; gap: 1rem; align-items: start;">
+                    <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">⚡</div>
+                    <div style="flex: 1;">
+                        <h3 style="font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Quick Access</h3>
+                        <p style="color: var(--text-muted); font-size: 0.95rem;">Your recently used games appear at the top for instant access during training</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; align-items: start;">
+                    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">📋</div>
+                    <div style="flex: 1;">
+                        <h3 style="font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Quick Session Mode</h3>
+                        <p style="color: var(--text-muted); font-size: 0.95rem;">Toggle Quick Session, tap games to build your session queue instantly</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; align-items: start;">
+                    <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">⏱️</div>
+                    <div style="flex: 1;">
+                        <h3 style="font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Training Timer</h3>
+                        <p style="color: var(--text-muted); font-size: 0.95rem;">Use the timer button (bottom left) to track rounds and intervals</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; align-items: start;">
+                    <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">⭐</div>
+                    <div style="flex: 1;">
+                        <h3 style="font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Favorite Games</h3>
+                        <p style="color: var(--text-muted); font-size: 0.95rem;">Star your go-to games for quick access in the Favorites tab</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; align-items: start;">
+                    <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">💾</div>
+                    <div style="flex: 1;">
+                        <h3 style="font-weight: 700; color: var(--text); margin-bottom: 0.5rem;">Session Templates</h3>
+                        <p style="color: var(--text-muted); font-size: 0.95rem;">Pre-built sessions for common goals: Competition Prep, Fundamentals, Guard Focus, and more</p>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="closeOnboarding()" style="width: 100%; padding: 1.25rem; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none; border-radius: 12px; font-size: 1.125rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);">
+                🚀 Get Started
+            </button>
+
+            <p style="text-align: center; margin-top: 1rem; color: var(--text-muted); font-size: 0.85rem;">You can access this guide anytime from Settings</p>
+        </div>
+    </div>
+
     <!-- Game Modal -->
     <div class="modal" id="gameModal">
         <div class="modal-content">
@@ -2218,6 +2277,28 @@
                     icon.textContent = '▶';
                 }
             }
+
+            // Show onboarding for first-time users
+            checkOnboarding();
+        }
+
+        function checkOnboarding() {
+            const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+            if (!hasSeenOnboarding) {
+                // Small delay so page loads first
+                setTimeout(() => {
+                    document.getElementById('onboardingOverlay').style.display = 'block';
+                }, 500);
+            }
+        }
+
+        function closeOnboarding() {
+            document.getElementById('onboardingOverlay').style.display = 'none';
+            localStorage.setItem('hasSeenOnboarding', 'true');
+        }
+
+        function showOnboarding() {
+            document.getElementById('onboardingOverlay').style.display = 'block';
         }
 
         // Tab switching
