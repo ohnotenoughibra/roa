@@ -52,6 +52,23 @@
             --color-movement: #059669;
         }
 
+        /* Dark mode theme */
+        [data-theme="dark"] {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --secondary: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+
         html {
             scroll-behavior: smooth;
         }
@@ -84,6 +101,7 @@
             border-radius: 12px;
             box-shadow: var(--shadow);
             margin-bottom: 1rem;
+            position: relative;
         }
 
         @media (min-width: 768px) {
@@ -93,11 +111,43 @@
             }
         }
 
+        .theme-toggle {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            background: var(--border);
+            border: 2px solid var(--border);
+            border-radius: 50%;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.25rem;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            transform: rotate(180deg) scale(1.1);
+        }
+
+        @media (min-width: 768px) {
+            .theme-toggle {
+                top: 2rem;
+                right: 2rem;
+            }
+        }
+
         h1 {
             font-size: 1.5rem;
             font-weight: 700;
             color: var(--text);
             margin-bottom: 0.5rem;
+            padding-right: 60px;
         }
 
         @media (min-width: 768px) {
@@ -1172,6 +1222,9 @@
 <body>
     <div class="container">
         <header>
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="Toggle dark mode">
+                🌙
+            </button>
             <h1>🥋 NoGi Games Library</h1>
             <p class="subtitle">Your comprehensive training game database</p>
         </header>
@@ -1276,7 +1329,27 @@
                     📋 Create Training Session
                 </button>
             </div>
-            <div id="sessionsList"></div>
+
+            <!-- Templates Section -->
+            <div style="margin-bottom: 2rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                    <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--text);">
+                        💾 Session Templates
+                    </h3>
+                    <button class="btn btn-secondary btn-sm" onclick="renderTemplates()">
+                        🔄 Refresh
+                    </button>
+                </div>
+                <div id="templatesContainer"></div>
+            </div>
+
+            <!-- Sessions List -->
+            <div>
+                <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--text); margin-bottom: 1rem;">
+                    📋 Your Training Sessions
+                </h3>
+                <div id="sessionsList"></div>
+            </div>
         </div>
 
         <!-- ==================== CONSTRAINT-LED AI GAME DESIGNER ==================== -->
@@ -1840,8 +1913,11 @@
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
-                    <button type="submit" id="sessionSubmitBtn" class="btn btn-success" style="flex: 1;">Create Session</button>
+                <div style="display: flex; gap: 0.75rem; margin-top: 2rem; flex-wrap: wrap;">
+                    <button type="submit" id="sessionSubmitBtn" class="btn btn-success" style="flex: 1; min-width: 180px;">Create Session</button>
+                    <button type="button" class="btn btn-primary" onclick="saveAsTemplate(); event.preventDefault();" title="Save this selection as a reusable template">
+                        💾 Save as Template
+                    </button>
                     <button type="button" class="btn btn-secondary" onclick="closeSessionModal()">Cancel</button>
                 </div>
             </form>
@@ -1853,15 +1929,52 @@
     <script>
         let games = [];
         let sessions = [];
+        let templates = []; // Session templates
         let editingGameId = null;
         let editingSessionId = null;
         let currentTab = 'games';
         let undoState = null; // Stores {type: 'game'|'session', data: {...}, action: 'delete'}
 
+        // Theme management
+        function initTheme() {
+            // Check for saved theme preference or default to system preference
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            const theme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
+            setTheme(theme);
+
+            // Listen for system theme changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+                if (!localStorage.getItem('theme')) {
+                    setTheme(e.matches ? 'dark' : 'light');
+                }
+            });
+        }
+
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            const toggle = document.getElementById('themeToggle');
+            if (toggle) {
+                toggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+                toggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+            }
+        }
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+            setTheme(newTheme);
+            localStorage.setItem('theme', newTheme);
+        }
+
         // Initialize
         function init() {
+            initTheme();
             loadGames();
             loadSessions();
+            loadTemplates();
             renderGames();
             updateStats();
         }
@@ -1878,7 +1991,10 @@
             document.getElementById('aiView').style.display = tab === 'ai' ? 'block' : 'none';
 
             if (tab === 'favorites') renderFavorites();
-            if (tab === 'sessions') renderSessions();
+            if (tab === 'sessions') {
+                renderTemplates();
+                renderSessions();
+            }
         }
 
         // Load data
@@ -1987,6 +2103,114 @@
         function saveSessions() {
             localStorage.setItem('nogiSessions', JSON.stringify(sessions));
             updateStats();
+        }
+
+        // Session Templates
+        function loadTemplates() {
+            const stored = localStorage.getItem('nogiTemplates');
+            if (stored) {
+                templates = JSON.parse(stored);
+            }
+        }
+
+        function saveTemplates() {
+            localStorage.setItem('nogiTemplates', JSON.stringify(templates));
+        }
+
+        function saveAsTemplate() {
+            const name = document.getElementById('sessionName').value;
+            const checkboxes = document.querySelectorAll('#sessionGamesList input[type="checkbox"]:checked');
+            const gameIds = Array.from(checkboxes).map(cb => parseInt(cb.value));
+
+            if (!name || gameIds.length === 0) {
+                showToast('❌ Please enter a name and select games first', 'error');
+                return;
+            }
+
+            const templateName = prompt('Template name:', name + ' Template');
+            if (!templateName) return;
+
+            const template = {
+                id: Date.now(),
+                name: templateName,
+                gameIds: gameIds,
+                created: Date.now()
+            };
+
+            templates.push(template);
+            saveTemplates();
+            showToast(`✅ Template "${templateName}" saved!`, 'success');
+        }
+
+        function createFromTemplate(templateId) {
+            const template = templates.find(t => t.id === templateId);
+            if (!template) return;
+
+            editingSessionId = null;
+            document.getElementById('sessionModalTitle').textContent = 'Create Session from Template';
+            document.getElementById('sessionSubmitBtn').textContent = 'Create Session';
+            document.getElementById('sessionName').value = template.name.replace(' Template', '');
+            document.getElementById('sessionModal').classList.add('active');
+
+            // Reset filters
+            document.getElementById('sessionSearchInput').value = '';
+            document.getElementById('sessionTopicFilter').value = '';
+
+            // Render all games
+            filterSessionGames();
+
+            // Check the games from template
+            setTimeout(() => {
+                template.gameIds.forEach(gameId => {
+                    const checkbox = document.querySelector(`.session-game-checkbox[value="${gameId}"]`);
+                    if (checkbox) checkbox.checked = true;
+                });
+                updateSelectedCount();
+            }, 100);
+        }
+
+        function deleteTemplate(id) {
+            const template = templates.find(t => t.id === id);
+            if (!template) return;
+
+            templates = templates.filter(t => t.id !== id);
+            saveTemplates();
+            renderTemplates();
+            showToast(`🗑️ Template "${template.name}" deleted`, 'info');
+        }
+
+        function renderTemplates() {
+            const container = document.getElementById('templatesContainer');
+            if (!container) return;
+
+            if (templates.length === 0) {
+                container.innerHTML = `
+                    <p style="color: var(--text-muted); text-align: center; padding: 2rem;">
+                        No templates yet. Save your first session as a template!
+                    </p>
+                `;
+                return;
+            }
+
+            container.innerHTML = templates.map(t => {
+                const templateGames = t.gameIds.map(id => games.find(g => g.id === id)).filter(Boolean);
+                return `
+                    <div style="background: var(--surface); border: 2px solid var(--border); border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem;">
+                        <div style="font-weight: 700; margin-bottom: 0.5rem;">${t.name}</div>
+                        <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                            ${templateGames.length} games
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-primary btn-sm" onclick="createFromTemplate(${t.id})">
+                                Use Template
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteTemplate(${t.id})">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         // Update statistics
