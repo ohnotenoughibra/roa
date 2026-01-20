@@ -1443,13 +1443,18 @@
 
             <!-- Templates Section -->
             <div style="margin-bottom: 2rem;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; gap: 0.5rem; flex-wrap: wrap;">
                     <h3 style="font-size: 1.125rem; font-weight: 700; color: var(--text);">
                         💾 Session Templates
                     </h3>
-                    <button class="btn btn-secondary btn-sm" onclick="renderTemplates()">
-                        🔄 Refresh
-                    </button>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="btn btn-primary btn-sm" onclick="createDefaultTemplates(); renderTemplates();">
+                            ✨ Create Defaults
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="renderTemplates()">
+                            🔄 Refresh
+                        </button>
+                    </div>
                 </div>
                 <div id="templatesContainer"></div>
             </div>
@@ -2348,7 +2353,117 @@
             const stored = localStorage.getItem('nogiTemplates');
             if (stored) {
                 templates = JSON.parse(stored);
+            } else {
+                // Create default templates on first load
+                createDefaultTemplates();
             }
+        }
+
+        function createDefaultTemplates() {
+            const defaultTemplates = [];
+
+            // Get games by topic for template creation
+            const getGamesByTopics = (topics, limit = 5) => {
+                return games
+                    .filter(g => topics.includes(g.topic))
+                    .slice(0, limit)
+                    .map(g => g.id);
+            };
+
+            // Template 1: Competition Prep (Guard + Back Attacks)
+            const compGames = getGamesByTopics(['Guard Passing', 'Guard Retention', 'Back Control', 'Submissions'], 6);
+            if (compGames.length >= 4) {
+                defaultTemplates.push({
+                    id: Date.now() + 1,
+                    name: '🏆 Competition Prep',
+                    gameIds: compGames,
+                    created: Date.now(),
+                    isTemplate: true,
+                    description: 'High-intensity training for competition readiness'
+                });
+            }
+
+            // Template 2: Fundamentals (Basics + Escapes)
+            const fundGames = getGamesByTopics(['Guard Retention', 'Escapes', 'Top Control', 'Guard Passing'], 5);
+            if (fundGames.length >= 3) {
+                defaultTemplates.push({
+                    id: Date.now() + 2,
+                    name: '📚 Fundamentals',
+                    gameIds: fundGames,
+                    created: Date.now(),
+                    isTemplate: true,
+                    description: 'Essential movements and positions'
+                });
+            }
+
+            // Template 3: Guard Focus
+            const guardGames = getGamesByTopics(['Guard Retention', 'Guard Passing', 'Half Guard'], 5);
+            if (guardGames.length >= 3) {
+                defaultTemplates.push({
+                    id: Date.now() + 3,
+                    name: '🛡️ Guard Development',
+                    gameIds: guardGames,
+                    created: Date.now(),
+                    isTemplate: true,
+                    description: 'Master guard retention and passing'
+                });
+            }
+
+            // Template 4: Top Game (Passing + Control)
+            const topGames = getGamesByTopics(['Guard Passing', 'Top Control', 'Mount', 'Back Control'], 5);
+            if (topGames.length >= 3) {
+                defaultTemplates.push({
+                    id: Date.now() + 4,
+                    name: '⬆️ Top Position Mastery',
+                    gameIds: topGames,
+                    created: Date.now(),
+                    isTemplate: true,
+                    description: 'Develop dominant top game'
+                });
+            }
+
+            // Template 5: Submissions Focus
+            const subGames = getGamesByTopics(['Submissions', 'Back Control', 'Mount', 'Leg Locks'], 5);
+            if (subGames.length >= 3) {
+                defaultTemplates.push({
+                    id: Date.now() + 5,
+                    name: '🎯 Finishing Sequences',
+                    gameIds: subGames,
+                    created: Date.now(),
+                    isTemplate: true,
+                    description: 'Submission attacks and setups'
+                });
+            }
+
+            // Template 6: Leg Locks Specialist
+            const legGames = getGamesByTopics(['Leg Locks', 'Guard Retention', 'Transitions'], 4);
+            if (legGames.length >= 2) {
+                defaultTemplates.push({
+                    id: Date.now() + 6,
+                    name: '🦵 Leg Lock System',
+                    gameIds: legGames,
+                    created: Date.now(),
+                    isTemplate: true,
+                    description: 'Modern leg entanglement game'
+                });
+            }
+
+            // Template 7: Scrambles & Transitions
+            const transGames = getGamesByTopics(['Transitions', 'Turtle', 'Escapes', 'Takedowns'], 5);
+            if (transGames.length >= 3) {
+                defaultTemplates.push({
+                    id: Date.now() + 7,
+                    name: '🔄 Dynamic Movement',
+                    gameIds: transGames,
+                    created: Date.now(),
+                    isTemplate: true,
+                    description: 'Scrambles, transitions, and chaos'
+                });
+            }
+
+            templates = defaultTemplates;
+            saveTemplates();
+            showToast(`✨ ${defaultTemplates.length} template(s) created!`, 'success');
         }
 
         function saveTemplates() {
