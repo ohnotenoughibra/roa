@@ -8131,25 +8131,40 @@
         }
 
         function bulkDelete() {
+            console.log('bulkDelete called, selectedGameIds:', selectedGameIds);
+
             if (selectedGameIds.size === 0) {
                 showToast('❌ No games selected', 'error');
                 return;
             }
 
             const count = selectedGameIds.size;
+            console.log(`Attempting to delete ${count} games`);
 
             // Add confirmation for bulk delete
-            if (!confirm(`Delete ${count} selected game(s)? This action cannot be undone for multiple items.`)) {
+            const confirmed = confirm(`Delete ${count} selected game(s)? This action cannot be undone for multiple items.`);
+
+            if (!confirmed) {
+                console.log('Deletion cancelled by user');
+                showToast('❌ Deletion cancelled', 'info');
                 return;
             }
 
+            // Show deleting message
+            showToast(`🗑️ Deleting ${count} game(s)...`, 'info');
+
+            const beforeCount = games.length;
             games = games.filter(g => !selectedGameIds.has(g.id));
+            const afterCount = games.length;
+            console.log(`Deleted ${beforeCount - afterCount} games. Before: ${beforeCount}, After: ${afterCount}`);
 
             saveGames();
-            renderQuickAccess(); // Update quick access
+            renderQuickAccess();
+            renderGames(); // Re-render games grid to show deletion
             if (currentTab === 'favorites') renderFavorites();
             if (currentTab === 'used') renderUsed();
-            showToast(`🗑️ ${count} game(s) deleted`, 'info');
+
+            showToast(`✅ ${count} game(s) deleted successfully`, 'success');
 
             // Exit selection mode after action
             exitSelectionMode();
@@ -8913,15 +8928,24 @@
         }
 
         function deleteGame(id) {
+            console.log('deleteGame called with id:', id);
             const game = games.find(g => g.id === id);
-            if (!game) return;
+            if (!game) {
+                console.error('Game not found with id:', id);
+                showToast('❌ Game not found', 'error');
+                return;
+            }
 
             // Add confirmation dialog for safety
-            if (!confirm(`Delete "${game.name}"? This action can be undone.`)) {
+            const confirmed = confirm(`Delete "${game.name}"? This action can be undone.`);
+
+            if (!confirmed) {
+                showToast('❌ Deletion cancelled', 'info');
                 return;
             }
 
             const gameName = game.name;
+            console.log('Deleting game:', gameName);
 
             // Store for undo
             undoState = {
