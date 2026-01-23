@@ -1966,6 +1966,19 @@
                 border-radius: 0 !important;
             }
         }
+
+        /* Quick Session Builder modal - responsive height */
+        @media (orientation: landscape) and (max-height: 600px) {
+            #terminalGamesList {
+                max-height: calc(100vh - 250px) !important;
+            }
+        }
+
+        @media (orientation: portrait) {
+            #terminalGamesList {
+                max-height: min(400px, 60vh) !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1988,26 +2001,6 @@
         </div>
 
         <div id="gamesView">
-            <div class="stats">
-                <div class="stat-card">
-                    <div class="stat-value" id="totalGames">0</div>
-                    <div class="stat-label">Games</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="totalFavorites">0</div>
-                    <div class="stat-label">Favorites</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="totalTopics">0</div>
-                    <div class="stat-label">Topics</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="totalSessions">0</div>
-                    <div class="stat-label">Sessions</div>
-                </div>
-            </div>
-
-
             <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-bottom: 1rem;">
                 <button class="primary-action" onclick="showSuggestGameModal()" style="flex: 1; min-width: 140px; font-size: 1rem; padding: 0.75rem 1rem; font-weight: 600;">
                     ✨ Suggest Game
@@ -2047,6 +2040,8 @@
                     <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                         <button class="btn btn-success btn-sm" onclick="bulkMarkAsUsed()">✓ Mark as Used</button>
                         <button class="btn btn-secondary btn-sm" onclick="bulkMarkAsUnused()">↩️ Mark as Unused</button>
+                        <button class="btn btn-warning btn-sm" onclick="bulkAddFavorites()">⭐ Add to Favorites</button>
+                        <button class="btn btn-secondary btn-sm" onclick="bulkRemoveFavoritesFromAll()">★ Remove from Favorites</button>
                         <button class="btn btn-primary btn-sm" onclick="bulkAddToSession()">📋 Add to Session</button>
                         <button class="btn btn-danger btn-sm" onclick="bulkDelete()">🗑️ Delete Selected</button>
                     </div>
@@ -2183,7 +2178,7 @@
                                 <button class="btn-sm btn-secondary" onclick="terminalDeselectAll()">Deselect All</button>
                             </div>
                         </div>
-                        <div id="terminalGamesList" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem;"></div>
+                        <div id="terminalGamesList" style="max-height: min(400px, 50vh); overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem;"></div>
                     </div>
                     <div class="modal-footer">
                         <button class="btn btn-secondary" onclick="closeTerminalGameSelectionModal()">Cancel</button>
@@ -3145,7 +3140,7 @@
                         <button class="btn-sm btn-secondary" onclick="terminalDeselectAll()">Deselect All</button>
                     </div>
                 </div>
-                <div id="terminalGamesList" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem;"></div>
+                <div id="terminalGamesList" style="max-height: min(400px, 50vh); overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem;"></div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeTerminalGameSelectionModal()">Cancel</button>
@@ -7060,6 +7055,52 @@
             selectedGameIds.clear();
             updateBulkSelectedCount();
             showToast(`↩️ ${count} game(s) marked as unused`, 'info');
+        }
+
+        function bulkAddFavorites() {
+            if (selectedGameIds.size === 0) {
+                showToast('❌ No games selected', 'error');
+                return;
+            }
+
+            const count = selectedGameIds.size;
+            selectedGameIds.forEach(id => {
+                const game = games.find(g => g.id === id);
+                if (game) game.favorite = true;
+            });
+
+            saveGames();
+            renderQuickAccess();
+            renderGames();
+            if (currentTab === 'favorites') renderFavorites();
+            if (currentTab === 'used') renderUsed();
+            if (currentTab === 'sessions') renderSessions();
+            selectedGameIds.clear();
+            updateBulkSelectedCount();
+            showToast(`⭐ ${count} game(s) added to favorites`, 'success');
+        }
+
+        function bulkRemoveFavoritesFromAll() {
+            if (selectedGameIds.size === 0) {
+                showToast('❌ No games selected', 'error');
+                return;
+            }
+
+            const count = selectedGameIds.size;
+            selectedGameIds.forEach(id => {
+                const game = games.find(g => g.id === id);
+                if (game) game.favorite = false;
+            });
+
+            saveGames();
+            renderQuickAccess();
+            renderGames();
+            if (currentTab === 'favorites') renderFavorites();
+            if (currentTab === 'used') renderUsed();
+            if (currentTab === 'sessions') renderSessions();
+            selectedGameIds.clear();
+            updateBulkSelectedCount();
+            showToast(`★ ${count} game(s) removed from favorites`, 'info');
         }
 
         function bulkDelete() {
