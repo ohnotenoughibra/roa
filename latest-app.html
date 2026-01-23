@@ -892,6 +892,195 @@
             }
         }
 
+        /* Smart Button Distribution for Portrait/Landscape */
+
+        /* Timer Preset Buttons */
+        .timer-preset-buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+
+        .timer-preset-btn {
+            padding: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        /* Session Action Buttons */
+        .session-quick-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .session-primary-btn {
+            flex: 1;
+            min-width: 120px;
+            font-weight: 600;
+        }
+
+        .session-quick-btn {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .session-extra-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+
+        .session-action-btn {
+            min-width: 0;
+        }
+
+        /* AI Action Buttons */
+        .ai-action-buttons {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .ai-action-primary {
+            flex: 1.5;
+            min-width: 160px;
+        }
+
+        .ai-action-btn {
+            flex: 1;
+            min-width: 120px;
+        }
+
+        /* Games Tab Actions */
+        .games-tab-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .games-tab-btn {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .primary-action.games-tab-btn {
+            font-size: 1rem;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+        }
+
+        /* Import/Export Actions */
+        .import-export-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .import-export-btn {
+            flex: 1;
+            min-width: 90px;
+        }
+
+        /* Portrait Optimizations */
+        @media (orientation: portrait) and (max-width: 480px) {
+            .timer-preset-buttons {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .session-quick-actions {
+                flex-direction: column;
+            }
+
+            .session-primary-btn,
+            .session-quick-btn {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .ai-action-buttons {
+                flex-direction: column;
+            }
+
+            .ai-action-primary,
+            .ai-action-btn {
+                width: 100%;
+                min-width: 0;
+            }
+
+            .games-tab-actions {
+                flex-direction: column;
+            }
+
+            .games-tab-btn {
+                width: 100%;
+                min-width: 0;
+            }
+        }
+
+        /* Landscape Tablet Optimizations */
+        @media (orientation: landscape) and (min-width: 640px) and (max-width: 1024px) {
+            .timer-preset-buttons {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .session-extra-actions {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .floating-action-bar {
+                max-width: 95vw;
+            }
+
+            .floating-action-bar .actions {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.5rem;
+                width: 100%;
+            }
+
+            .floating-action-bar .actions button {
+                min-width: 0;
+            }
+        }
+
+        /* Landscape Phone Optimizations */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .timer-preset-buttons {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 0.4rem;
+            }
+
+            .timer-preset-btn {
+                padding: 0.4rem;
+                font-size: 0.8rem;
+            }
+
+            .session-extra-actions {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 0.4rem;
+            }
+
+            .session-action-btn {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.85rem;
+            }
+        }
+
+        /* Large Landscape Screens */
+        @media (orientation: landscape) and (min-width: 1024px) {
+            .session-extra-actions {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .ai-action-buttons {
+                flex-wrap: nowrap;
+            }
+        }
+
         @media (hover: hover) {
             .game-card:hover {
                 border-color: var(--text-light);
@@ -2415,11 +2604,11 @@
         </div>
 
         <div id="gamesView">
-            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-bottom: 1rem;">
-                <button class="primary-action" onclick="showSuggestGameModal()" style="flex: 1; min-width: 140px; font-size: 1rem; padding: 0.75rem 1rem; font-weight: 600;">
+            <div class="games-tab-actions">
+                <button class="primary-action games-tab-btn" onclick="showSuggestGameModal()">
                     ✨ Suggest Game
                 </button>
-                <button class="filter-toggle-btn" id="filterToggleBtn" onclick="toggleFilters()" style="flex: 1; min-width: 140px;">
+                <button class="filter-toggle-btn games-tab-btn" id="filterToggleBtn" onclick="toggleFilters()">
                     🔍 Filters
                 </button>
             </div>
@@ -2433,10 +2622,10 @@
                     <span id="importExportToggleIcon" style="font-size: 1rem; color: var(--text-muted); transition: transform 0.2s;">▶</span>
                 </div>
                 <div id="importExportContent" style="display: none; margin-top: 0.75rem;">
-                    <div class="quick-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                        <button class="btn btn-primary btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
-                        <button class="btn btn-success btn-sm" onclick="shareGames()">📤 Export</button>
-                        <button class="btn btn-danger btn-sm" onclick="emptyLibrary()">🗑️ Clear All</button>
+                    <div class="import-export-actions">
+                        <button class="btn btn-primary btn-sm import-export-btn" onclick="document.getElementById('importFile').click()">📥 Import</button>
+                        <button class="btn btn-success btn-sm import-export-btn" onclick="shareGames()">📤 Export</button>
+                        <button class="btn btn-danger btn-sm import-export-btn" onclick="emptyLibrary()">🗑️ Clear All</button>
                     </div>
                     <input type="file" id="importFile" accept=".json,.txt,.text" style="display: none;" onchange="importGames(event)">
                     <input type="file" id="importSessionFile" accept=".json" style="display: none;" onchange="importSessions(event)">
@@ -3010,14 +3199,14 @@
                         </button>
                     </div>
 
-                    <div style="display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap;">
-                        <button class="ai-generate-btn" onclick="generateConstraintGame()" style="flex: 2; min-width: 200px;">
+                    <div class="ai-action-buttons">
+                        <button class="ai-generate-btn ai-action-primary" onclick="generateConstraintGame()">
                             ✨ Generate Game
                         </button>
-                        <button class="btn btn-secondary" onclick="generate3Variations()" style="flex: 1; min-width: 150px;">
+                        <button class="btn btn-secondary ai-action-btn" onclick="generate3Variations()">
                             🎲 3 Levels
                         </button>
-                        <button class="btn btn-secondary" onclick="analyzeMyStyle()" style="flex: 1; min-width: 150px;">
+                        <button class="btn btn-secondary ai-action-btn" onclick="analyzeMyStyle()">
                             📊 My Style
                         </button>
                     </div>
@@ -3232,11 +3421,11 @@
             </div>
             
             <!-- Quick Presets -->
-            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <button onclick="document.getElementById('customMinutes').value=2; document.getElementById('customSeconds').value=0; setCustomTimer()" class="btn btn-secondary" style="flex: 1; min-width: 70px; padding: 0.5rem; font-size: 0.85rem;">2 min</button>
-                <button onclick="document.getElementById('customMinutes').value=3; document.getElementById('customSeconds').value=0; setCustomTimer()" class="btn btn-secondary" style="flex: 1; min-width: 70px; padding: 0.5rem; font-size: 0.85rem;">3 min</button>
-                <button onclick="document.getElementById('customMinutes').value=5; document.getElementById('customSeconds').value=0; setCustomTimer()" class="btn btn-secondary" style="flex: 1; min-width: 70px; padding: 0.5rem; font-size: 0.85rem;">5 min</button>
-                <button onclick="document.getElementById('customMinutes').value=10; document.getElementById('customSeconds').value=0; setCustomTimer()" class="btn btn-secondary" style="flex: 1; min-width: 70px; padding: 0.5rem; font-size: 0.85rem;">10 min</button>
+            <div class="timer-preset-buttons">
+                <button onclick="document.getElementById('customMinutes').value=2; document.getElementById('customSeconds').value=0; setCustomTimer()" class="btn btn-secondary timer-preset-btn">2 min</button>
+                <button onclick="document.getElementById('customMinutes').value=3; document.getElementById('customSeconds').value=0; setCustomTimer()" class="btn btn-secondary timer-preset-btn">3 min</button>
+                <button onclick="document.getElementById('customMinutes').value=5; document.getElementById('customSeconds').value=0; setCustomTimer()" class="btn btn-secondary timer-preset-btn">5 min</button>
+                <button onclick="document.getElementById('customMinutes').value=10; document.getElementById('customSeconds').value=0; setCustomTimer()" class="btn btn-secondary timer-preset-btn">10 min</button>
             </div>
         </div>
 
@@ -10393,14 +10582,14 @@
                             </div>
 
                             <!-- Quick Actions Bar -->
-                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem;" onclick="event.stopPropagation();">
-                                <button class="btn btn-success btn-sm" onclick="markSessionAsUsed(${s.id});" style="flex: 1; min-width: 140px; font-weight: 600;">
+                            <div class="session-quick-actions" onclick="event.stopPropagation();">
+                                <button class="btn btn-success btn-sm session-primary-btn" onclick="markSessionAsUsed(${s.id});">
                                     🎯 Start Session
                                 </button>
-                                <button class="btn btn-primary btn-sm" onclick="editSession(${s.id});" style="flex: 1; min-width: 100px;">
+                                <button class="btn btn-primary btn-sm session-quick-btn" onclick="editSession(${s.id});">
                                     ✏️ Edit
                                 </button>
-                                <button class="btn btn-secondary btn-sm" onclick="shareSession(${s.id});" style="flex: 1; min-width: 100px;">
+                                <button class="btn btn-secondary btn-sm session-quick-btn" onclick="shareSession(${s.id});">
                                     📤 Share
                                 </button>
                             </div>
@@ -10460,17 +10649,17 @@
                                 </div>
 
                                 <!-- Additional Session Actions -->
-                                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding-top: 1rem; border-top: 2px solid var(--border);">
-                                    <button class="btn btn-secondary btn-sm" onclick="scheduleSessionToDate(${s.id});" style="flex: 1; min-width: 120px;">
+                                <div class="session-extra-actions" style="padding-top: 1rem; border-top: 2px solid var(--border);">
+                                    <button class="btn btn-secondary btn-sm session-action-btn" onclick="scheduleSessionToDate(${s.id});">
                                         📅 Schedule
                                     </button>
-                                    <button class="btn btn-secondary btn-sm" onclick="exportSession(${s.id});" style="flex: 1; min-width: 120px;">
+                                    <button class="btn btn-secondary btn-sm session-action-btn" onclick="exportSession(${s.id});">
                                         💾 Export
                                     </button>
-                                    <button class="btn btn-secondary btn-sm" onclick="markAllSessionGamesAsUsed(${s.id});" style="flex: 1; min-width: 120px;">
+                                    <button class="btn btn-secondary btn-sm session-action-btn" onclick="markAllSessionGamesAsUsed(${s.id});">
                                         ✓ Mark All Used
                                     </button>
-                                    <button class="btn btn-danger btn-sm" onclick="deleteSession(${s.id});" style="flex: 1; min-width: 120px;">
+                                    <button class="btn btn-danger btn-sm session-action-btn" onclick="deleteSession(${s.id});">
                                         🗑️ Delete
                                     </button>
                                 </div>
