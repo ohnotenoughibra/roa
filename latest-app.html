@@ -8891,20 +8891,23 @@
             const game = games.find(g => g.id === id);
             if (!game) {
                 console.error('Game not found with id:', id);
-                showToast('❌ Game not found', 'error');
+                alert('Error: Game not found');
                 return;
             }
 
+            console.log('Game found:', game.name);
+
             // Add confirmation dialog for safety
-            const confirmed = confirm(`Delete "${game.name}"? This action can be undone.`);
+            const confirmed = confirm(`Delete "${game.name}"?\n\nThis will permanently remove it from your library.`);
+            console.log('User confirmed:', confirmed);
 
             if (!confirmed) {
-                showToast('❌ Deletion cancelled', 'info');
+                console.log('User cancelled deletion');
                 return;
             }
 
             const gameName = game.name;
-            console.log('Deleting game:', gameName);
+            console.log('Proceeding with deletion of:', gameName);
 
             // Store for undo
             undoState = {
@@ -8913,8 +8916,13 @@
                 data: {...game}
             };
 
+            const beforeCount = games.length;
             games = games.filter(g => g.id !== id);
+            const afterCount = games.length;
+            console.log(`Games before: ${beforeCount}, after: ${afterCount}`);
+
             saveGames();
+            console.log('Saved to localStorage');
             
             // Remove this game from all sessions and templates
             let sessionsUpdated = 0;
@@ -8952,19 +8960,21 @@
                 console.log(`🧹 Removed game ${id} from ${templatesUpdated} template(s)`);
             }
             
+            console.log('Re-rendering UI...');
             renderQuickAccess();
             renderGames();
             if (currentTab === 'favorites') renderFavorites();
             if (currentTab === 'used') renderUsed();
             if (currentTab === 'sessions') renderSessions();
+            console.log('UI re-rendered');
 
             const updateMsg = [];
             if (sessionsUpdated > 0) updateMsg.push(`${sessionsUpdated} session(s)`);
             if (templatesUpdated > 0) updateMsg.push(`${templatesUpdated} template(s)`);
             const extraMsg = updateMsg.length > 0 ? ` and removed from ${updateMsg.join(' and ')}` : '';
-            
-            showToast(`🗑️ "${gameName}" deleted${extraMsg}`, 'info', true);
-            console.log('Game deleted:', id, gameName);
+
+            alert(`✅ "${gameName}" deleted successfully${extraMsg}`);
+            console.log('✅ Deletion complete:', id, gameName);
         }
 
         // Form submission
