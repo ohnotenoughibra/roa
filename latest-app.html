@@ -1102,12 +1102,6 @@
             margin-bottom: 1rem;
         }
 
-        @media (min-width: 640px) {
-            .stats {
-                grid-template-columns: repeat(4, 1fr);
-            }
-        }
-
         @media (min-width: 768px) {
             .stats {
                 gap: 1rem;
@@ -1364,15 +1358,6 @@
             opacity: 1;
             transition: max-height 0.5s ease-in, opacity 0.4s ease-in;
             pointer-events: auto;
-        }
-
-        /* Ensure collapsed state on mobile */
-        @media (max-width: 480px) {
-            .session-content:not(.expanded) {
-                max-height: 0 !important;
-                opacity: 0 !important;
-                display: block;
-            }
         }
 
         .session-games-grid {
@@ -1945,12 +1930,6 @@
             .modal-content {
                 max-height: calc(100vh - 20px) !important;
                 overflow-y: auto !important;
-            }
-
-            /* Stats grid in 4 columns on landscape */
-            .stats-grid {
-                grid-template-columns: repeat(4, 1fr) !important;
-                gap: 0.5rem !important;
             }
 
             /* Compact session cards */
@@ -4248,23 +4227,6 @@
                         .stats-grid > div > div:last-child {
                             font-size: 0.7rem !important;
                             line-height: 1.2 !important;
-                        }
-                    }
-                    
-                    @media (min-width: 640px) {
-                        .stats-grid {
-                            grid-template-columns: repeat(4, 1fr) !important;
-                            gap: 1rem !important;
-                        }
-                        .stats-grid > div {
-                            padding: 1.5rem !important;
-                        }
-                        .stats-grid > div > div:first-child {
-                            font-size: 2.5rem !important;
-                            margin-bottom: 0.5rem !important;
-                        }
-                        .stats-grid > div > div:last-child {
-                            font-size: 1rem !important;
                         }
                     }
                 </style>
