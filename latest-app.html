@@ -6060,8 +6060,9 @@
             // If in quick session mode, add to queue
             if (quickSessionMode) {
                 selected.forEach(id => {
-                    if (!quickSessionQueue.includes(id)) {
-                        quickSessionQueue.push(id);
+                    const game = games.find(g => g.id === id);
+                    if (game && !quickSessionQueue.find(g => g.id === id)) {
+                        quickSessionQueue.push(game);
                     }
                 });
                 updateQuickSessionQueue();
@@ -6094,8 +6095,9 @@
             // If in quick session mode, add to queue
             if (quickSessionMode) {
                 selected.forEach(id => {
-                    if (!quickSessionQueue.includes(id)) {
-                        quickSessionQueue.push(id);
+                    const game = games.find(g => g.id === id);
+                    if (game && !quickSessionQueue.find(g => g.id === id)) {
+                        quickSessionQueue.push(game);
                     }
                 });
                 updateQuickSessionQueue();
