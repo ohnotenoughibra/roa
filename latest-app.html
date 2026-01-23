@@ -2194,33 +2194,6 @@
         </div>
 
             <!-- Terminal Game Selection Modal -->
-            <div id="terminalGameSelectionModal" class="modal">
-                <div class="modal-content" style="max-width: 700px;">
-                    <div class="modal-header">
-                        <h3 id="terminalModalTitle">Select Games for Session</h3>
-                        <button class="modal-close" onclick="closeTerminalGameSelectionModal()">×</button>
-                    </div>
-                    <div class="modal-body">
-                        <div style="margin-bottom: 1rem; padding: 0.75rem; background: var(--surface); border-radius: 8px; border: 1px solid var(--border);">
-                            <div style="font-size: 0.875rem; color: var(--text-muted);">Session will be named:</div>
-                            <div id="terminalSessionName" style="font-weight: 600; color: var(--text); margin-top: 0.25rem;"></div>
-                        </div>
-                        <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-weight: 600;">Selected Games: <span id="terminalSelectedCount">0</span></span>
-                            <div>
-                                <button class="btn-sm btn-secondary" onclick="terminalSelectAll()" style="margin-right: 0.5rem;">Select All</button>
-                                <button class="btn-sm btn-secondary" onclick="terminalDeselectAll()">Deselect All</button>
-                            </div>
-                        </div>
-                        <div id="terminalGamesList" style="max-height: min(400px, 50vh); overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem;"></div>
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" onclick="closeTerminalGameSelectionModal()">Cancel</button>
-                        <button class="btn btn-primary" onclick="createTerminalSession()">Create Session</button>
-                    </div>
-                </div>
-            </div>
-
         <!-- Stats Dashboard -->
         <div id="statsView" style="display: none;">
             <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text);">
@@ -9255,12 +9228,27 @@
         function renderTerminalGamesList() {
             const list = document.getElementById('terminalGamesList');
 
-            if (terminalSuggestedGames.length === 0) {
+            // Filter out any games without valid IDs
+            const validSuggestedGames = terminalSuggestedGames.filter(g => g && g.id);
+            const validExtraSuggestions = terminalExtraSuggestions.filter(g => g && g.id);
+
+            console.log('Rendering terminal games list:', {
+                validSuggestedGames: validSuggestedGames.length,
+                validExtraSuggestions: validExtraSuggestions.length,
+                sampleIds: validSuggestedGames.slice(0, 3).map(g => g.id)
+            });
+
+            if (validSuggestedGames.length === 0) {
                 list.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-muted);">No games found</div>';
                 return;
             }
 
             const renderGameCard = (game, isChecked = true, isSuggestion = false) => {
+                if (!game || !game.id) {
+                    console.error('Invalid game in renderGameCard:', game);
+                    return '';
+                }
+
                 const levelColor = (game.level || 3) <= 2 ? 'var(--info)' : (game.level || 3) <= 4 ? 'var(--warning)' : 'var(--danger)';
                 const levelText = (game.level || 3) <= 2 ? 'Beginner' : (game.level || 3) <= 4 ? 'Intermediate' : 'Advanced';
                 const hashtags = game.skills ? (game.skills.match(/#\w+/g) || []) : [];
@@ -9271,7 +9259,7 @@
                             <input type="checkbox" class="terminal-game-checkbox" data-game-id="${game.id}" ${isChecked ? 'checked' : ''} onchange="updateTerminalSelectedCount()" style="margin-top: 0.25rem; cursor: pointer; width: 18px; height: 18px;">
                             <div style="flex: 1;">
                                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
-                                    <div style="font-weight: 600;">${game.name}</div>
+                                    <div style="font-weight: 600;">${game.name || 'Unnamed Game'}</div>
                                     ${isSuggestion ? '<span style="background: #f59e0b; color: white; padding: 0.125rem 0.375rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">SUGGESTION</span>' : ''}
                                 </div>
                                 <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;">
@@ -9293,23 +9281,23 @@
             let html = '';
 
             // Render main matches
-            if (terminalSuggestedGames.length > 0) {
+            if (validSuggestedGames.length > 0) {
                 html += `<div style="margin-bottom: 1rem;">
                     <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--text); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.025em;">
-                        Best Matches (${terminalSuggestedGames.length})
+                        Best Matches (${validSuggestedGames.length})
                     </h4>
-                    ${terminalSuggestedGames.map(game => renderGameCard(game, true, false)).join('')}
+                    ${validSuggestedGames.map(game => renderGameCard(game, true, false)).join('')}
                 </div>`;
             }
 
             // Render suggestions
-            if (terminalExtraSuggestions.length > 0) {
+            if (validExtraSuggestions.length > 0) {
                 html += `<div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border);">
                     <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--text); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.025em;">
-                        Additional Suggestions (${terminalExtraSuggestions.length})
+                        Additional Suggestions (${validExtraSuggestions.length})
                     </h4>
                     <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">Consider adding these related games to your session:</p>
-                    ${terminalExtraSuggestions.map(game => renderGameCard(game, false, true)).join('')}
+                    ${validExtraSuggestions.map(game => renderGameCard(game, false, true)).join('')}
                 </div>`;
             }
 
@@ -9336,13 +9324,25 @@
 
         function createTerminalSession() {
             const checkboxes = document.querySelectorAll('.terminal-game-checkbox:checked');
-            const selectedGameIds = Array.from(checkboxes).map(cb => parseInt(cb.dataset.gameId));
-            
+            console.log('Found checkboxes:', checkboxes.length);
+
+            // Get game IDs and filter out any invalid values
+            const selectedGameIds = Array.from(checkboxes)
+                .map(cb => {
+                    const gameId = parseInt(cb.dataset.gameId);
+                    console.log('Checkbox game ID:', cb.dataset.gameId, '-> parsed:', gameId);
+                    return gameId;
+                })
+                .filter(id => !isNaN(id) && id > 0); // Filter out NaN and invalid IDs
+
+            console.log('Selected game IDs:', selectedGameIds);
+
             if (selectedGameIds.length === 0) {
                 showToast('⚠️ Please select at least one game', 'warning');
+                console.error('No valid game IDs selected');
                 return;
             }
-            
+
             const sessionName = generateSessionName(terminalSessionParams);
             const newSession = {
                 id: Date.now(),
@@ -9350,20 +9350,22 @@
                 gameIds: selectedGameIds,
                 created: Date.now()
             };
-            
+
+            console.log('Creating session:', newSession);
+
             sessions.push(newSession);
             saveSessions();
-            
+
             // Update terminal output
             const output = document.getElementById(terminalOutputId);
             const input = document.getElementById(terminalInputId);
-            output.innerHTML = `<span style="color: var(--success);">✅ Created "${sessionName}" with ${selectedGameIds.length} games</span>`;
-            input.value = '';
-            
+            if (output) output.innerHTML = `<span style="color: var(--success);">✅ Created "${sessionName}" with ${selectedGameIds.length} games</span>`;
+            if (input) input.value = '';
+
             // Close modal and show success
             closeTerminalGameSelectionModal();
-            showToast(`✅ Session created: ${sessionName}`, 'success');
-            
+            showToast(`✅ Session created: ${sessionName} (${selectedGameIds.length} games)`, 'success');
+
             // Refresh view
             setTimeout(() => {
                 if (currentTab === 'sessions') {
