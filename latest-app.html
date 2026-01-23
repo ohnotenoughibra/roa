@@ -3220,6 +3220,7 @@
         let sessionsBulkSelectMode = false;
         let selectedSessionIds = new Set();
         let currentSessionsView = 'list'; // 'list' or 'calendar'
+        let expandedSessionIds = new Set(); // Track which sessions are expanded
         let timerRunning = false;
         let timerRoundMode = false;
         let timerCurrentRound = 1;
@@ -9462,6 +9463,16 @@
                     </div>
                 `;
             }).join('') + '</div>';
+
+            // Restore expanded state after rendering
+            expandedSessionIds.forEach(sessionId => {
+                const content = document.getElementById(`session-content-${sessionId}`);
+                const icon = document.getElementById(`expand-icon-${sessionId}`);
+                if (content && icon) {
+                    content.classList.add('expanded');
+                    icon.classList.add('expanded');
+                }
+            });
         }
 
         function removeGameFromSession(sessionId, gameId) {
@@ -9526,11 +9537,13 @@
                 // Collapsing
                 content.classList.remove('expanded');
                 icon.classList.remove('expanded');
+                expandedSessionIds.delete(sessionId);
                 console.log('Collapsed session', sessionId);
             } else {
                 // Expanding
                 content.classList.add('expanded');
                 icon.classList.add('expanded');
+                expandedSessionIds.add(sessionId);
                 console.log('Expanded session', sessionId);
             }
         }
@@ -9550,6 +9563,7 @@
             const sessionName = session.name;
 
             sessions = sessions.filter(s => s.id !== id);
+            expandedSessionIds.delete(id); // Remove from expanded tracking
             saveSessions();
             renderSessions();
 
