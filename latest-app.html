@@ -8886,28 +8886,19 @@
             editingGameId = null;
         }
 
-        function deleteGame(id) {
-            console.log('deleteGame called with id:', id);
+        async function deleteGame(id) {
             const game = games.find(g => g.id === id);
-            if (!game) {
-                console.error('Game not found with id:', id);
-                alert('Error: Game not found');
-                return;
-            }
+            if (!game) return;
 
-            console.log('Game found:', game.name);
+            // Add confirmation dialog for safety - same as deleteSession
+            const confirmed = await showConfirm(
+                `Game: "${game.name}"\nTopic: ${game.topic}\n\n⚠️ This action CANNOT be undone!\n\nAre you sure you want to delete this game?`,
+                '⚠️ DELETE GAME'
+            );
 
-            // Add confirmation dialog for safety
-            const confirmed = confirm(`Delete "${game.name}"?\n\nThis will permanently remove it from your library.`);
-            console.log('User confirmed:', confirmed);
-
-            if (!confirmed) {
-                console.log('User cancelled deletion');
-                return;
-            }
+            if (!confirmed) return;
 
             const gameName = game.name;
-            console.log('Proceeding with deletion of:', gameName);
 
             // Store for undo
             undoState = {
@@ -8916,18 +8907,13 @@
                 data: {...game}
             };
 
-            const beforeCount = games.length;
             games = games.filter(g => g.id !== id);
-            const afterCount = games.length;
-            console.log(`Games before: ${beforeCount}, after: ${afterCount}`);
-
             saveGames();
-            console.log('Saved to localStorage');
-            
+
             // Remove this game from all sessions and templates
             let sessionsUpdated = 0;
             let templatesUpdated = 0;
-            
+
             sessions = sessions.map(session => {
                 if (session.gameIds && session.gameIds.some(gId => gId == id)) {
                     sessionsUpdated++;
@@ -8938,7 +8924,7 @@
                 }
                 return session;
             });
-            
+
             templates = templates.map(template => {
                 if (template.gameIds && template.gameIds.some(gId => gId == id)) {
                     templatesUpdated++;
@@ -8949,32 +8935,22 @@
                 }
                 return template;
             });
-            
+
             if (sessionsUpdated > 0) {
                 saveSessions();
-                console.log(`🧹 Removed game ${id} from ${sessionsUpdated} session(s)`);
             }
-            
+
             if (templatesUpdated > 0) {
                 saveTemplates();
-                console.log(`🧹 Removed game ${id} from ${templatesUpdated} template(s)`);
             }
-            
-            console.log('Re-rendering UI...');
+
             renderQuickAccess();
             renderGames();
             if (currentTab === 'favorites') renderFavorites();
             if (currentTab === 'used') renderUsed();
             if (currentTab === 'sessions') renderSessions();
-            console.log('UI re-rendered');
 
-            const updateMsg = [];
-            if (sessionsUpdated > 0) updateMsg.push(`${sessionsUpdated} session(s)`);
-            if (templatesUpdated > 0) updateMsg.push(`${templatesUpdated} template(s)`);
-            const extraMsg = updateMsg.length > 0 ? ` and removed from ${updateMsg.join(' and ')}` : '';
-
-            alert(`✅ "${gameName}" deleted successfully${extraMsg}`);
-            console.log('✅ Deletion complete:', id, gameName);
+            showToast(`✅ Game "${gameName}" deleted`, 'success');
         }
 
         // Form submission
