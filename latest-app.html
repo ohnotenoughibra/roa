@@ -6489,7 +6489,7 @@
                             <button class="btn btn-secondary btn-sm" onclick="quickRateGame(${game.id})" title="Rate game">⭐</button>
                             <button class="btn btn-primary btn-sm" onclick="editGame(${game.id})" title="Edit">✏️</button>
                             <button class="btn btn-secondary btn-sm" onclick="duplicateGame(${game.id})" title="Duplicate">📋</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteGame(${game.id})" title="Delete">🗑️</button>
+                            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); deleteGame(${game.id}); return false;" title="Delete">🗑️</button>
                         </div>
                     </div>
                 </div>
@@ -8887,53 +8887,67 @@
         }
 
         function deleteGame(id) {
-            const game = games.find(g => g.id === id);
-            if (!game) return;
+            try {
+                alert('Delete button clicked! Game ID: ' + id);
 
-            // Simple confirmation dialog
-            if (!confirm(`Are you sure you want to delete "${game.name}"?`)) {
-                return;
+                const game = games.find(g => g.id === id);
+                if (!game) {
+                    alert('Game not found!');
+                    return;
+                }
+
+                alert('Found game: ' + game.name);
+
+                // Simple confirmation dialog
+                if (!confirm(`Are you sure you want to delete "${game.name}"?`)) {
+                    alert('Cancelled');
+                    return;
+                }
+
+                alert('Confirmed! Deleting...');
+
+                const gameName = game.name;
+
+                // Delete the game
+                games = games.filter(g => g.id !== id);
+                saveGames();
+
+                // Remove from sessions and templates
+                sessions = sessions.map(session => {
+                    if (session.gameIds && session.gameIds.some(gId => gId == id)) {
+                        return {
+                            ...session,
+                            gameIds: session.gameIds.filter(gId => gId != id)
+                        };
+                    }
+                    return session;
+                });
+
+                templates = templates.map(template => {
+                    if (template.gameIds && template.gameIds.some(gId => gId == id)) {
+                        return {
+                            ...template,
+                            gameIds: template.gameIds.filter(gId => gId != id)
+                        };
+                    }
+                    return template;
+                });
+
+                saveSessions();
+                saveTemplates();
+
+                // Re-render everything
+                renderQuickAccess();
+                renderGames();
+                if (currentTab === 'favorites') renderFavorites();
+                if (currentTab === 'used') renderUsed();
+                if (currentTab === 'sessions') renderSessions();
+
+                // Show confirmation
+                alert(`"${gameName}" deleted successfully!`);
+            } catch (error) {
+                alert('ERROR: ' + error.message);
             }
-
-            const gameName = game.name;
-
-            // Delete the game
-            games = games.filter(g => g.id !== id);
-            saveGames();
-
-            // Remove from sessions and templates
-            sessions = sessions.map(session => {
-                if (session.gameIds && session.gameIds.some(gId => gId == id)) {
-                    return {
-                        ...session,
-                        gameIds: session.gameIds.filter(gId => gId != id)
-                    };
-                }
-                return session;
-            });
-
-            templates = templates.map(template => {
-                if (template.gameIds && template.gameIds.some(gId => gId == id)) {
-                    return {
-                        ...template,
-                        gameIds: template.gameIds.filter(gId => gId != id)
-                    };
-                }
-                return template;
-            });
-
-            saveSessions();
-            saveTemplates();
-
-            // Re-render everything
-            renderQuickAccess();
-            renderGames();
-            if (currentTab === 'favorites') renderFavorites();
-            if (currentTab === 'used') renderUsed();
-            if (currentTab === 'sessions') renderSessions();
-
-            // Show confirmation
-            alert(`"${gameName}" deleted successfully!`);
         }
 
         // Form submission
