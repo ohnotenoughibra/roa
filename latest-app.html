@@ -4905,9 +4905,10 @@
                 const game = games.find(g => g.id === id);
                 if (game) game.lastUsed = null;
             });
-            
+
             saveGames();
-            renderDashboard();
+            renderUsed();
+            if (currentTab === 'games') renderGames();
             showToast(`✅ Cleared usage history for ${selected.length} games`, 'success');
         }
 
@@ -5645,16 +5646,9 @@
                     <div class="game-header">
                         <div class="game-meta">
                             <span class="game-topic ${getTopicTagClass(game.topic)}">${game.topic}</span>
-                            ${game.gameNumber ? `<span class="game-number">Game ${game.gameNumber}</span>` : ''}
                             ${(game.created || 0) > sevenDaysAgo ? '<span class="badge-new">New</span>' : ''}
-                            ${game.author ? `<span class="author-badge">✍️ ${game.author}</span>` : ''}
                         </div>
                         <h3 class="game-title">${game.name}</h3>
-                        ${game.contributors && game.contributors.length > 0 ? `
-                            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
-                                👥 Contributors: ${game.contributors.join(', ')}
-                            </div>
-                        ` : ''}
                     </div>
 
                     <div class="player-section">
@@ -5686,11 +5680,9 @@
                         const ratingInfo = getGameAverageRating(game.id);
                         if (ratingInfo) {
                             return `
-                                <div style="background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%); padding: 0.75rem; border-radius: 8px; margin-bottom: 1rem;">
-                                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <div style="color: white; font-weight: 600; font-size: 0.9rem;">⭐ Avg Rating: ${ratingInfo.average}/5</div>
-                                        <div style="color: rgba(255,255,255,0.9); font-size: 0.85rem;">${ratingInfo.count} rating${ratingInfo.count > 1 ? 's' : ''}</div>
-                                    </div>
+                                <div style="display: inline-flex; align-items: center; gap: 0.375rem; background: #fef3c7; padding: 0.375rem 0.625rem; border-radius: 6px; margin-bottom: 0.75rem; font-size: 0.8rem;">
+                                    <span style="color: #d97706; font-weight: 600;">⭐ ${ratingInfo.average}/5</span>
+                                    <span style="color: #92400e;">(${ratingInfo.count})</span>
                                 </div>
                             `;
                         }
@@ -5810,12 +5802,8 @@
                     ` : ''}
 
                     <div class="game-actions">
-                        <button class="btn btn-warning btn-sm" onclick="toggleFavorite(${game.id})">⭐</button>
-                        <button class="btn btn-sm ${game.lastUsed ? 'btn-secondary' : 'btn-success'}"
-                                onclick="markAsUsed(${game.id})">
-                            ${game.lastUsed ? '↩️ Unused' : '✓ Used'}
-                        </button>
-                        <button class="btn btn-primary btn-sm" onclick="editGame(${game.id})">Edit</button>
+                        <button class="btn btn-warning btn-sm" onclick="toggleFavorite(${game.id})" title="Remove from favorites">⭐ Unfavorite</button>
+                        <button class="btn btn-primary btn-sm" onclick="editGame(${game.id})">✏️ Edit</button>
                     </div>
                 </div>
             `).join('')}`;
@@ -5933,17 +5921,11 @@
                         ` : ''}
 
                         <div class="game-actions">
-                            <button class="btn btn-sm btn-success" onclick="markAsUsed(${game.id})" title="Mark as used">
-                                ✓ Used
-                            </button>
-                            <button class="btn btn-sm ${game.favorite ? 'btn-warning' : 'btn-secondary'}" style="${!game.favorite ? 'font-weight: bold; font-size: 1.1rem;' : ''}" onclick="toggleFavorite(${game.id})" title="${game.favorite ? 'Remove from' : 'Add to'} favorites">
-                                ${game.favorite ? '⭐' : '☆'}
+                            <button class="btn btn-sm btn-secondary" onclick="markAsUsed(${game.id})" title="Clear usage history">
+                                ↩️ Mark as Unused
                             </button>
                             <button class="btn btn-sm btn-primary" onclick="editGame(${game.id})" title="Edit game">
-                                ✏️
-                            </button>
-                            <button class="btn btn-sm btn-danger" onclick="deleteGame(${game.id})" title="Delete game">
-                                🗑️
+                                ✏️ Edit
                             </button>
                         </div>
                     </div>
