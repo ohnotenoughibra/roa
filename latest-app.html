@@ -1019,6 +1019,22 @@
                 width: 100%;
                 min-width: 0;
             }
+
+            /* Selection toolbar optimizations for portrait */
+            #gamesSelectionToolbar > div {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            #gamesSelectionToolbar > div > div:last-child {
+                width: 100%;
+                flex-direction: column;
+            }
+
+            #gamesSelectionToolbar button {
+                width: 100%;
+                min-width: 0;
+            }
         }
 
         /* Landscape Tablet Optimizations */
@@ -2611,6 +2627,9 @@
                 <button class="filter-toggle-btn games-tab-btn" id="filterToggleBtn" onclick="toggleFilters()">
                     🔍 Filters
                 </button>
+                <button class="games-tab-btn" id="selectModeBtn" onclick="toggleSelectionMode()" style="background: var(--primary); color: white;">
+                    ☑️ Select
+                </button>
             </div>
 
             <!-- Active Filters Display -->
@@ -2671,8 +2690,45 @@
                 </select>
             </div>
 
-            <!-- Library Dashboard -->
-            <div id="libraryDashboard" style="margin: 0 1rem 1.5rem 1rem;"></div>
+            <!-- Library Dashboard (Collapsible) -->
+            <div class="action-section" style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; margin: 0 1rem 1rem 1rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;" onclick="toggleLibraryDashboard()">
+                    <div class="action-section-title" style="margin: 0; font-size: 0.875rem; font-weight: 600;">📊 Library Overview</div>
+                    <span id="libraryDashboardToggleIcon" style="font-size: 1rem; color: var(--text-muted); transition: transform 0.2s;">▶</span>
+                </div>
+                <div id="libraryDashboardContent" style="display: none; margin-top: 0.75rem;">
+                    <div id="libraryDashboard"></div>
+                </div>
+            </div>
+
+            <!-- Bulk Selection Toolbar -->
+            <div id="gamesSelectionToolbar" style="display: none; background: var(--surface); padding: 1rem; border-radius: 12px; margin: 0 1rem 1.5rem 1rem; border: 2px solid var(--primary);">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <input type="checkbox" id="gamesSelectAll" onchange="toggleAllGamesSelection(this.checked)" style="width: 20px; height: 20px; cursor: pointer;">
+                        <label for="gamesSelectAll" style="font-weight: 600; color: var(--text); cursor: pointer;">
+                            <span id="gamesSelectAllLabel">Select All</span>
+                        </label>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn btn-success btn-sm" onclick="bulkMarkAsUsed()" style="min-width: 100px;">
+                            ✓ Mark Used
+                        </button>
+                        <button class="btn btn-warning btn-sm" onclick="bulkAddFavorites()" style="min-width: 100px;">
+                            ⭐ Favorite
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="bulkAddToSession()" style="min-width: 100px;">
+                            📋 Session
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="bulkDelete()" style="min-width: 100px;">
+                            🗑️ Delete
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="exitSelectionMode()" style="min-width: 80px;">
+                            ✕ Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
 
             <div class="games-grid" id="gamesGrid"></div>
         </div>
@@ -3845,7 +3901,10 @@
             const selectedCount = selectedGameIds.size;
             count.textContent = `${selectedCount} selected`;
 
-            if (selectedCount > 0) {
+            // Don't show floating action bar when selection mode is active (using inline toolbar instead)
+            if (selectionMode) {
+                bar.classList.remove('visible');
+            } else if (selectedCount > 0) {
                 bar.classList.add('visible');
             } else {
                 bar.classList.remove('visible');
@@ -4140,6 +4199,11 @@
 
         // Tab switching
         function switchTab(tab) {
+            // Exit selection mode when switching tabs
+            if (selectionMode && tab !== 'games') {
+                exitSelectionMode();
+            }
+
             currentTab = tab;
             const tabs = document.querySelectorAll('.tab');
             tabs.forEach(t => {
@@ -6363,9 +6427,9 @@
                 <div class="game-card ${getTopicClass(game.topic)} ${game.favorite ? 'favorite' : ''} ${selectedGameIds.has(game.id) ? 'selected' : ''}"
                      ${quickSessionMode ? `onclick="addToQuickQueue(${game.id})" style="cursor: pointer;"` : ''}>
 
-                    ${/* Hover checkbox for bulk selection (always present) */''}
-                    ${!quickSessionMode ? `
-                        <div class="bulk-select-checkbox-container ${selectedGameIds.size > 0 ? 'has-selection' : ''}">
+                    ${/* Checkbox for bulk selection (only visible in selection mode) */''}
+                    ${!quickSessionMode && selectionMode ? `
+                        <div class="bulk-select-checkbox-container has-selection">
                             <input type="checkbox" class="bulk-select-checkbox" value="${game.id}"
                                    ${selectedGameIds.has(game.id) ? 'checked' : ''}
                                    onchange="toggleGameSelection(${game.id})"
@@ -6502,9 +6566,21 @@
             const favoritePercent = totalGames > 0 ? Math.round((favorites / totalGames) * 100) : 0;
             const usagePercent = totalGames > 0 ? Math.round(((totalGames - neverUsed) / totalGames) * 100) : 0;
 
+            // Auto-collapse on portrait mode (mobile)
+            const isPortrait = window.matchMedia('(orientation: portrait)').matches;
+            const isMobile = window.matchMedia('(max-width: 480px)').matches;
+            const content = document.getElementById('libraryDashboardContent');
+            const icon = document.getElementById('libraryDashboardToggleIcon');
+
+            // Collapse by default on portrait mobile
+            if (isPortrait && isMobile && content && content.style.display === '') {
+                content.style.display = 'none';
+                if (icon) icon.textContent = '▶';
+            }
+
             dashboard.innerHTML = `
-                <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem; color: white; box-shadow: var(--shadow-lg);">
-                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; color: white;">📚 Library Overview</h3>
+                <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: var(--radius-lg); padding: 1.5rem; color: white; box-shadow: var(--shadow-lg);">
+                    <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: white;">Quick Stats</h3>
 
                     <!-- Stats Grid - Clickable -->
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
@@ -7805,7 +7881,7 @@
         function toggleImportExport() {
             const content = document.getElementById('importExportContent');
             const icon = document.getElementById('importExportToggleIcon');
-            
+
             if (content.style.display === 'none') {
                 content.style.display = 'block';
                 icon.style.transform = 'rotate(90deg)';
@@ -7814,6 +7890,85 @@
                 content.style.display = 'none';
                 icon.style.transform = 'rotate(0deg)';
                 icon.textContent = '▶';
+            }
+        }
+
+        function toggleLibraryDashboard() {
+            const content = document.getElementById('libraryDashboardContent');
+            const icon = document.getElementById('libraryDashboardToggleIcon');
+
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.style.transform = 'rotate(90deg)';
+                icon.textContent = '▼';
+            } else {
+                content.style.display = 'none';
+                icon.style.transform = 'rotate(0deg)';
+                icon.textContent = '▶';
+            }
+        }
+
+        let selectionMode = false;
+
+        function toggleSelectionMode() {
+            selectionMode = !selectionMode;
+            const toolbar = document.getElementById('gamesSelectionToolbar');
+            const btn = document.getElementById('selectModeBtn');
+
+            if (selectionMode) {
+                toolbar.style.display = 'block';
+                btn.textContent = '✕ Cancel';
+                btn.style.background = 'var(--danger)';
+            } else {
+                exitSelectionMode();
+            }
+        }
+
+        function exitSelectionMode() {
+            selectionMode = false;
+            selectedGameIds.clear();
+            const toolbar = document.getElementById('gamesSelectionToolbar');
+            const btn = document.getElementById('selectModeBtn');
+            const selectAllCheckbox = document.getElementById('gamesSelectAll');
+
+            if (toolbar) toolbar.style.display = 'none';
+            if (btn) {
+                btn.textContent = '☑️ Select';
+                btn.style.background = 'var(--primary)';
+            }
+            if (selectAllCheckbox) selectAllCheckbox.checked = false;
+
+            // Update the rendering to remove checkboxes
+            renderGames();
+        }
+
+        function toggleAllGamesSelection(checked) {
+            const grid = document.getElementById('gamesGrid');
+            const checkboxes = grid.querySelectorAll('.bulk-select-checkbox');
+
+            if (checked) {
+                checkboxes.forEach(cb => {
+                    selectedGameIds.add(parseInt(cb.value));
+                    cb.checked = true;
+                });
+            } else {
+                selectedGameIds.clear();
+                checkboxes.forEach(cb => cb.checked = false);
+            }
+
+            updateSelectionToolbarCount();
+            renderGames(); // Re-render to update selected styling
+        }
+
+        function updateSelectionToolbarCount() {
+            const label = document.getElementById('gamesSelectAllLabel');
+            const count = selectedGameIds.size;
+            if (label) {
+                if (count > 0) {
+                    label.textContent = `${count} selected`;
+                } else {
+                    label.textContent = 'Select All';
+                }
             }
         }
 
@@ -7849,6 +8004,16 @@
                 selectedGameIds.add(gameId);
             }
             updateFloatingActionBar();
+            updateSelectionToolbarCount();
+
+            // Update the select all checkbox
+            const selectAllCheckbox = document.getElementById('gamesSelectAll');
+            if (selectAllCheckbox) {
+                const grid = document.getElementById('gamesGrid');
+                const checkboxes = grid.querySelectorAll('.bulk-select-checkbox');
+                const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                selectAllCheckbox.checked = allChecked && checkboxes.length > 0;
+            }
         }
 
         function updateBulkSelectedCount() {
@@ -7887,13 +8052,13 @@
 
             saveGames();
             renderQuickAccess();
-            renderGames();
             if (currentTab === 'favorites') renderFavorites();
             if (currentTab === 'used') renderUsed();
             if (currentTab === 'sessions') renderSessions();
-            selectedGameIds.clear();
-            updateBulkSelectedCount();
             showToast(`✓ ${count} game(s) marked as used`, 'success');
+
+            // Exit selection mode after action
+            exitSelectionMode();
         }
 
         function bulkMarkAsUnused() {
@@ -7910,12 +8075,12 @@
 
             saveGames();
             renderQuickAccess();
-            renderGames();
             if (currentTab === 'favorites') renderFavorites();
             if (currentTab === 'used') renderUsed();
-            selectedGameIds.clear();
-            updateBulkSelectedCount();
             showToast(`↩️ ${count} game(s) marked as unused`, 'info');
+
+            // Exit selection mode after action
+            exitSelectionMode();
         }
 
         function bulkAddFavorites() {
@@ -7932,13 +8097,13 @@
 
             saveGames();
             renderQuickAccess();
-            renderGames();
             if (currentTab === 'favorites') renderFavorites();
             if (currentTab === 'used') renderUsed();
             if (currentTab === 'sessions') renderSessions();
-            selectedGameIds.clear();
-            updateBulkSelectedCount();
             showToast(`⭐ ${count} game(s) added to favorites`, 'success');
+
+            // Exit selection mode after action
+            exitSelectionMode();
         }
 
         function bulkRemoveFavoritesFromAll() {
@@ -7971,22 +8136,22 @@
             }
 
             const count = selectedGameIds.size;
-            
+
             // Add confirmation for bulk delete
             if (!confirm(`Delete ${count} selected game(s)? This action cannot be undone for multiple items.`)) {
                 return;
             }
 
             games = games.filter(g => !selectedGameIds.has(g.id));
-            selectedGameIds.clear();
 
             saveGames();
             renderQuickAccess(); // Update quick access
-            renderGames();
             if (currentTab === 'favorites') renderFavorites();
             if (currentTab === 'used') renderUsed();
-            updateBulkSelectedCount();
             showToast(`🗑️ ${count} game(s) deleted`, 'info');
+
+            // Exit selection mode after action
+            exitSelectionMode();
         }
 
         function bulkAddToSession() {
