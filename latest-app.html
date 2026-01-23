@@ -600,14 +600,105 @@
             }
         }
 
+        /* Toast Notification System */
+        .toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem 1.25rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-width: 280px;
+            max-width: 400px;
+            pointer-events: auto;
+            animation: slideInRight 0.3s ease-out;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .toast.success {
+            border-left: 4px solid #10b981;
+        }
+
+        .toast.error {
+            border-left: 4px solid #ef4444;
+        }
+
+        .toast.info {
+            border-left: 4px solid #3b82f6;
+        }
+
+        .toast.warning {
+            border-left: 4px solid #f59e0b;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOutRight {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .toast.hiding {
+            animation: slideOutRight 0.3s ease-out forwards;
+        }
+
+        @media (max-width: 640px) {
+            .toast-container {
+                top: auto;
+                bottom: 1rem;
+                left: 1rem;
+                right: 1rem;
+            }
+
+            .toast {
+                min-width: auto;
+                max-width: none;
+            }
+        }
+
         .game-card {
             background: var(--surface);
             border-radius: var(--radius);
             padding: 1rem;
             border: 1px solid var(--border);
-            transition: all 0.15s;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+        }
+
+        .game-card.selected {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-light);
+            background: var(--surface-hover);
         }
 
         @media (max-width: 767px) {
@@ -624,11 +715,180 @@
             right: 1rem;
             font-size: 1.25rem;
             opacity: 0.9;
+            animation: favoriteGlow 0.5s ease-out;
+        }
+
+        @keyframes favoriteGlow {
+            0% {
+                transform: scale(0.5) rotate(-90deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.3) rotate(0deg);
+            }
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 0.9;
+            }
+        }
+
+        /* Bulk selection checkbox */
+        .bulk-select-checkbox-container {
+            position: absolute;
+            top: 0.75rem;
+            left: 0.75rem;
+            z-index: 5;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .game-card:hover .bulk-select-checkbox-container,
+        .bulk-select-checkbox-container.has-selection {
+            opacity: 1;
+        }
+
+        @media (max-width: 768px) {
+            .bulk-select-checkbox-container {
+                opacity: 1;
+            }
+        }
+
+        .bulk-select-checkbox-container input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--primary);
         }
 
         @media (min-width: 768px) {
             .game-card {
                 padding: 1.25rem;
+            }
+        }
+
+        /* Filter Chips */
+        .active-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 0.5rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        [data-theme="dark"] .filter-chip {
+            background: var(--primary-dark);
+            color: var(--primary-light);
+        }
+
+        .filter-chip button {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            padding: 0;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            opacity: 0.7;
+            transition: all 0.2s;
+        }
+
+        .filter-chip button:hover {
+            opacity: 1;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .clear-filters-btn {
+            color: var(--danger);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            text-decoration: underline;
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            transition: opacity 0.2s;
+        }
+
+        .clear-filters-btn:hover {
+            opacity: 0.8;
+        }
+
+        /* Floating Action Bar for Bulk Operations */
+        .floating-action-bar {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(200px);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            max-width: 90vw;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .floating-action-bar.visible {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .floating-action-bar .selection-count {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1rem;
+            padding-right: 0.5rem;
+            border-right: 1px solid var(--border);
+        }
+
+        .floating-action-bar .actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 640px) {
+            .floating-action-bar {
+                bottom: 1rem;
+                left: 1rem;
+                right: 1rem;
+                transform: translateX(0) translateY(200px);
+                max-width: none;
+            }
+
+            .floating-action-bar.visible {
+                transform: translateX(0) translateY(0);
+            }
+
+            .floating-action-bar .actions {
+                width: 100%;
+            }
+
+            .floating-action-bar .actions button {
+                flex: 1;
+                min-width: 0;
             }
         }
 
@@ -644,12 +904,12 @@
         }
 
         .game-title {
-            font-size: 1.1rem;
-            font-weight: 600;
+            font-size: 1.25rem;
+            font-weight: 700;
             color: var(--text);
             margin-bottom: 0.5rem;
-            line-height: 1.4;
-            letter-spacing: -0.01em;
+            line-height: 1.3;
+            letter-spacing: -0.02em;
             word-break: break-word;
         }
 
@@ -778,12 +1038,53 @@
             font-weight: 400;
         }
 
+        .collapsible-section {
+            margin-bottom: 0.75rem;
+        }
+
+        .collapsible-toggle {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            transition: opacity 0.2s;
+        }
+
+        .collapsible-toggle:hover {
+            opacity: 0.8;
+        }
+
+        .collapsible-toggle .arrow {
+            transition: transform 0.2s;
+            font-size: 0.75rem;
+        }
+
+        .collapsible-toggle.open .arrow {
+            transform: rotate(90deg);
+        }
+
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+
+        .collapsible-content.open {
+            max-height: 500px;
+        }
+
         .game-coaching {
             background: #fefce8;
             border-left: 3px solid #eab308;
             padding: 1rem;
             border-radius: var(--radius);
-            margin-bottom: 0.75rem;
+            margin-top: 0.5rem;
             font-size: 0.9375rem;
             line-height: 1.65;
             color: #713f12;
@@ -852,6 +1153,72 @@
         [data-theme="dark"] .hashtag {
             background: #164e63;
             color: #bae6fd;
+        }
+
+        /* Inline Star Rating */
+        .inline-rating {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .inline-rating .star {
+            font-size: 1.25rem;
+            cursor: pointer;
+            color: #d1d5db;
+            transition: all 0.15s;
+            user-select: none;
+        }
+
+        .inline-rating .star.filled {
+            color: #fbbf24;
+        }
+
+        .inline-rating .star:hover,
+        .inline-rating .star.hover {
+            color: #fbbf24;
+            transform: scale(1.1);
+        }
+
+        .inline-rating .rating-label {
+            margin-left: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* Improved Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text);
+        }
+
+        .empty-state-description {
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .empty-state-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
+            flex-wrap: wrap;
         }
 
         .game-actions {
@@ -2013,6 +2380,22 @@
     </style>
 </head>
 <body>
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Floating Action Bar for Bulk Selection -->
+    <div class="floating-action-bar" id="floatingActionBar">
+        <div class="selection-count" id="floatingSelectionCount">0 selected</div>
+        <div class="actions">
+            <button class="btn btn-sm btn-success" onclick="bulkMarkAsUsed()" title="Mark selected as used">✓ Used</button>
+            <button class="btn btn-sm btn-warning" onclick="bulkAddFavorites()" title="Add to favorites">⭐ Favorite</button>
+            <button class="btn btn-sm btn-primary" onclick="bulkAddToSession()" title="Add to session">📋 Session</button>
+            <button class="btn btn-sm btn-secondary" onclick="bulkMarkAsUnused()" title="Mark as unused">↩️ Unused</button>
+            <button class="btn btn-sm btn-danger" onclick="bulkDelete()" title="Delete selected">🗑️ Delete</button>
+            <button class="btn btn-sm btn-secondary" onclick="deselectAllGames()" title="Clear selection">✕ Clear</button>
+        </div>
+    </div>
+
     <div class="container">
         <header>
             <button class="theme-toggle" onclick="toggleTheme()" id="themeToggle" title="Toggle dark mode">
@@ -2039,10 +2422,10 @@
                 <button class="filter-toggle-btn" id="filterToggleBtn" onclick="toggleFilters()" style="flex: 1; min-width: 140px;">
                     🔍 Filters
                 </button>
-                <button class="filter-toggle-btn" id="bulkSelectToggle" onclick="toggleBulkSelect()" style="flex: 1; min-width: 140px; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
-                    🗹 Bulk
-                </button>
             </div>
+
+            <!-- Active Filters Display -->
+            <div class="active-filters" id="activeFilters" style="display: none;"></div>
 
             <div class="action-section import-export-section" style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; margin-bottom: 1rem;">
                 <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;" onclick="toggleImportExport()">
@@ -2060,24 +2443,8 @@
                 </div>
             </div>
 
-            <!-- Bulk Actions Toolbar -->
-            <div id="bulkActionsToolbar" style="display: none; background: var(--surface); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; box-shadow: var(--shadow); border: 2px solid var(--primary);">
-                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
-                        <span id="selectedCount" style="font-weight: 600; color: var(--primary);">0 selected</span>
-                        <button class="btn btn-secondary btn-sm" onclick="selectAllGames()">Select All</button>
-                        <button class="btn btn-secondary btn-sm" onclick="deselectAllGames()">Deselect All</button>
-                    </div>
-                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                        <button class="btn btn-success btn-sm" onclick="bulkMarkAsUsed()">✓ Mark as Used</button>
-                        <button class="btn btn-secondary btn-sm" onclick="bulkMarkAsUnused()">↩️ Mark as Unused</button>
-                        <button class="btn btn-warning btn-sm" onclick="bulkAddFavorites()">⭐ Add to Favorites</button>
-                        <button class="btn btn-secondary btn-sm" onclick="bulkRemoveFavoritesFromAll()">★ Remove from Favorites</button>
-                        <button class="btn btn-primary btn-sm" onclick="bulkAddToSession()">📋 Add to Session</button>
-                        <button class="btn btn-danger btn-sm" onclick="bulkDelete()">🗑️ Delete Selected</button>
-                    </div>
-                </div>
-            </div>
+            <!-- Old Bulk Actions Toolbar - Hidden, using floating action bar instead -->
+            <div id="bulkActionsToolbar" style="display: none;"></div>
 
             <div class="filter-backdrop" id="filterBackdrop" onclick="toggleFilters()"></div>
 
@@ -3247,6 +3614,167 @@
                 clearTimeout(timeout);
                 timeout = setTimeout(later, wait);
             };
+        }
+
+        // Toast Notification System
+        function showToast(message, type = 'success', duration = 3000) {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            const icon = {
+                success: '✓',
+                error: '✕',
+                info: 'ℹ',
+                warning: '⚠'
+            }[type] || '✓';
+
+            toast.innerHTML = `
+                <span style="font-size: 1.25rem;">${icon}</span>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            // Auto remove after duration
+            setTimeout(() => {
+                toast.classList.add('hiding');
+                setTimeout(() => {
+                    container.removeChild(toast);
+                }, 300);
+            }, duration);
+        }
+
+        // Update Floating Action Bar
+        function updateFloatingActionBar() {
+            const bar = document.getElementById('floatingActionBar');
+            const count = document.getElementById('floatingSelectionCount');
+            if (!bar || !count) return;
+
+            const selectedCount = selectedGameIds.size;
+            count.textContent = `${selectedCount} selected`;
+
+            if (selectedCount > 0) {
+                bar.classList.add('visible');
+            } else {
+                bar.classList.remove('visible');
+            }
+
+            // Update checkbox containers visibility
+            const containers = document.querySelectorAll('.bulk-select-checkbox-container');
+            containers.forEach(container => {
+                if (selectedCount > 0) {
+                    container.classList.add('has-selection');
+                } else {
+                    container.classList.remove('has-selection');
+                }
+            });
+
+            // Update selected card styling
+            document.querySelectorAll('.game-card').forEach(card => {
+                const checkbox = card.querySelector('.bulk-select-checkbox');
+                if (checkbox && checkbox.checked) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+            });
+        }
+
+        // Update Active Filters Display
+        function updateActiveFilters() {
+            const container = document.getElementById('activeFilters');
+            if (!container) return;
+
+            const searchInput = document.getElementById('searchInput');
+            const topicFilter = document.getElementById('topicFilter');
+            const authorFilter = document.getElementById('authorFilter');
+            const sortBy = document.getElementById('sortBy');
+
+            const activeFilters = [];
+
+            if (searchInput && searchInput.value.trim()) {
+                activeFilters.push({
+                    type: 'search',
+                    label: `Search: "${searchInput.value.trim()}"`,
+                    clear: () => {
+                        searchInput.value = '';
+                        renderGames();
+                    }
+                });
+            }
+
+            if (topicFilter && topicFilter.value) {
+                activeFilters.push({
+                    type: 'topic',
+                    label: `Topic: ${topicFilter.value}`,
+                    clear: () => {
+                        topicFilter.value = '';
+                        renderGames();
+                    }
+                });
+            }
+
+            if (authorFilter && authorFilter.value) {
+                activeFilters.push({
+                    type: 'author',
+                    label: `Author: ${authorFilter.value}`,
+                    clear: () => {
+                        authorFilter.value = '';
+                        renderGames();
+                    }
+                });
+            }
+
+            if (activeFilters.length > 0) {
+                container.style.display = 'flex';
+                container.innerHTML = activeFilters.map(filter => `
+                    <div class="filter-chip">
+                        <span>${filter.label}</span>
+                        <button onclick='${filter.clear.toString().replace(/'/g, "&apos;")}; updateActiveFilters();' title="Remove filter">✕</button>
+                    </div>
+                `).join('') + `
+                    <button class="clear-filters-btn" onclick="clearAllFilters()">Clear all filters</button>
+                `;
+            } else {
+                container.style.display = 'none';
+                container.innerHTML = '';
+            }
+        }
+
+        // Clear All Filters
+        function clearAllFilters() {
+            const searchInput = document.getElementById('searchInput');
+            const topicFilter = document.getElementById('topicFilter');
+            const authorFilter = document.getElementById('authorFilter');
+
+            if (searchInput) searchInput.value = '';
+            if (topicFilter) topicFilter.value = '';
+            if (authorFilter) authorFilter.value = '';
+
+            updateActiveFilters();
+            renderGames();
+            showToast('Filters cleared', 'info');
+        }
+
+        // Toggle Collapsible Section
+        function toggleCollapsible(id) {
+            const content = document.getElementById(id);
+            const toggle = document.querySelector(`[onclick="toggleCollapsible('${id}')"]`);
+
+            if (content && toggle) {
+                const isOpen = content.classList.contains('open');
+
+                if (isOpen) {
+                    content.classList.remove('open');
+                    toggle.classList.remove('open');
+                } else {
+                    content.classList.add('open');
+                    toggle.classList.add('open');
+                }
+            }
         }
 
         // Show custom confirmation dialog (mobile-friendly)
@@ -5573,13 +6101,16 @@
             // Render dashboard first
             renderLibraryDashboard();
 
+            // Update active filters display
+            updateActiveFilters();
+
             // Update author filter options
             const authorFilter = document.getElementById('authorFilter');
             if (!authorFilter) {
                 console.error('authorFilter element not found');
                 return;
             }
-            
+
             const currentAuthorFilter = authorFilter.value;
             const uniqueAuthors = [...new Set(games.map(g => g.author).filter(Boolean))].sort();
 
@@ -5612,7 +6143,7 @@
             const totalPages = Math.ceil(filtered.length / gamesPerPage);
             if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
             if (currentPage < 1) currentPage = 1;
-            
+
             const startIndex = (currentPage - 1) * gamesPerPage;
             const endIndex = startIndex + gamesPerPage;
             const paginatedGames = filtered.slice(startIndex, endIndex);
@@ -5623,17 +6154,14 @@
                 const hasGames = games.length > 0;
                 grid.innerHTML = `
                     <div class="empty-state">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                            ${hasGames ? `
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
-                            ` : `
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                            `}
-                        </svg>
-                        <h3>${hasGames ? 'No games match your filters' : 'Your library is empty'}</h3>
-                        <p>${hasGames ? 'Try clearing some filters or searching for something else.' : 'Start building your constraint-led games library!'}</p>
-                        ${!hasGames ? '<button class="btn btn-primary" onclick="openModal()">➕ Add Your First Game</button>' : ''}
-                        ${!hasGames ? '<button class="btn btn-secondary" onclick="switchTab(\'ai\')">🎲 Try AI Designer</button>' : ''}
+                        <div class="empty-state-icon">${hasGames ? '🔍' : '📚'}</div>
+                        <div class="empty-state-title">${hasGames ? 'No games match your filters' : 'Your library is empty'}</div>
+                        <div class="empty-state-description">${hasGames ? 'Try clearing some filters or searching for something else.' : 'Start building your constraint-led games library!'}</div>
+                        <div class="empty-state-actions">
+                            ${!hasGames ? '<button class="btn btn-primary" onclick="openModal()">➕ Add Your First Game</button>' : ''}
+                            ${!hasGames ? '<button class="btn btn-secondary" onclick="switchTab(\'ai\')">🤖 Try AI Designer</button>' : ''}
+                            ${hasGames ? '<button class="btn btn-secondary" onclick="clearAllFilters()">✕ Clear Filters</button>' : ''}
+                        </div>
                     </div>
                 `;
                 return;
@@ -5643,25 +6171,30 @@
             const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
 
             grid.innerHTML = paginatedGames.map(game => `
-                <div class="game-card ${getTopicClass(game.topic)} ${game.favorite ? 'favorite' : ''}"
+                <div class="game-card ${getTopicClass(game.topic)} ${game.favorite ? 'favorite' : ''} ${selectedGameIds.has(game.id) ? 'selected' : ''}"
                      ${quickSessionMode ? `onclick="addToQuickQueue(${game.id})" style="cursor: pointer;"` : ''}>
+
+                    ${/* Hover checkbox for bulk selection (always present) */''}
+                    ${!quickSessionMode ? `
+                        <div class="bulk-select-checkbox-container ${selectedGameIds.size > 0 ? 'has-selection' : ''}">
+                            <input type="checkbox" class="bulk-select-checkbox" value="${game.id}"
+                                   ${selectedGameIds.has(game.id) ? 'checked' : ''}
+                                   onchange="toggleGameSelection(${game.id})"
+                                   onclick="event.stopPropagation()">
+                        </div>
+                    ` : ''}
+
                     ${quickSessionMode ? `
                         <div style="position: absolute; top: 1rem; right: 1rem; z-index: 10; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 0.5rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
                             ⚡ Tap to Add
                         </div>
                     ` : ''}
-                    ${bulkSelectMode ? `
-                        <div style="position: absolute; top: 1rem; right: 1rem; z-index: 10;">
-                            <input type="checkbox" class="bulk-select-checkbox" value="${game.id}"
-                                   ${selectedGameIds.has(game.id) ? 'checked' : ''}
-                                   onchange="toggleGameSelection(${game.id})"
-                                   style="width: 24px; height: 24px; cursor: pointer;">
-                        </div>
-                    ` : ''}
+
                     <div class="game-header">
                         <div class="game-meta">
                             <span class="game-topic ${getTopicTagClass(game.topic)}">${game.topic}</span>
                             ${(game.created || 0) > sevenDaysAgo ? '<span class="badge-new">New</span>' : ''}
+                            ${game.author ? `<span class="author-badge">👤 ${game.author}</span>` : ''}
                         </div>
                         <h3 class="game-title">${game.name}</h3>
                     </div>
@@ -5676,21 +6209,42 @@
                         <div class="player-text">${game.bottomPlayer}</div>
                     </div>
 
+                    ${/* Collapsible Coaching Section */''}
                     ${game.coaching ? `
-                        <div class="game-coaching">
-                            <strong>💡 Coaching:</strong>
-                            ${game.coaching}
+                        <div class="collapsible-section">
+                            <button class="collapsible-toggle" onclick="toggleCollapsible('coaching-${game.id}'); event.stopPropagation();">
+                                <span class="arrow">▶</span>
+                                <span>💡 Coaching Tips</span>
+                            </button>
+                            <div id="coaching-${game.id}" class="collapsible-content">
+                                <div class="game-coaching">
+                                    ${game.coaching}
+                                </div>
+                            </div>
                         </div>
                     ` : ''}
 
-                    ${game.skills ? `
-                        <div class="hashtags">
-                            ${(game.skills.match(/#\w+/g) || []).map(tag =>
-                                `<span class="hashtag">${tag}</span>`
-                            ).join('')}
-                        </div>
-                    ` : ''}
+                    ${/* Show only first 3 hashtags, rest collapsible */''}
+                    ${game.skills ? (() => {
+                        const tags = game.skills.match(/#\w+/g) || [];
+                        const displayTags = tags.slice(0, 3);
+                        const hiddenTags = tags.slice(3);
+                        return `
+                            <div class="hashtags">
+                                ${displayTags.map(tag => `<span class="hashtag">${tag}</span>`).join('')}
+                                ${hiddenTags.length > 0 ? `<span class="hashtag" style="cursor: pointer; opacity: 0.7;" onclick="toggleCollapsible('tags-${game.id}'); event.stopPropagation();">+${hiddenTags.length} more</span>` : ''}
+                            </div>
+                            ${hiddenTags.length > 0 ? `
+                                <div id="tags-${game.id}" class="collapsible-content" style="margin-top: -0.5rem; margin-bottom: 0.5rem;">
+                                    <div class="hashtags">
+                                        ${hiddenTags.map(tag => `<span class="hashtag">${tag}</span>`).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        `;
+                    })() : ''}
 
+                    ${/* Rating Display */''}
                     ${(() => {
                         const ratingInfo = getGameAverageRating(game.id);
                         if (ratingInfo) {
@@ -5703,39 +6257,34 @@
                         }
                         return '';
                     })()}
+
+                    ${/* Improved action buttons - all visible, no overflow menu */''}
                     <div class="game-actions" onclick="event.stopPropagation()">
-                        <div class="game-actions-main">
-                            <button class="btn btn-sm ${game.favorite ? 'btn-warning' : 'btn-secondary'}" style="${!game.favorite ? 'font-weight: bold; font-size: 1.1rem;' : ''}"
-                                    onclick="toggleFavorite(${game.id})" title="${game.favorite ? 'Remove from favorites' : 'Add to favorites'}">
+                        <div class="game-actions-main" style="display: flex; gap: 0.375rem; flex-wrap: wrap; width: 100%;">
+                            <button class="btn btn-sm ${game.favorite ? 'btn-warning' : 'btn-secondary'}"
+                                    onclick="toggleFavorite(${game.id})"
+                                    title="${game.favorite ? 'Remove from favorites' : 'Add to favorites'}">
                                 ${game.favorite ? '⭐' : '☆'}
                             </button>
                             <button class="btn btn-success btn-sm" onclick="addGameToSession(${game.id})" title="Add to Session">
-                                📋 Session
+                                📋
                             </button>
-                            <button class="btn btn-primary btn-sm" onclick="editGame(${game.id})">✏️ Edit</button>
-                        </div>
-                        <div class="game-actions-overflow">
-                            <button class="overflow-menu-btn" onclick="toggleOverflowMenu(${game.id}); event.stopPropagation();" title="More actions">
-                                ⋮
+                            <button class="btn btn-sm ${game.lastUsed ? 'btn-secondary' : 'btn-primary'}"
+                                    onclick="markAsUsed(${game.id})"
+                                    title="${game.lastUsed ? 'Mark as unused' : 'Mark as used'}">
+                                ${game.lastUsed ? '✓' : '✓'}
                             </button>
-                            <div id="overflow-menu-${game.id}" class="overflow-menu">
-                                <button class="overflow-menu-item" onclick="quickRateGame(${game.id}); closeOverflowMenus();">
-                                    ⭐ Rate Game
-                                </button>
-                                <button class="overflow-menu-item" onclick="markAsUsed(${game.id}); closeOverflowMenus();">
-                                    ${game.lastUsed ? '↩️ Mark as Unused' : '✓ Mark as Used'}
-                                </button>
-                                <button class="overflow-menu-item" onclick="duplicateGame(${game.id}); closeOverflowMenus();">
-                                    📋 Duplicate Game
-                                </button>
-                                <button class="overflow-menu-item danger" onclick="deleteGame(${game.id}); closeOverflowMenus();">
-                                    🗑️ Delete Game
-                                </button>
-                            </div>
+                            <button class="btn btn-secondary btn-sm" onclick="quickRateGame(${game.id})" title="Rate game">⭐</button>
+                            <button class="btn btn-primary btn-sm" onclick="editGame(${game.id})" title="Edit">✏️</button>
+                            <button class="btn btn-secondary btn-sm" onclick="duplicateGame(${game.id})" title="Duplicate">📋</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteGame(${game.id})" title="Delete">🗑️</button>
                         </div>
                     </div>
                 </div>
             `).join('');
+
+            // Update floating action bar after rendering
+            updateFloatingActionBar();
         }
 
         // Render Library Dashboard with smart graphics
@@ -5768,30 +6317,30 @@
                 <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem; color: white; box-shadow: var(--shadow-lg);">
                     <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; color: white;">📚 Library Overview</h3>
 
-                    <!-- Stats Grid -->
+                    <!-- Stats Grid - Clickable -->
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
-                        <!-- Total Games -->
-                        <div style="background: rgba(255, 255, 255, 0.15); border-radius: var(--radius); padding: 1rem; backdrop-filter: blur(10px);">
+                        <!-- Total Games - Clear all filters -->
+                        <div onclick="clearAllFilters()" style="background: rgba(255, 255, 255, 0.15); border-radius: var(--radius); padding: 1rem; backdrop-filter: blur(10px); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.25)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.15)'" title="Click to show all games">
                             <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">${totalGames}</div>
-                            <div style="font-size: 0.85rem; opacity: 0.9;">Total Games</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">Total Games →</div>
                         </div>
 
-                        <!-- Favorites -->
-                        <div style="background: rgba(255, 255, 255, 0.15); border-radius: var(--radius); padding: 1rem; backdrop-filter: blur(10px);">
+                        <!-- Favorites - Switch to favorites tab -->
+                        <div onclick="switchTab('favorites')" style="background: rgba(255, 255, 255, 0.15); border-radius: var(--radius); padding: 1rem; backdrop-filter: blur(10px); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.25)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.15)'" title="Click to view favorites">
                             <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">⭐ ${favorites}</div>
-                            <div style="font-size: 0.85rem; opacity: 0.9;">${favoritePercent}% Favorites</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">${favoritePercent}% Favorites →</div>
                         </div>
 
-                        <!-- Sessions -->
-                        <div style="background: rgba(255, 255, 255, 0.15); border-radius: var(--radius); padding: 1rem; backdrop-filter: blur(10px);">
+                        <!-- Sessions - Switch to sessions tab -->
+                        <div onclick="switchTab('sessions')" style="background: rgba(255, 255, 255, 0.15); border-radius: var(--radius); padding: 1rem; backdrop-filter: blur(10px); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.25)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.15)'" title="Click to view sessions">
                             <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">📋 ${totalSessions}</div>
-                            <div style="font-size: 0.85rem; opacity: 0.9;">Sessions</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">Sessions →</div>
                         </div>
 
-                        <!-- Recent Usage -->
-                        <div style="background: rgba(255, 255, 255, 0.15); border-radius: var(--radius); padding: 1rem; backdrop-filter: blur(10px);">
+                        <!-- Recent Usage - Switch to used tab -->
+                        <div onclick="switchTab('used')" style="background: rgba(255, 255, 255, 0.15); border-radius: var(--radius); padding: 1rem; backdrop-filter: blur(10px); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.25)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.15)'" title="Click to view used games">
                             <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">🔥 ${recentlyUsed}</div>
-                            <div style="font-size: 0.85rem; opacity: 0.9;">Used This Week</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">Used This Week →</div>
                         </div>
                     </div>
 
@@ -5821,12 +6370,12 @@
                     </div>
 
                     ${topTopics.length > 0 ? `
-                        <!-- Top Topics -->
+                        <!-- Top Topics - Clickable to filter -->
                         <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.2);">
-                            <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.75rem;">Top Topics</div>
+                            <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.75rem;">Top Topics (click to filter)</div>
                             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                                 ${topTopics.map(([topic, count]) => `
-                                    <div style="background: rgba(255, 255, 255, 0.2); padding: 0.5rem 0.75rem; border-radius: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem;">
+                                    <div onclick="document.getElementById('topicFilter').value = '${topic}'; renderGames(); showToast('Filtered by: ${topic}', 'info');" style="background: rgba(255, 255, 255, 0.2); padding: 0.5rem 0.75rem; border-radius: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.35)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.2)'" title="Click to filter by ${topic}">
                                         <span style="font-weight: 600;">${topic}</span>
                                         <span style="background: rgba(255, 255, 255, 0.3); padding: 0.125rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 700;">${count}</span>
                                     </div>
@@ -7110,11 +7659,11 @@
             } else {
                 selectedGameIds.add(gameId);
             }
-            updateBulkSelectedCount();
+            updateFloatingActionBar();
         }
 
         function updateBulkSelectedCount() {
-            document.getElementById('selectedCount').textContent = `${selectedGameIds.size} selected`;
+            updateFloatingActionBar();
         }
 
         function selectAllGames() {
@@ -11274,54 +11823,9 @@ Created with NoGi Games Library
             showToast(`🗑️ Schedule removed from "${session.name}"`, 'info');
         }
 
-        // Toast notification with queue management
+        // Toast notification with queue management - using new toast system
         let toastQueue = [];
         let activeToast = null;
-
-        function showToast(message, type = 'success', showUndo = false) {
-            const toast = document.getElementById('toast');
-
-            // If there's already a toast showing, hide it immediately
-            if (activeToast) {
-                clearTimeout(activeToast);
-                toast.classList.remove('show');
-                activeToast = null;
-            }
-
-            // Remove any existing type classes
-            toast.classList.remove('error', 'info', 'success');
-
-            // Add the new type class
-            if (type === 'error') {
-                toast.classList.add('error');
-            } else if (type === 'info') {
-                toast.classList.add('info');
-            }
-
-            // Build toast content
-            if (showUndo && undoState) {
-                toast.innerHTML = `
-                    <span class="toast-message">${message}</span>
-                    <button class="toast-undo-btn" onclick="performUndo()">UNDO</button>
-                `;
-            } else {
-                toast.innerHTML = `<span class="toast-message">${message}</span>`;
-            }
-
-            toast.classList.add('show');
-
-            // Longer duration for messages with undo
-            const duration = showUndo ? 5000 : (type === 'error' ? 4000 : 3000);
-
-            activeToast = setTimeout(() => {
-                toast.classList.remove('show');
-                activeToast = null;
-                // Clear undo state after toast disappears
-                if (showUndo) {
-                    setTimeout(() => { undoState = null; }, 400);
-                }
-            }, duration);
-        }
 
         function performUndo() {
             if (!undoState) return;
@@ -13085,8 +13589,11 @@ Created with NoGi Games Library
             if (e.target === e.currentTarget) closeSessionModal();
         });
 
-        // Keyboard shortcuts
+        // Enhanced Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
+            // Ignore shortcuts when typing in inputs
+            const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName);
+
             // Close modals with Escape key
             if (e.key === 'Escape') {
                 if (document.getElementById('gameModal').classList.contains('active')) {
@@ -13102,6 +13609,75 @@ Created with NoGi Games Library
                     toggleTimerPanel();
                 }
                 closeOverflowMenus();
+
+                // Clear search if focused
+                if (document.activeElement === document.getElementById('searchInput')) {
+                    document.getElementById('searchInput').value = '';
+                    renderGames();
+                }
+            }
+
+            // Power user shortcuts (when not typing)
+            if (!isTyping) {
+                // N - New game
+                if (e.key === 'n' || e.key === 'N') {
+                    e.preventDefault();
+                    openModal();
+                    showToast('Shortcut: N = New game', 'info', 2000);
+                }
+
+                // A - AI Designer
+                if (e.key === 'a' || e.key === 'A') {
+                    e.preventDefault();
+                    switchTab('ai');
+                    showToast('Shortcut: A = AI Designer', 'info', 2000);
+                }
+
+                // S - Focus search
+                if (e.key === 's' || e.key === 'S') {
+                    e.preventDefault();
+                    document.getElementById('searchInput').focus();
+                    showToast('Shortcut: S = Search', 'info', 2000);
+                }
+
+                // F - Toggle filters
+                if (e.key === 'f' || e.key === 'F') {
+                    e.preventDefault();
+                    toggleFilters();
+                    showToast('Shortcut: F = Filters', 'info', 2000);
+                }
+
+                // C - Clear filters
+                if ((e.key === 'c' || e.key === 'C') && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    clearAllFilters();
+                }
+
+                // Numbers 1-6 for tab switching
+                if (['1', '2', '3', '4', '5', '6'].includes(e.key)) {
+                    e.preventDefault();
+                    const tabs = ['games', 'favorites', 'used', 'sessions', 'stats', 'ai'];
+                    switchTab(tabs[parseInt(e.key) - 1]);
+                    showToast(`Shortcut: ${e.key} = ${tabs[parseInt(e.key) - 1].charAt(0).toUpperCase() + tabs[parseInt(e.key) - 1].slice(1)}`, 'info', 2000);
+                }
+
+                // Ctrl/Cmd + A - Select all (when in games tab)
+                if ((e.key === 'a' || e.key === 'A') && (e.ctrlKey || e.metaKey) && currentTab === 'games') {
+                    e.preventDefault();
+                    selectAllGames();
+                    showToast('Shortcut: Ctrl+A = Select all', 'info', 2000);
+                }
+            }
+
+            // ? - Show keyboard shortcuts help
+            if (e.key === '?' && !isTyping) {
+                e.preventDefault();
+                showToast(`
+                    Keyboard Shortcuts:<br>
+                    N = New game | A = AI Designer | S = Search | F = Filters<br>
+                    1-6 = Switch tabs | Ctrl+C = Clear filters | Ctrl+A = Select all<br>
+                    Esc = Close/Clear
+                `, 'info', 6000);
             }
             // Add game with Ctrl/Cmd + N
             if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
