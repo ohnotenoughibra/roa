@@ -6227,6 +6227,7 @@
 
         // Session Terminal Command Parser
         let terminalSuggestedGames = [];
+        let terminalExtraSuggestions = [];
         let terminalSessionParams = {};
         let terminalInputId = '';
         let terminalOutputId = '';
@@ -6235,7 +6236,7 @@
             const input = document.getElementById(inputId);
             const output = document.getElementById(outputId);
             const command = input.value.trim().toLowerCase();
-            
+
             if (!command) {
                 output.innerHTML = '<span style="color: var(--danger);">❌ Error: Empty command</span>';
                 return;
@@ -6245,29 +6246,40 @@
 
             // Parse the command for key information
             const params = parseSessionCommand(command);
-            
-            if (!params.count && !params.topics.length) {
-                output.innerHTML = '<span style="color: var(--danger);">❌ Error: Please specify topics or game count (e.g., "8 games on turtle")</span>';
+
+            if (!params.count && !params.topics.length && !params.keywords.length) {
+                output.innerHTML = '<span style="color: var(--danger);">❌ Error: Please specify what you\'re looking for<br/>Examples: "5 games about guillotine", "10 games for competition", "8 games to defend turtle"</span>';
                 return;
             }
 
             // Search for matching games
             const matchedGames = findMatchingGames(params);
-            
+
             if (matchedGames.length === 0) {
-                output.innerHTML = `<span style="color: var(--warning);">⚠️ No games found matching criteria. Try different topics.</span>`;
+                const searchTerms = [...params.topics, ...params.keywords].join(', ');
+                output.innerHTML = `<span style="color: var(--warning);">⚠️ No games found for: ${searchTerms}<br/>Try different keywords or check your library.</span>`;
                 return;
             }
 
-            // Show selection modal instead of creating directly
-            terminalSuggestedGames = matchedGames.slice(0, params.count || matchedGames.length);
+            const requestedCount = params.count || 8;
+            const exactMatches = matchedGames.slice(0, requestedCount);
+            const suggestions = matchedGames.slice(requestedCount, requestedCount + 5); // Up to 5 additional suggestions
+
+            // Show selection modal with exact matches + suggestions
+            terminalSuggestedGames = exactMatches;
             terminalSessionParams = params;
             terminalInputId = inputId;
             terminalOutputId = outputId;
-            
-            output.innerHTML = `<span style="color: var(--success);">✅ Found ${matchedGames.length} games. Opening selection...</span>`;
-            
-            openTerminalGameSelectionModal();
+
+            if (matchedGames.length < requestedCount) {
+                output.innerHTML = `<span style="color: var(--warning);">⚠️ Found only ${matchedGames.length} games (requested ${requestedCount}). Opening selection...</span>`;
+            } else if (suggestions.length > 0) {
+                output.innerHTML = `<span style="color: var(--success);">✅ Found ${matchedGames.length} games! Selected ${requestedCount} best matches + ${suggestions.length} suggestions. Opening...</span>`;
+            } else {
+                output.innerHTML = `<span style="color: var(--success);">✅ Found ${matchedGames.length} games! Selected ${requestedCount} matches. Opening...</span>`;
+            }
+
+            openTerminalGameSelectionModal(suggestions);
         }
 
         function parseSessionCommand(command) {
@@ -6275,6 +6287,7 @@
                 count: null,
                 levels: [],
                 topics: [],
+                keywords: [],
                 raw: command
             };
 
@@ -6306,7 +6319,8 @@
                 { pattern: /guard\s*retention|keeping\s*guard/i, topic: 'Guard Retention' },
                 { pattern: /guard\s*passing|pass(?:ing)?\s*guard/i, topic: 'Guard Passing' },
                 { pattern: /turtle|turtle\s*position/i, topic: 'Turtle' },
-                { pattern: /armbar|arm\s*bar|armbar\s*escape/i, topic: 'Submissions' },
+                { pattern: /front\s*headlock/i, topic: 'Front Headlock' },
+                { pattern: /armbar|arm\s*bar/i, topic: 'Submissions' },
                 { pattern: /mount|mounted/i, topic: 'Mount' },
                 { pattern: /back\s*control|back\s*attack|taking\s*the\s*back/i, topic: 'Back Control' },
                 { pattern: /side\s*control|top\s*control/i, topic: 'Top Control' },
@@ -6325,54 +6339,163 @@
                 }
             });
 
+            // Extract keywords from common phrases
+            // "5 games about X" or "5 games for X" or "5 games in X" or "how to X"
+            const keywordPatterns = [
+                /(?:about|for|on|in)\s+(.+?)(?:\s+and\s+|\s+or\s+|$)/gi,
+                /how\s+to\s+(.+?)(?:\s+and\s+|\s+or\s+|$)/gi
+            ];
+
+            keywordPatterns.forEach(pattern => {
+                const matches = [...command.matchAll(pattern)];
+                matches.forEach(match => {
+                    const keyword = match[1].trim()
+                        .replace(/\d+\s*games?/gi, '')
+                        .replace(/beginner|intermediate|advanced/gi, '')
+                        .trim();
+                    if (keyword.length > 2) {
+                        params.keywords.push(keyword);
+                    }
+                });
+            });
+
+            // Extract specific technique names or concepts
+            const techniques = [
+                'guillotine', 'kimura', 'triangle', 'darce', 'anaconda', 'armbar',
+                'defend', 'defense', 'attack', 'competition', 'drilling', 'flow',
+                'pressure', 'retention', 'passing', 'escape', 'counter', 'setup'
+            ];
+
+            techniques.forEach(tech => {
+                if (new RegExp(`\\b${tech}\\b`, 'i').test(command)) {
+                    if (!params.keywords.includes(tech)) {
+                        params.keywords.push(tech);
+                    }
+                }
+            });
+
             return params;
         }
 
         function findMatchingGames(params) {
-            let matches = [...games];
+            console.log('Finding games with params:', params);
 
-            // Filter by topics if specified
-            if (params.topics.length > 0) {
-                matches = matches.filter(game => {
-                    const gameTopic = game.topic.toLowerCase();
-                    const gameText = `${game.name} ${game.topPlayer} ${game.bottomPlayer} ${game.coaching || ''}`.toLowerCase();
-                    
-                    return params.topics.some(topic => {
-                        const topicLower = topic.toLowerCase();
-                        return gameTopic.includes(topicLower) || gameText.includes(topicLower);
+            // Score each game based on how well it matches the query
+            const scoredGames = games.map(game => {
+                let score = 0;
+                const gameTopic = game.topic.toLowerCase();
+                const gameName = game.name.toLowerCase();
+                const gameText = `${game.topPlayer} ${game.bottomPlayer} ${game.coaching || ''}`.toLowerCase();
+                const gameHashtags = game.skills ? (game.skills.match(/#\w+/g) || []).map(tag => tag.toLowerCase()) : [];
+                const allGameText = `${gameName} ${gameTopic} ${gameText} ${gameHashtags.join(' ')}`;
+
+                // Check topic matches (highest priority)
+                params.topics.forEach(topic => {
+                    const topicLower = topic.toLowerCase();
+                    if (gameTopic.includes(topicLower)) {
+                        score += 100; // Exact topic match
+                    } else if (allGameText.includes(topicLower)) {
+                        score += 50; // Topic mentioned in text
+                    }
+                });
+
+                // Check keyword matches (high priority)
+                params.keywords.forEach(keyword => {
+                    const keywordLower = keyword.toLowerCase();
+
+                    // Check in hashtags first (very relevant)
+                    const hashtagMatch = gameHashtags.some(tag =>
+                        tag.includes(keywordLower) || keywordLower.includes(tag.replace('#', ''))
+                    );
+                    if (hashtagMatch) {
+                        score += 80; // Hashtag match
+                    }
+
+                    // Check in game name (very relevant)
+                    if (gameName.includes(keywordLower)) {
+                        score += 60;
+                    }
+
+                    // Check in topic
+                    if (gameTopic.includes(keywordLower)) {
+                        score += 50;
+                    }
+
+                    // Check in description text
+                    if (gameText.includes(keywordLower)) {
+                        score += 30;
+                    }
+
+                    // Partial word matches
+                    const words = keywordLower.split(/\s+/);
+                    words.forEach(word => {
+                        if (word.length > 3 && allGameText.includes(word)) {
+                            score += 10;
+                        }
                     });
                 });
-            }
+
+                // Level filtering (if specified)
+                if (params.levels.length > 0) {
+                    const gameLevel = game.level || 3; // Default to intermediate
+                    let levelMatch = false;
+
+                    if (params.levels.includes('beginner') && gameLevel <= 2) levelMatch = true;
+                    if (params.levels.includes('intermediate') && gameLevel >= 2 && gameLevel <= 4) levelMatch = true;
+                    if (params.levels.includes('advanced') && gameLevel >= 3) levelMatch = true;
+
+                    if (levelMatch) {
+                        score += 20;
+                    } else {
+                        score = Math.max(0, score - 50); // Penalize wrong level
+                    }
+                }
+
+                // Add small random factor for variety
+                score += Math.random() * 5;
+
+                return { game, score };
+            });
+
+            // Filter to only include games with some relevance (score > 0)
+            let matches = scoredGames
+                .filter(item => item.score > 0)
+                .sort((a, b) => b.score - a.score);
+
+            console.log(`Found ${matches.length} matching games`, matches.slice(0, 3).map(m => ({ name: m.game.name, score: m.score })));
 
             // Handle mixed level requirements (e.g., "advanced with 2 beginner options")
             if (params.beginnerCount && params.levels.includes('advanced')) {
-                const beginnerGames = matches.filter(g => g.level && g.level <= 2).slice(0, params.beginnerCount);
-                const advancedGames = matches.filter(g => !g.level || g.level >= 3);
+                const beginnerGames = matches.filter(m => (m.game.level || 3) <= 2).slice(0, params.beginnerCount);
+                const advancedGames = matches.filter(m => (m.game.level || 3) >= 3);
                 const remaining = (params.count || 8) - beginnerGames.length;
-                
+
                 matches = [...beginnerGames, ...advancedGames.slice(0, remaining)];
-            } else if (params.levels.length > 0) {
-                // Filter by level if specified
-                matches = matches.filter(game => {
-                    if (!game.level) return true; // Include games without level
-                    if (params.levels.includes('beginner') && game.level <= 2) return true;
-                    if (params.levels.includes('intermediate') && game.level >= 2 && game.level <= 4) return true;
-                    if (params.levels.includes('advanced') && game.level >= 3) return true;
-                    return false;
-                });
             }
 
-            // Shuffle for variety
-            return matches.sort(() => Math.random() - 0.5);
+            return matches.map(item => item.game);
         }
 
         function generateSessionName(params) {
             const date = new Date().toLocaleDateString();
             const level = params.levels.length > 0 ? params.levels.join('/').charAt(0).toUpperCase() + params.levels.join('/').slice(1) : 'Mixed';
-            const topic = params.topics.length > 0 ? params.topics.slice(0, 2).join(' & ') : 'General';
+
+            // Use keywords if available, otherwise use topics
+            let focusArea = '';
+            if (params.keywords.length > 0) {
+                // Capitalize first letter of keywords
+                focusArea = params.keywords.slice(0, 2)
+                    .map(kw => kw.charAt(0).toUpperCase() + kw.slice(1))
+                    .join(' & ');
+            } else if (params.topics.length > 0) {
+                focusArea = params.topics.slice(0, 2).join(' & ');
+            } else {
+                focusArea = 'General';
+            }
+
             const count = params.count || '';
-            
-            return `${level} - ${topic} ${count ? `(${count})` : ''} - ${date}`;
+
+            return `${level} - ${focusArea} ${count ? `(${count})` : ''} - ${date}`;
         }
 
         // Quick Session Mode
@@ -8940,12 +9063,13 @@
         }
 
         // Terminal Game Selection Modal Functions
-        function openTerminalGameSelectionModal() {
+        function openTerminalGameSelectionModal(suggestions = []) {
             const modal = document.getElementById('terminalGameSelectionModal');
             const sessionName = generateSessionName(terminalSessionParams);
-            
+
+            terminalExtraSuggestions = suggestions;
             document.getElementById('terminalSessionName').textContent = sessionName;
-            
+
             renderTerminalGamesList();
             modal.classList.add('active');
         }
@@ -8953,44 +9077,71 @@
         function closeTerminalGameSelectionModal() {
             document.getElementById('terminalGameSelectionModal').classList.remove('active');
             terminalSuggestedGames = [];
+            terminalExtraSuggestions = [];
             terminalSessionParams = {};
         }
 
         function renderTerminalGamesList() {
             const list = document.getElementById('terminalGamesList');
-            
+
             if (terminalSuggestedGames.length === 0) {
                 list.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-muted);">No games found</div>';
                 return;
             }
-            
-            const html = terminalSuggestedGames.map(game => {
-                const levelColor = game.level <= 2 ? 'var(--info)' : game.level <= 4 ? 'var(--warning)' : 'var(--danger)';
-                const levelText = game.level <= 2 ? 'Beginner' : game.level <= 4 ? 'Intermediate' : 'Advanced';
-                
+
+            const renderGameCard = (game, isChecked = true, isSuggestion = false) => {
+                const levelColor = (game.level || 3) <= 2 ? 'var(--info)' : (game.level || 3) <= 4 ? 'var(--warning)' : 'var(--danger)';
+                const levelText = (game.level || 3) <= 2 ? 'Beginner' : (game.level || 3) <= 4 ? 'Intermediate' : 'Advanced';
+                const hashtags = game.skills ? (game.skills.match(/#\w+/g) || []) : [];
+
                 return `
-                    <div style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 0.5rem; background: var(--surface);">
+                    <div style="padding: 0.75rem; border: 1px solid ${isSuggestion ? '#f59e0b' : 'var(--border)'}; border-radius: 8px; margin-bottom: 0.5rem; background: ${isSuggestion ? 'rgba(245, 158, 11, 0.05)' : 'var(--surface)'};">
                         <label style="display: flex; align-items: start; cursor: pointer; gap: 0.75rem;">
-                            <input type="checkbox" class="terminal-game-checkbox" data-game-id="${game.id}" checked onchange="updateTerminalSelectedCount()" style="margin-top: 0.25rem; cursor: pointer; width: 18px; height: 18px;">
+                            <input type="checkbox" class="terminal-game-checkbox" data-game-id="${game.id}" ${isChecked ? 'checked' : ''} onchange="updateTerminalSelectedCount()" style="margin-top: 0.25rem; cursor: pointer; width: 18px; height: 18px;">
                             <div style="flex: 1;">
-                                <div style="font-weight: 600; margin-bottom: 0.25rem;">${game.name}</div>
-                                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">
-                                    <span style="color: ${levelColor};">● ${levelText}</span> • 
-                                    ${game.topic || 'General'} • 
-                                    ⏱️ ${game.duration || '5'} min
+                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                    <div style="font-weight: 600;">${game.name}</div>
+                                    ${isSuggestion ? '<span style="background: #f59e0b; color: white; padding: 0.125rem 0.375rem; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">SUGGESTION</span>' : ''}
                                 </div>
-                                ${game.skills && game.skills.length > 0 ? `
+                                <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.25rem;">
+                                    <span style="color: ${levelColor};">● ${levelText}</span> •
+                                    ${game.topic || 'General'}
+                                </div>
+                                ${hashtags.length > 0 ? `
                                     <div style="display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.5rem;">
-                                        ${game.skills.slice(0, 5).map(skill => `<span class="hashtag">${skill}</span>`).join('')}
-                                        ${game.skills.length > 5 ? `<span style="font-size: 0.75rem; color: var(--text-muted);">+${game.skills.length - 5} more</span>` : ''}
+                                        ${hashtags.slice(0, 8).map(tag => `<span style="background: var(--border); color: var(--text); padding: 0.125rem 0.375rem; border-radius: 4px; font-size: 0.7rem;">${tag}</span>`).join('')}
+                                        ${hashtags.length > 8 ? `<span style="font-size: 0.7rem; color: var(--text-muted);">+${hashtags.length - 8}</span>` : ''}
                                     </div>
                                 ` : ''}
                             </div>
                         </label>
                     </div>
                 `;
-            }).join('');
-            
+            };
+
+            let html = '';
+
+            // Render main matches
+            if (terminalSuggestedGames.length > 0) {
+                html += `<div style="margin-bottom: 1rem;">
+                    <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--text); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.025em;">
+                        Best Matches (${terminalSuggestedGames.length})
+                    </h4>
+                    ${terminalSuggestedGames.map(game => renderGameCard(game, true, false)).join('')}
+                </div>`;
+            }
+
+            // Render suggestions
+            if (terminalExtraSuggestions.length > 0) {
+                html += `<div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border);">
+                    <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--text); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.025em;">
+                        Additional Suggestions (${terminalExtraSuggestions.length})
+                    </h4>
+                    <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">Consider adding these related games to your session:</p>
+                    ${terminalExtraSuggestions.map(game => renderGameCard(game, false, true)).join('')}
+                </div>`;
+            }
+
             list.innerHTML = html;
             updateTerminalSelectedCount();
         }
