@@ -8886,37 +8886,24 @@
             editingGameId = null;
         }
 
-        async function deleteGame(id) {
+        function deleteGame(id) {
             const game = games.find(g => g.id === id);
             if (!game) return;
 
-            // Add confirmation dialog for safety - same as deleteSession
-            const confirmed = await showConfirm(
-                `Game: "${game.name}"\nTopic: ${game.topic}\n\n⚠️ This action CANNOT be undone!\n\nAre you sure you want to delete this game?`,
-                '⚠️ DELETE GAME'
-            );
-
-            if (!confirmed) return;
+            // Simple confirmation dialog
+            if (!confirm(`Are you sure you want to delete "${game.name}"?`)) {
+                return;
+            }
 
             const gameName = game.name;
 
-            // Store for undo
-            undoState = {
-                type: 'game',
-                action: 'delete',
-                data: {...game}
-            };
-
+            // Delete the game
             games = games.filter(g => g.id !== id);
             saveGames();
 
-            // Remove this game from all sessions and templates
-            let sessionsUpdated = 0;
-            let templatesUpdated = 0;
-
+            // Remove from sessions and templates
             sessions = sessions.map(session => {
                 if (session.gameIds && session.gameIds.some(gId => gId == id)) {
-                    sessionsUpdated++;
                     return {
                         ...session,
                         gameIds: session.gameIds.filter(gId => gId != id)
@@ -8927,7 +8914,6 @@
 
             templates = templates.map(template => {
                 if (template.gameIds && template.gameIds.some(gId => gId == id)) {
-                    templatesUpdated++;
                     return {
                         ...template,
                         gameIds: template.gameIds.filter(gId => gId != id)
@@ -8936,21 +8922,18 @@
                 return template;
             });
 
-            if (sessionsUpdated > 0) {
-                saveSessions();
-            }
+            saveSessions();
+            saveTemplates();
 
-            if (templatesUpdated > 0) {
-                saveTemplates();
-            }
-
+            // Re-render everything
             renderQuickAccess();
             renderGames();
             if (currentTab === 'favorites') renderFavorites();
             if (currentTab === 'used') renderUsed();
             if (currentTab === 'sessions') renderSessions();
 
-            showToast(`✅ Game "${gameName}" deleted`, 'success');
+            // Show confirmation
+            alert(`"${gameName}" deleted successfully!`);
         }
 
         // Form submission
