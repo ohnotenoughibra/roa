@@ -2627,9 +2627,6 @@
                 <button class="filter-toggle-btn games-tab-btn" id="filterToggleBtn" onclick="toggleFilters()">
                     🔍 Filters
                 </button>
-                <button class="games-tab-btn" id="selectModeBtn" onclick="toggleSelectionMode()" style="background: var(--primary); color: white;">
-                    ☑️ Select
-                </button>
             </div>
 
             <!-- Active Filters Display -->
@@ -2701,34 +2698,6 @@
                 </div>
             </div>
 
-            <!-- Bulk Selection Toolbar -->
-            <div id="gamesSelectionToolbar" style="display: none; background: var(--surface); padding: 1rem; border-radius: 12px; margin: 0 1rem 1.5rem 1rem; border: 2px solid var(--primary);">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-                    <div style="display: flex; align-items: center; gap: 0.75rem;">
-                        <input type="checkbox" id="gamesSelectAll" onchange="toggleAllGamesSelection(this.checked)" style="width: 20px; height: 20px; cursor: pointer;">
-                        <label for="gamesSelectAll" style="font-weight: 600; color: var(--text); cursor: pointer;">
-                            <span id="gamesSelectAllLabel">Select All</span>
-                        </label>
-                    </div>
-                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                        <button class="btn btn-success btn-sm" onclick="bulkMarkAsUsed()" style="min-width: 100px;">
-                            ✓ Mark Used
-                        </button>
-                        <button class="btn btn-warning btn-sm" onclick="bulkAddFavorites()" style="min-width: 100px;">
-                            ⭐ Favorite
-                        </button>
-                        <button class="btn btn-primary btn-sm" onclick="bulkAddToSession()" style="min-width: 100px;">
-                            📋 Session
-                        </button>
-                        <button class="btn btn-danger btn-sm" onclick="bulkDelete()" style="min-width: 100px;">
-                            🗑️ Delete
-                        </button>
-                        <button class="btn btn-secondary btn-sm" onclick="exitSelectionMode()" style="min-width: 80px;">
-                            ✕ Cancel
-                        </button>
-                    </div>
-                </div>
-            </div>
 
             <div class="games-grid" id="gamesGrid"></div>
         </div>
@@ -6424,18 +6393,8 @@
             const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
 
             grid.innerHTML = paginatedGames.map(game => `
-                <div class="game-card ${getTopicClass(game.topic)} ${game.favorite ? 'favorite' : ''} ${selectedGameIds.has(game.id) ? 'selected' : ''}"
+                <div class="game-card ${getTopicClass(game.topic)} ${game.favorite ? 'favorite' : ''}"
                      ${quickSessionMode ? `onclick="addToQuickQueue(${game.id})" style="cursor: pointer;"` : ''}>
-
-                    ${/* Checkbox for bulk selection (only visible in selection mode) */''}
-                    ${!quickSessionMode && selectionMode ? `
-                        <div class="bulk-select-checkbox-container has-selection">
-                            <input type="checkbox" class="bulk-select-checkbox" value="${game.id}"
-                                   ${selectedGameIds.has(game.id) ? 'checked' : ''}
-                                   onchange="toggleGameSelection(${game.id})"
-                                   onclick="event.stopPropagation()">
-                        </div>
-                    ` : ''}
 
                     ${quickSessionMode ? `
                         <div style="position: absolute; top: 1rem; right: 1rem; z-index: 10; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 0.5rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
