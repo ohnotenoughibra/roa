@@ -1261,6 +1261,37 @@
             }
         }
 
+        /* Portrait mode - compact layout like import/export */
+        @media (max-width: 480px) {
+            .session-item {
+                padding: 0.75rem !important;
+                border-radius: 8px;
+                border: 1px solid var(--border);
+            }
+
+            .session-header {
+                min-height: auto;
+            }
+
+            .session-item-title {
+                font-size: 0.9rem;
+            }
+
+            .session-games {
+                font-size: 0.8rem;
+            }
+
+            .session-stat {
+                font-size: 0.75rem;
+                padding: 0.25rem 0.5rem;
+            }
+
+            .session-actions {
+                gap: 0.5rem;
+                padding: 0.5rem 0;
+            }
+        }
+
         @media (hover: hover) {
             .session-item:hover {
                 border-color: var(--text-light);
@@ -2084,6 +2115,9 @@
                 </select>
             </div>
 
+            <!-- Library Dashboard -->
+            <div id="libraryDashboard" style="margin: 0 1rem 1.5rem 1rem;"></div>
+
             <div class="games-grid" id="gamesGrid"></div>
         </div>
 
@@ -2795,12 +2829,14 @@
         </button>
     </div>
 
-    @media (max-width: 480px) {
-        #quickSessionQueue {
-            bottom: 80px !important;
-            right: 15px !important;
+    <style>
+        @media (max-width: 480px) {
+            #quickSessionQueue {
+                bottom: 80px !important;
+                right: 15px !important;
+            }
         }
-    }
+    </style>
 
     <!-- Quick Session Panel -->
     <div id="quickSessionPanel" style="display: none; position: fixed; bottom: 0; left: 0; right: 0; background: var(--surface); border-radius: 16px 16px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.2); z-index: 1000; max-height: 70vh; overflow-y: auto; padding: 1.25rem;">
@@ -5551,8 +5587,9 @@
 
         // Render games with pagination
         function renderGames() {
-            console.log('renderGames called, games:', games.length);
-            
+            // Render dashboard first
+            renderLibraryDashboard();
+
             // Update author filter options
             const authorFilter = document.getElementById('authorFilter');
             if (!authorFilter) {
@@ -5716,6 +5753,106 @@
                     </div>
                 </div>
             `).join('');
+        }
+
+        // Render Library Dashboard with smart graphics
+        function renderLibraryDashboard() {
+            const dashboard = document.getElementById('libraryDashboard');
+            if (!dashboard) return;
+
+            // Calculate statistics
+            const totalGames = games.length;
+            const favorites = games.filter(g => g.favorite).length;
+            const totalSessions = sessions.length;
+            const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+            const recentlyUsed = games.filter(g => g.lastUsed && g.lastUsed >= sevenDaysAgo).length;
+            const neverUsed = games.filter(g => !g.lastUsed).length;
+
+            // Calculate topic distribution
+            const topicCounts = {};
+            games.forEach(game => {
+                topicCounts[game.topic] = (topicCounts[game.topic] || 0) + 1;
+            });
+            const topTopics = Object.entries(topicCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3);
+
+            // Calculate percentages
+            const favoritePercent = totalGames > 0 ? Math.round((favorites / totalGames) * 100) : 0;
+            const usagePercent = totalGames > 0 ? Math.round(((totalGames - neverUsed) / totalGames) * 100) : 0;
+
+            dashboard.innerHTML = `
+                <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1rem; color: white; box-shadow: var(--shadow-lg);">
+                    <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; color: white;">📚 Library Overview</h3>
+
+                    <!-- Stats Grid -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                        <!-- Total Games -->
+                        <div style="background: rgba(255, 255, 255, 0.15); border-radius: var(--radius); padding: 1rem; backdrop-filter: blur(10px);">
+                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">${totalGames}</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">Total Games</div>
+                        </div>
+
+                        <!-- Favorites -->
+                        <div style="background: rgba(255, 255, 255, 0.15); border-radius: var(--radius); padding: 1rem; backdrop-filter: blur(10px);">
+                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">⭐ ${favorites}</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">${favoritePercent}% Favorites</div>
+                        </div>
+
+                        <!-- Sessions -->
+                        <div style="background: rgba(255, 255, 255, 0.15); border-radius: var(--radius); padding: 1rem; backdrop-filter: blur(10px);">
+                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">📋 ${totalSessions}</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">Sessions</div>
+                        </div>
+
+                        <!-- Recent Usage -->
+                        <div style="background: rgba(255, 255, 255, 0.15); border-radius: var(--radius); padding: 1rem; backdrop-filter: blur(10px);">
+                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">🔥 ${recentlyUsed}</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">Used This Week</div>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bars -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <!-- Usage Progress -->
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; opacity: 0.9;">Library Usage</span>
+                                <span style="font-size: 0.85rem; font-weight: 600;">${usagePercent}%</span>
+                            </div>
+                            <div style="background: rgba(0, 0, 0, 0.2); border-radius: 10px; height: 8px; overflow: hidden;">
+                                <div style="background: rgba(255, 255, 255, 0.9); width: ${usagePercent}%; height: 100%; border-radius: 10px; transition: width 0.5s;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Favorites Progress -->
+                        <div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                                <span style="font-size: 0.85rem; opacity: 0.9;">Favorites</span>
+                                <span style="font-size: 0.85rem; font-weight: 600;">${favoritePercent}%</span>
+                            </div>
+                            <div style="background: rgba(0, 0, 0, 0.2); border-radius: 10px; height: 8px; overflow: hidden;">
+                                <div style="background: #fbbf24; width: ${favoritePercent}%; height: 100%; border-radius: 10px; transition: width 0.5s;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${topTopics.length > 0 ? `
+                        <!-- Top Topics -->
+                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                            <div style="font-size: 0.9rem; opacity: 0.9; margin-bottom: 0.75rem;">Top Topics</div>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                ${topTopics.map(([topic, count]) => `
+                                    <div style="background: rgba(255, 255, 255, 0.2); padding: 0.5rem 0.75rem; border-radius: 20px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.5rem;">
+                                        <span style="font-weight: 600;">${topic}</span>
+                                        <span style="background: rgba(255, 255, 255, 0.3); padding: 0.125rem 0.5rem; border-radius: 10px; font-size: 0.75rem; font-weight: 700;">${count}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
         }
 
         // Render favorites
@@ -6020,6 +6157,7 @@
             // Calculate topic usage in sessions
             const topicUsageInSessions = {};
             sessions.forEach(session => {
+                if (!session.gameIds) session.gameIds = [];
                 session.gameIds.forEach(gameId => {
                     const game = games.find(g => g.id === gameId);
                     if (game) {
@@ -9656,12 +9794,15 @@
             const game = games.find(g => g.id === gameId);
             const gameName = game ? game.name : 'this game';
 
+            // Ensure gameIds is initialized
+            if (!session.gameIds) session.gameIds = [];
+
             // Remove the game ID from the session
             session.gameIds = session.gameIds.filter(id => id !== gameId);
-            
+
             saveSessions();
             renderSessions();
-            
+
             const remainingCount = session.gameIds.length;
             showToast(`✅ Removed "${gameName}" (${remainingCount} game${remainingCount !== 1 ? 's' : ''} remaining)`, 'success');
         }
@@ -9695,7 +9836,6 @@
         }
 
         function toggleSession(sessionId) {
-            console.log('Toggle session called:', sessionId);
             const content = document.getElementById(`session-content-${sessionId}`);
             const icon = document.getElementById(`expand-icon-${sessionId}`);
 
@@ -9705,26 +9845,26 @@
             }
 
             const isExpanded = content.classList.contains('expanded');
-            console.log('Session', sessionId, 'is currently', isExpanded ? 'expanded' : 'collapsed');
 
             if (isExpanded) {
                 // Collapsing
                 content.classList.remove('expanded');
                 icon.classList.remove('expanded');
                 expandedSessionIds.delete(sessionId);
-                console.log('Collapsed session', sessionId);
             } else {
                 // Expanding
                 content.classList.add('expanded');
                 icon.classList.add('expanded');
                 expandedSessionIds.add(sessionId);
-                console.log('Expanded session', sessionId);
             }
         }
 
         async function deleteSession(id) {
             const session = sessions.find(s => s.id === id);
             if (!session) return;
+
+            // Ensure gameIds is initialized
+            if (!session.gameIds) session.gameIds = [];
 
             // Add confirmation dialog for safety
             const confirmed = await showConfirm(
@@ -9742,12 +9882,14 @@
             renderSessions();
 
             showToast(`✅ Session "${sessionName}" deleted`, 'success');
-            console.log('Session deleted:', id, sessionName);
         }
 
         function printSession(id) {
             const session = sessions.find(s => s.id === id);
             if (!session) return;
+
+            // Ensure gameIds is initialized
+            if (!session.gameIds) session.gameIds = [];
 
             const sessionGames = session.gameIds.map(gameId => games.find(g => g.id === gameId)).filter(Boolean);
 
@@ -9836,6 +9978,9 @@
             const session = sessions.find(s => s.id === id);
             if (!session) return;
 
+            // Ensure gameIds is initialized
+            if (!session.gameIds) session.gameIds = [];
+
             const sessionGames = session.gameIds.map(gameId => games.find(g => g.id === gameId)).filter(Boolean);
 
             // Create shareable text format
@@ -9892,6 +10037,9 @@ Created with NoGi Games Library
         function exportSession(id) {
             const session = sessions.find(s => s.id === id);
             if (!session) return;
+
+            // Ensure gameIds is initialized
+            if (!session.gameIds) session.gameIds = [];
 
             // Get full game objects for this session
             const sessionGames = session.gameIds.map(gameId => games.find(g => g.id === gameId)).filter(Boolean);
@@ -9962,6 +10110,7 @@ Created with NoGi Games Library
             const sessionData = [];
 
             selectedSessions.forEach(session => {
+                if (!session.gameIds) session.gameIds = [];
                 const sessionGames = session.gameIds.map(gameId => games.find(g => g.id === gameId)).filter(Boolean);
                 allGames.push(...sessionGames);
                 sessionData.push({
@@ -10530,18 +10679,21 @@ Created with NoGi Games Library
         function addGamesToSession(sessionId) {
             const session = sessions.find(s => s.id === sessionId);
             if (!session) return;
-            
+
+            // Ensure gameIds is initialized
+            if (!session.gameIds) session.gameIds = [];
+
             // Close current modal
             const currentModal = document.querySelector('.session-details-modal');
             if (currentModal) currentModal.remove();
-            
+
             // Show game selection modal
             const modal = document.createElement('div');
             modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 1rem;';
             modal.className = 'add-games-modal';
-            
+
             const availableGames = games.filter(g => !session.gameIds.includes(g.id));
-            
+
             // Generate smart suggestions
             const sessionGames = games.filter(g => session.gameIds.includes(g.id));
             const sessionTopics = [...new Set(sessionGames.map(g => g.topic))];
@@ -10682,40 +10834,31 @@ Created with NoGi Games Library
         }
         
         function toggleGameForSession(element, sessionId, gameId) {
-            console.log('toggleGameForSession called:', { element, sessionId, gameId });
             element.classList.toggle('selected');
             if (element.classList.contains('selected')) {
                 element.style.borderColor = 'var(--primary)';
                 element.style.background = 'rgba(37, 99, 235, 0.1)';
-                console.log('Game selected:', gameId);
             } else {
                 element.style.borderColor = 'var(--border)';
                 element.style.background = 'var(--bg)';
-                console.log('Game deselected:', gameId);
             }
         }
         
         function confirmAddGamesToSession(sessionId) {
-            console.log('confirmAddGamesToSession called for session:', sessionId);
             const selectedItems = document.querySelectorAll('.session-game-item.selected');
             const selectedGameIds = Array.from(selectedItems).map(item => {
                 // Try data-game-id attribute first (more reliable)
                 const gameId = item.getAttribute('data-game-id');
                 if (gameId) {
-                    console.log('Extracted game ID from data attribute:', gameId);
                     return parseFloat(gameId);
                 }
-                
+
                 // Fallback to parsing onclick - handle both integers and floats
                 const onclick = item.getAttribute('onclick');
-                console.log('Item onclick:', onclick);
                 const match = onclick.match(/toggleGameForSession\(this, [\d.]+, ([\d.]+)\)/);
                 const id = match ? parseFloat(match[1]) : null;
-                console.log('Extracted game ID from onclick:', id);
                 return id;
             }).filter(id => id !== null);
-            
-            console.log('Extracted game IDs:', selectedGameIds);
             
             if (selectedGameIds.length === 0) {
                 showToast('❌ Please select at least one game', 'error');
@@ -10727,11 +10870,12 @@ Created with NoGi Games Library
                 console.error('Session not found:', sessionId);
                 return;
             }
-            
-            console.log('Before adding - session.gameIds:', session.gameIds);
+
+            // Ensure gameIds is initialized
+            if (!session.gameIds) session.gameIds = [];
+
             session.gameIds = [...new Set([...session.gameIds, ...selectedGameIds])];
-            console.log('After adding - session.gameIds:', session.gameIds);
-            
+
             saveSessions();
             showToast(`✅ Added ${selectedGameIds.length} game(s) to "${session.name}"`, 'success');
             
