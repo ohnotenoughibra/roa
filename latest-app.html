@@ -7919,6 +7919,7 @@
                 toolbar.style.display = 'block';
                 btn.textContent = '✕ Cancel';
                 btn.style.background = 'var(--danger)';
+                renderGames(); // Re-render to show checkboxes
             } else {
                 exitSelectionMode();
             }
