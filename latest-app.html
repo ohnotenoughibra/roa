@@ -2007,97 +2007,33 @@
                 </div>
             </div>
 
-            <!-- Quick Access Widget -->
-            <div id="quickAccessWidget" style="display: none; margin-bottom: 1.5rem;">
-                <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 1.5rem; border-radius: 12px; box-shadow: var(--shadow-lg);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem;">
-                        <div>
-                            <h3 style="font-size: 1.25rem; font-weight: 700; color: white; margin: 0 0 0.25rem 0; display: flex; align-items: center; gap: 0.5rem;">
-                                ⚡ Quick Access
-                            </h3>
-                            <p style="font-size: 0.85rem; color: rgba(255,255,255,0.9); margin: 0;">Prioritizing underused topics & games needing ratings</p>
-                        </div>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button onclick="renderQuickAccess(); event.stopPropagation();" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.95rem; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'" title="Refresh random games">
-                                🔄
-                            </button>
-                            <button onclick="toggleQuickAccess()" style="background: rgba(255,255,255,0.2); border: none; color: white; padding: 0.6rem 0.9rem; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 1rem; transition: all 0.2s; min-width: 40px;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'" title="Toggle Quick Access">
-                                <span id="quickAccessToggleIcon">▼</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div id="quickAccessContent" style="display: grid; gap: 1rem; margin-top: 1rem;">
-                        <!-- Quick access games will be inserted here -->
-                    </div>
-                </div>
+
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; margin-bottom: 1rem;">
+                <button class="primary-action" onclick="showSuggestGameModal()" style="flex: 1; min-width: 140px; font-size: 1rem; padding: 0.75rem 1rem; font-weight: 600;">
+                    ✨ Suggest Game
+                </button>
+                <button class="filter-toggle-btn" id="filterToggleBtn" onclick="toggleFilters()" style="flex: 1; min-width: 140px;">
+                    🔍 Filters
+                </button>
+                <button class="filter-toggle-btn" id="bulkSelectToggle" onclick="toggleBulkSelect()" style="flex: 1; min-width: 140px; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    🗹 Bulk
+                </button>
             </div>
 
-            <div class="action-section">
-                <div style="display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 1rem;">
-                    <button class="primary-action" onclick="showSuggestGameModal()" style="font-size: 1.125rem; padding: 1rem 1.5rem; font-weight: 700;">
-                        ✨ Suggest Game to Add
-                    </button>
-                </div>
-            </div>
-
-            <div class="action-section import-export-section" style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.875rem;">
+            <div class="action-section import-export-section" style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; margin-bottom: 1rem;">
                 <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;" onclick="toggleImportExport()">
-                    <div class="action-section-title" style="margin: 0; font-size: 0.9rem; font-weight: 600;">📥 Import/Export</div>
-                    <span id="importExportToggleIcon" style="font-size: 1.1rem; color: var(--text-muted); transition: transform 0.2s;">▶</span>
+                    <div class="action-section-title" style="margin: 0; font-size: 0.875rem; font-weight: 600;">📥 Import/Export</div>
+                    <span id="importExportToggleIcon" style="font-size: 1rem; color: var(--text-muted); transition: transform 0.2s;">▶</span>
                 </div>
                 <div id="importExportContent" style="display: none; margin-top: 0.75rem;">
-                    <div style="margin-bottom: 0.75rem;">
-                        <div style="font-weight: 600; color: var(--text); margin-bottom: 0.4rem; font-size: 0.85rem;">📚 Games</div>
-                        <div class="quick-actions">
-                            <button class="btn btn-primary" onclick="document.getElementById('importFile').click()">
-                                📥 Import
-                            </button>
-                            <button class="btn btn-primary" onclick="pasteGames()">
-                                📋 Paste
-                            </button>
-                            <button class="btn btn-success" onclick="shareGames()" title="Export all games to JSON file">
-                                📤 Export
-                            </button>
-                            <button class="btn btn-success" onclick="copyGames()" title="Copy games to clipboard">
-                                📋 Copy
-                            </button>
-                            <button class="btn btn-warning" onclick="showLibraryStats()">
-                                📊 Stats
-                            </button>
-                            <button class="btn btn-danger" onclick="emptyLibrary()">
-                                🗑️ Empty
-                            </button>
-                        </div>
-                    </div>
-                    <div>
-                        <div style="font-weight: 600; color: var(--text); margin-bottom: 0.4rem; font-size: 0.85rem;">📋 Sessions</div>
-                        <div class="quick-actions">
-                            <button class="btn btn-primary" onclick="document.getElementById('importSessionFile').click()">
-                                📥 Import
-                            </button>
-                            <button class="btn btn-success" onclick="exportSessions()">
-                                📤 Export
-                            </button>
-                            <button class="btn btn-warning" onclick="manualCleanupSessions()">
-                                🧹 Cleanup
-                            </button>
-                        </div>
+                    <div class="quick-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn btn-primary btn-sm" onclick="document.getElementById('importFile').click()">📥 Import</button>
+                        <button class="btn btn-success btn-sm" onclick="shareGames()">📤 Export</button>
+                        <button class="btn btn-danger btn-sm" onclick="emptyLibrary()">🗑️ Clear All</button>
                     </div>
                     <input type="file" id="importFile" accept=".json,.txt,.text" style="display: none;" onchange="importGames(event)">
                     <input type="file" id="importSessionFile" accept=".json" style="display: none;" onchange="importSessions(event)">
                 </div>
-            </div>
-
-            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
-                <button class="filter-toggle-btn" id="filterToggleBtn" onclick="toggleFilters()">
-                    🔍 Filters & Search
-                </button>
-                <button class="filter-toggle-btn" id="bulkSelectToggle" onclick="toggleBulkSelect()" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-                    <span id="bulkSelectIcon">🗹</span> Bulk Actions
-                </button>
-                <button class="filter-toggle-btn" id="quickSessionToggle" onclick="toggleQuickSessionMode()" style="display: inline-flex;">
-                    ⚡ Quick Session
-                </button>
             </div>
 
             <!-- Bulk Actions Toolbar -->
@@ -9574,6 +9510,7 @@
         }
 
         function toggleSession(sessionId) {
+            console.log('Toggle session called:', sessionId);
             const content = document.getElementById(`session-content-${sessionId}`);
             const icon = document.getElementById(`expand-icon-${sessionId}`);
 
@@ -9583,15 +9520,18 @@
             }
 
             const isExpanded = content.classList.contains('expanded');
-            
+            console.log('Session', sessionId, 'is currently', isExpanded ? 'expanded' : 'collapsed');
+
             if (isExpanded) {
                 // Collapsing
                 content.classList.remove('expanded');
                 icon.classList.remove('expanded');
+                console.log('Collapsed session', sessionId);
             } else {
                 // Expanding
                 content.classList.add('expanded');
                 icon.classList.add('expanded');
+                console.log('Expanded session', sessionId);
             }
         }
 
