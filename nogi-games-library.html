@@ -543,6 +543,100 @@
             opacity: 0.3;
         }
 
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            bottom: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--text);
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: var(--shadow-lg);
+            transition: bottom 0.3s ease;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            max-width: 90%;
+        }
+
+        .toast.show {
+            bottom: 2rem;
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        .toast.info {
+            background: var(--secondary);
+        }
+
+        .toast-message {
+            flex: 1;
+        }
+
+        .toast-undo-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .toast-undo-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Icon buttons */
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 0.25rem;
+            transition: transform 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .icon-btn:hover {
+            transform: scale(1.2);
+        }
+
+        .icon-btn:active {
+            transform: scale(0.9);
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 0.125rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .rating-star {
+            cursor: pointer;
+            font-size: 1rem;
+            transition: transform 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .rating-star:hover {
+            transform: scale(1.2);
+        }
+
+        .game-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
         @media (max-width: 640px) {
             .btn-sm {
                 padding: 0.625rem 0.875rem;
@@ -609,6 +703,9 @@
 
         <div class="games-grid" id="gamesGrid"></div>
     </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
 
     <!-- Add/Edit Game Modal -->
     <div class="modal" id="gameModal">
@@ -684,6 +781,7 @@
         // Database storage
         let games = [];
         let editingGameId = null;
+        let undoState = null;
 
         // Load initial data
         function loadGames() {
@@ -700,7 +798,9 @@
                         roles: "Passer / Guard Player",
                         description: "Passer attempts to pass using torreando (bullfighter) technique. Guard player must maintain guard using foot positioning and grips. 3-minute rounds. Point for pass, point for sweep or submission.",
                         coaching: "Passer: Focus on controlling the knees, moving them side to side. Guard: Keep your feet active, don't let them control both knees at once.",
-                        skills: "#footwork #pressure #grips #timing #balance"
+                        skills: "#footwork #pressure #grips #timing #balance",
+                        favorite: false,
+                        rating: 0
                     },
                     {
                         id: Date.now() + 2,
@@ -709,7 +809,9 @@
                         roles: "Back Control / Escaping Player",
                         description: "Start with back control (both hooks in). Escaping player has 2 minutes to escape. If they escape, switch roles. Attacker can submit. Reset if submission happens.",
                         coaching: "Defender: Hand fight immediately, get your back to the mat, hide one shoulder. Attacker: Stay heavy on the opposite side they're trying to escape to.",
-                        skills: "#handfighting #posture #frames #submission-defense"
+                        skills: "#handfighting #posture #frames #submission-defense",
+                        favorite: false,
+                        rating: 0
                     },
                     {
                         id: Date.now() + 3,
@@ -718,7 +820,9 @@
                         roles: "Attacker / Defender",
                         description: "Attacker starts with a single leg secured. Defender must defend without sitting to guard (must stay standing). 90-second rounds. Point for takedown or successful defense and disengagement.",
                         coaching: "Defender: Whizzer, crossface, and hop toward attacker. Don't let them get the corner. Attacker: Get the corner, drive the knee.",
-                        skills: "#wrestling #balance #scrambling #pressure"
+                        skills: "#wrestling #balance #scrambling #pressure",
+                        favorite: false,
+                        rating: 0
                     },
                     {
                         id: Date.now() + 4,
@@ -727,7 +831,9 @@
                         roles: "Player A / Player B",
                         description: "Both start in 50/50 position. Play for leg locks or sweeps. Submission or sweep wins the round. 3-minute rounds.",
                         coaching: "Control the knee line, don't let opponent get under your legs. Always be attacking or improving position.",
-                        skills: "#leglocks #ashi-garami #transitions #control"
+                        skills: "#leglocks #ashi-garami #transitions #control",
+                        favorite: false,
+                        rating: 0
                     },
                     {
                         id: Date.now() + 5,
@@ -736,7 +842,9 @@
                         roles: "Passer / Guard Player",
                         description: "Start with passer standing, guard player on back. Guard player scores by recovering full guard or sweeping. Passer scores by passing. 2-minute rounds.",
                         coaching: "Guard: Create frames immediately, recover your distance. Don't let them settle their grips. Passer: Connect your grips before moving forward.",
-                        skills: "#frames #distance #movement #grips"
+                        skills: "#frames #distance #movement #grips",
+                        favorite: false,
+                        rating: 0
                     },
                     {
                         id: Date.now() + 6,
@@ -745,7 +853,9 @@
                         roles: "Top Player / Bottom Player",
                         description: "Bottom player starts in mount. They have 90 seconds to escape to guard or better. Top player can submit. Switch if escape or submission happens.",
                         coaching: "Bottom: Elbow-knee connection, trap and roll. Don't extend your arms. Top: Stay heavy on chest, control the head.",
-                        skills: "#frames #bridging #timing #patience"
+                        skills: "#frames #bridging #timing #patience",
+                        favorite: false,
+                        rating: 0
                     },
                     {
                         id: Date.now() + 7,
@@ -754,7 +864,9 @@
                         roles: "Top Player / Bottom Player",
                         description: "Bottom starts in turtle. Top player attacks for back or roll-through. Bottom player tries to come up to standing or recover guard. 2-minute rounds.",
                         coaching: "Bottom: Keep elbows tight, be ready to sit through or stand up. Top: Control the hips first, then work for back control.",
-                        skills: "#turtle #back-takes #scrambling #standup"
+                        skills: "#turtle #back-takes #scrambling #standup",
+                        favorite: false,
+                        rating: 0
                     },
                     {
                         id: Date.now() + 8,
@@ -763,7 +875,9 @@
                         roles: "Attacker / Defender",
                         description: "Start in side control. Attacker has 3 minutes to get a submission. Defender can escape but no points, only restart from side control if they do. Only submission wins.",
                         coaching: "Attacker: Be patient, force the reactions. Defender: Don't expose your neck or arms, make frames.",
-                        skills: "#submissions #pressure #defense #patience"
+                        skills: "#submissions #pressure #defense #patience",
+                        favorite: false,
+                        rating: 0
                     },
                     {
                         id: Date.now() + 9,
@@ -772,7 +886,9 @@
                         roles: "Passer / Guard Player",
                         description: "Passer can only use knee slice variations. Guard player must prevent using frames and retention. 3-minute rounds. Point for pass, sweep, or submission.",
                         coaching: "Passer: Drive the knee across, control the head. Guard: Create a strong bottom frame, don't let them flatten you.",
-                        skills: "#knee-slice #pressure #frames #grips"
+                        skills: "#knee-slice #pressure #frames #grips",
+                        favorite: false,
+                        rating: 0
                     },
                     {
                         id: Date.now() + 10,
@@ -781,7 +897,9 @@
                         roles: "Attacker / Defender",
                         description: "Start standing. Attacker's goal is to secure guillotine position. Defender tries to pass or escape. If secured, play out the finish or defense. 2-minute rounds.",
                         coaching: "Attacker: Lock it up before you jump or pull. Defender: Hands together, head up immediately.",
-                        skills: "#guillotine #snap-downs #submission #defense"
+                        skills: "#guillotine #snap-downs #submission #defense",
+                        favorite: false,
+                        rating: 0
                     },
                     {
                         id: Date.now() + 11,
@@ -790,7 +908,9 @@
                         roles: "Top Player / Bottom Player",
                         description: "Bottom player starts on hands and knees. Must wrestle up to standing without pulling guard. Top player prevents this. 90-second rounds.",
                         coaching: "Bottom: Sit out, switch, or stand up in base. Top: Suck them back down, don't let them get their base.",
-                        skills: "#wrestling #base #sitout #standup"
+                        skills: "#wrestling #base #sitout #standup",
+                        favorite: false,
+                        rating: 0
                     },
                     {
                         id: Date.now() + 12,
@@ -799,7 +919,9 @@
                         roles: "Player A / Player B",
                         description: "Start from open guard. First player to enter saddle position (inside sankaku) gets 2 minutes to finish or opponent escapes. Point per successful entry.",
                         coaching: "Control the far leg, bring your outside leg over. Don't forget heel exposure before attacking.",
-                        skills: "#saddle #inside-sankaku #heel-hooks #entries"
+                        skills: "#saddle #inside-sankaku #heel-hooks #entries",
+                        favorite: false,
+                        rating: 0
                     },
                     {
                         id: Date.now() + 13,
@@ -808,7 +930,9 @@
                         roles: "Top Player / Bottom Player",
                         description: "Start in half guard. Bottom scores for sweeps or taking the back. Top scores for passes or submissions. 3-minute rounds.",
                         coaching: "Bottom: Create frames, don't stay flat. Top: Kill the underhook, crossface pressure.",
-                        skills: "#half-guard #underhooks #sweeps #passing"
+                        skills: "#half-guard #underhooks #sweeps #passing",
+                        favorite: false,
+                        rating: 0
                     },
                     {
                         id: Date.now() + 14,
@@ -817,7 +941,9 @@
                         roles: "Player A / Player B",
                         description: "Continuous movement - one player flows through positions while partner provides light resistance. Switch every 2 minutes. Focus on smooth transitions, inversions, and level changes.",
                         coaching: "Moving player: Stay relaxed, focus on efficiency. Resisting player: Just enough pressure to make them work.",
-                        skills: "#movement #fluidity #transitions #awareness"
+                        skills: "#movement #fluidity #transitions #awareness",
+                        favorite: false,
+                        rating: 0
                     },
                     {
                         id: Date.now() + 15,
@@ -826,7 +952,9 @@
                         roles: "Guard Puller / Passer",
                         description: "Start standing. One player pulls guard, other immediately works to pass. Guard player can sweep or submit. 2-minute rounds then switch roles.",
                         coaching: "Puller: Control before you sit. Passer: Stay standing initially, control the legs.",
-                        skills: "#guard-pull #passing #sweeps #strategy"
+                        skills: "#guard-pull #passing #sweeps #strategy",
+                        favorite: false,
+                        rating: 0
                     }
                 ];
                 saveGames();
@@ -889,10 +1017,18 @@
             grid.innerHTML = filtered.map(game => `
                 <div class="game-card">
                     <div class="game-header">
-                        <div>
+                        <div style="flex: 1;">
                             <div class="game-topic">${game.topic}</div>
                             <h3 class="game-title">${game.name}</h3>
+                            <div class="rating-stars">
+                                ${[1, 2, 3, 4, 5].map(star =>
+                                    `<span class="rating-star" onclick="setRating(${game.id}, ${star})" title="${star} star${star > 1 ? 's' : ''}">${star <= (game.rating || 0) ? '⭐' : '☆'}</span>`
+                                ).join('')}
+                            </div>
                         </div>
+                        <button class="icon-btn" onclick="toggleFavorite(${game.id})" title="${game.favorite ? 'Remove from favorites' : 'Add to favorites'}" style="font-size: 1.5rem;">
+                            ${game.favorite ? '❤️' : '🤍'}
+                        </button>
                     </div>
 
                     <div class="game-roles">👥 ${game.roles}</div>
@@ -915,8 +1051,8 @@
                     ` : ''}
 
                     <div class="game-actions">
-                        <button class="btn btn-primary btn-sm" onclick="editGame(${game.id})">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteGame(${game.id})">Delete</button>
+                        <button class="btn btn-sm btn-secondary" onclick="editGame(${game.id})" style="flex: 1;">✏️ Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteGame(${game.id})">🗑️</button>
                     </div>
                 </div>
             `).join('');
@@ -955,11 +1091,96 @@
         }
 
         function deleteGame(id) {
-            if (!confirm('Are you sure you want to delete this game?')) return;
+            const game = games.find(g => g.id === id);
+            if (!game) return;
+
+            const gameName = game.name;
+
+            // Store for undo
+            undoState = {
+                type: 'game',
+                action: 'delete',
+                data: {...game}
+            };
 
             games = games.filter(g => g.id !== id);
             saveGames();
             renderGames();
+            showToast(`🗑️ "${gameName}" deleted`, 'info', true);
+        }
+
+        function toggleFavorite(id) {
+            const game = games.find(g => g.id === id);
+            if (game) {
+                game.favorite = !game.favorite;
+                saveGames();
+                renderGames();
+                showToast(game.favorite ? '❤️ Added to favorites' : 'Removed from favorites');
+            }
+        }
+
+        function setRating(id, stars) {
+            const game = games.find(g => g.id === id);
+            if (game) {
+                // Toggle: if clicking the same rating, set to 0
+                game.rating = game.rating === stars ? 0 : stars;
+                saveGames();
+                renderGames();
+                showToast(game.rating ? `Rated ${stars} star${stars > 1 ? 's' : ''}` : 'Rating removed', 'info');
+            }
+        }
+
+        function showToast(message, type = 'success', showUndo = false) {
+            const toast = document.getElementById('toast');
+
+            // Remove any existing type classes
+            toast.classList.remove('error', 'info', 'success');
+
+            // Add the new type class
+            if (type === 'error') {
+                toast.classList.add('error');
+            } else if (type === 'info') {
+                toast.classList.add('info');
+            }
+
+            // Build toast content
+            if (showUndo && undoState) {
+                toast.innerHTML = `
+                    <span class="toast-message">${message}</span>
+                    <button class="toast-undo-btn" onclick="performUndo()">UNDO</button>
+                `;
+            } else {
+                toast.innerHTML = `<span class="toast-message">${message}</span>`;
+            }
+
+            toast.classList.add('show');
+
+            // Longer duration for messages with undo
+            const duration = showUndo ? 5000 : (type === 'error' ? 4000 : 3000);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                // Clear undo state after toast disappears
+                if (showUndo) {
+                    setTimeout(() => { undoState = null; }, 400);
+                }
+            }, duration);
+        }
+
+        function performUndo() {
+            if (!undoState) return;
+
+            const toast = document.getElementById('toast');
+
+            if (undoState.type === 'game' && undoState.action === 'delete') {
+                // Restore deleted game
+                games.push(undoState.data);
+                saveGames();
+                renderGames();
+                toast.classList.remove('show');
+                showToast(`✅ "${undoState.data.name}" restored`);
+                undoState = null;
+            }
         }
 
         // Form submission
@@ -973,14 +1194,22 @@
                 roles: document.getElementById('gameRoles').value,
                 description: document.getElementById('gameDescription').value,
                 coaching: document.getElementById('gameCoaching').value,
-                skills: document.getElementById('gameSkills').value
+                skills: document.getElementById('gameSkills').value,
+                favorite: false,
+                rating: 0
             };
 
             if (editingGameId) {
                 const index = games.findIndex(g => g.id === editingGameId);
+                const oldGame = games[index];
+                // Preserve favorite and rating when editing
+                gameData.favorite = oldGame.favorite || false;
+                gameData.rating = oldGame.rating || 0;
                 games[index] = gameData;
+                showToast('✅ Game updated successfully!', 'success');
             } else {
                 games.push(gameData);
+                showToast('✅ Game added successfully!', 'success');
             }
 
             saveGames();
