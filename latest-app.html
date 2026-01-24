@@ -2748,6 +2748,30 @@
 
 
             <div class="games-grid" id="gamesGrid"></div>
+
+            <!-- Pagination Controls -->
+            <div id="paginationControls" style="display: none; padding: 2rem 1rem; margin-top: 1rem;">
+                <div class="pagination" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <button class="pagination-btn" onclick="changePage(1)" title="First page" style="min-width: 44px;">
+                        ⏮️
+                    </button>
+                    <button class="pagination-btn" onclick="changePage(currentPage - 1)" title="Previous page" style="min-width: 44px;">
+                        ◀️
+                    </button>
+                    <div class="pagination-info" style="padding: 0.625rem 1rem; font-weight: 600; color: var(--text); min-width: 120px; text-align: center;">
+                        Page <span id="currentPageNum">1</span> of <span id="totalPagesNum">1</span>
+                    </div>
+                    <button class="pagination-btn" onclick="changePage(currentPage + 1)" title="Next page" style="min-width: 44px;">
+                        ▶️
+                    </button>
+                    <button class="pagination-btn" onclick="changePage(999999)" title="Last page" style="min-width: 44px;">
+                        ⏭️
+                    </button>
+                </div>
+                <div style="text-align: center; margin-top: 0.75rem; color: var(--text-muted); font-size: 0.875rem;">
+                    Showing <span id="showingCount">0</span> of <span id="totalCount">0</span> games
+                </div>
+            </div>
         </div>
 
         <div id="favoritesView" style="display: none;">
@@ -2759,6 +2783,27 @@
         </div>
 
         <div id="sessionsView" style="display: none;">
+            <!-- Welcome Section for Sessions -->
+            <div style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; color: white;">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; color: white;">📋 Training Sessions</h2>
+                        <p style="opacity: 0.9; font-size: 0.95rem; margin: 0;">Plan, track, and optimize your training sessions</p>
+                    </div>
+                    <button class="btn btn-success" onclick="openSessionModal()" style="background: white; color: var(--primary); border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-weight: 600;">
+                        ➕ New Session
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Session Builder Shortcut -->
+            <div id="quickSessionShortcut" style="background: var(--surface); border: 2px dashed var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; text-align: center; cursor: pointer; transition: all 0.2s;" onclick="openSessionModal()" onmouseover="this.style.borderColor='var(--primary)'; this.style.background='var(--primary-light)'" onmouseout="this.style.borderColor='var(--border)'; this.style.background='var(--surface)'">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">⚡</div>
+                <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text);">Quick Session Builder</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Click to create a new training session</p>
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem; font-style: italic;">Select games manually or use templates</p>
+            </div>
+
             <!-- View Toggle & Bulk Actions Toolbar -->
             <div style="background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1rem; margin-bottom: 1rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
@@ -2825,9 +2870,23 @@
             <!-- Terminal Game Selection Modal -->
         <!-- Stats Dashboard -->
         <div id="statsView" style="display: none;">
-            <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text);">
-                📊 Training Statistics
-            </h2>
+            <!-- Stats Header with Time Filter -->
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; color: white;">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; color: white;">📊 Training Statistics</h2>
+                        <p style="opacity: 0.9; font-size: 0.95rem; margin: 0;">Track your progress and identify opportunities</p>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.2); padding: 0.5rem; border-radius: 8px;">
+                        <select id="statsTimeFilter" onchange="renderStats()" style="background: white; color: var(--text); border: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                            <option value="all">All Time</option>
+                            <option value="7">Last 7 Days</option>
+                            <option value="30" selected>Last 30 Days</option>
+                            <option value="90">Last 90 Days</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
             <div id="statsContent"></div>
             
@@ -3192,7 +3251,10 @@
                 <!-- Header -->
                 <div class="ai-header">
                     <h2>🧠 AI Training Assistant</h2>
-                    <p>Smart game creation, library search, and training solutions - Choose your preferred method below</p>
+                    <p>Create custom constraint-led games, search your library, and solve training problems instantly</p>
+                    <div style="background: rgba(255,255,255,0.15); padding: 0.75rem; border-radius: 8px; margin-top: 1rem; font-size: 0.9rem;">
+                        💡 <strong>Quick Tip:</strong> Describe your training problem in plain language - "My students can't escape side control" or "Need advanced leg lock drills"
+                    </div>
                 </div>
 
                 <!-- Mode Selector -->
@@ -6435,6 +6497,52 @@
             renderGames();
         }
 
+        // Change page function
+        function changePage(page) {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const topicFilter = document.getElementById('topicFilter').value;
+            const authorFilterValue = document.getElementById('authorFilter').value;
+
+            // Calculate filtered count for total pages
+            let filtered = games.filter(game => {
+                const matchesSearch = !searchTerm ||
+                    game.name.toLowerCase().includes(searchTerm) ||
+                    (game.topPlayer || '').toLowerCase().includes(searchTerm) ||
+                    (game.bottomPlayer || '').toLowerCase().includes(searchTerm) ||
+                    (game.author || '').toLowerCase().includes(searchTerm) ||
+                    game.skills.toLowerCase().includes(searchTerm);
+
+                const matchesTopic = !topicFilter || game.topic === topicFilter;
+                const matchesAuthor = !authorFilterValue || game.author === authorFilterValue;
+
+                let matchesQuickFilter = true;
+                if (currentQuickFilter === 'liked') {
+                    matchesQuickFilter = game.favorite === true;
+                } else if (currentQuickFilter === 'used') {
+                    matchesQuickFilter = game.lastUsed !== null;
+                } else if (currentQuickFilter === 'unused') {
+                    matchesQuickFilter = !game.lastUsed;
+                } else if (currentQuickFilter === 'highly-rated') {
+                    const ratingInfo = getGameAverageRating(game.id);
+                    matchesQuickFilter = ratingInfo && ratingInfo.average >= 4;
+                } else if (currentQuickFilter === 'new') {
+                    const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+                    matchesQuickFilter = (game.created || 0) > sevenDaysAgo;
+                }
+
+                return matchesSearch && matchesTopic && matchesAuthor && matchesQuickFilter;
+            });
+
+            const totalPages = Math.ceil(filtered.length / gamesPerPage);
+
+            // Clamp page number
+            if (page > totalPages) page = totalPages;
+            if (page < 1) page = 1;
+
+            currentPage = page;
+            renderGames();
+        }
+
         // Render games with pagination
         function renderGames() {
             // Render dashboard first
@@ -6637,6 +6745,25 @@
                     </div>
                 </div>
             `).join('');
+
+            // Update pagination controls
+            const paginationControls = document.getElementById('paginationControls');
+            const currentPageNum = document.getElementById('currentPageNum');
+            const totalPagesNum = document.getElementById('totalPagesNum');
+            const showingCount = document.getElementById('showingCount');
+            const totalCountElem = document.getElementById('totalCount');
+
+            if (paginationControls && currentPageNum && totalPagesNum && showingCount && totalCountElem) {
+                if (totalPages > 1) {
+                    paginationControls.style.display = 'block';
+                    currentPageNum.textContent = currentPage;
+                    totalPagesNum.textContent = totalPages;
+                    showingCount.textContent = paginatedGames.length;
+                    totalCountElem.textContent = filtered.length;
+                } else {
+                    paginationControls.style.display = 'none';
+                }
+            }
 
             // Update floating action bar after rendering
             updateFloatingActionBar();
