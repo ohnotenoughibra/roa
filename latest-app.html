@@ -8428,35 +8428,87 @@
             }
 
             const count = selectedGameIds.size;
-            console.log(`Attempting to delete ${count} games`);
+            const gameNames = Array.from(selectedGameIds)
+                .map(id => games.find(g => g.id === id))
+                .filter(g => g)
+                .map(g => g.name);
 
-            // Add confirmation for bulk delete
-            const confirmed = confirm(`Delete ${count} selected game(s)? This action cannot be undone for multiple items.`);
+            console.log(`Attempting to delete ${count} games:`, gameNames);
+
+            // Add confirmation for bulk delete with better messaging
+            const message = count === 1
+                ? `Delete "${gameNames[0]}"?\n\nThis action cannot be undone.`
+                : `Delete ${count} selected games?\n\nThis action cannot be undone.`;
+
+            const confirmed = confirm(message);
 
             if (!confirmed) {
                 console.log('Deletion cancelled by user');
-                showToast('❌ Deletion cancelled', 'info');
+                // User chose to cancel - don't show a message as this is expected
                 return;
             }
 
             // Show deleting message
             showToast(`🗑️ Deleting ${count} game(s)...`, 'info');
 
-            const beforeCount = games.length;
-            games = games.filter(g => !selectedGameIds.has(g.id));
-            const afterCount = games.length;
-            console.log(`Deleted ${beforeCount - afterCount} games. Before: ${beforeCount}, After: ${afterCount}`);
+            try {
+                const beforeCount = games.length;
+                games = games.filter(g => !selectedGameIds.has(g.id));
+                const afterCount = games.length;
+                const deletedCount = beforeCount - afterCount;
 
-            saveGames();
-            renderQuickAccess();
-            renderGames(); // Re-render games grid to show deletion
-            if (currentTab === 'favorites') renderFavorites();
-            if (currentTab === 'used') renderUsed();
+                console.log(`Deleted ${deletedCount} games. Before: ${beforeCount}, After: ${afterCount}`);
 
-            showToast(`✅ ${count} game(s) deleted successfully`, 'success');
+                if (deletedCount === 0) {
+                    showToast('⚠️ No games were deleted', 'warning');
+                    return;
+                }
 
-            // Exit selection mode after action
-            exitSelectionMode();
+                saveGames();
+
+                // Remove from sessions and templates
+                sessions = sessions.map(session => {
+                    if (session.gameIds) {
+                        return {
+                            ...session,
+                            gameIds: session.gameIds.filter(gId => !selectedGameIds.has(gId))
+                        };
+                    }
+                    return session;
+                });
+
+                templates = templates.map(template => {
+                    if (template.gameIds) {
+                        return {
+                            ...template,
+                            gameIds: template.gameIds.filter(gId => !selectedGameIds.has(gId))
+                        };
+                    }
+                    return template;
+                });
+
+                saveSessions();
+                saveTemplates();
+
+                // Clear selection
+                selectedGameIds.clear();
+
+                // Re-render everything
+                renderQuickAccess();
+                renderGames();
+                if (currentTab === 'favorites') renderFavorites();
+                if (currentTab === 'used') renderUsed();
+                if (currentTab === 'sessions') renderSessions();
+
+                showToast(`✅ ${deletedCount} game(s) deleted successfully`, 'success');
+
+                // Update floating action bar
+                updateFloatingActionBar();
+
+            } catch (error) {
+                console.error('Error in bulk delete:', error);
+                showToast('❌ Failed to delete games. Please try again.', 'error');
+            }
         }
 
         function bulkAddToSession() {
@@ -9223,11 +9275,23 @@
 
             if (!game) {
                 console.error('Game not found:', gameId);
+                showToast('❌ Game not found', 'error');
                 return;
             }
 
-            // Show confirmation
-            if (!confirm(`Are you sure you want to delete "${game.name}"?\n\nThis action cannot be undone.`)) {
+            // IMPORTANT: Remove this game from selection if it's selected
+            // This ensures we're doing a single delete, not bulk
+            if (selectedGameIds.has(gameId)) {
+                selectedGameIds.delete(gameId);
+                updateFloatingActionBar();
+            }
+
+            // Show confirmation with better mobile handling
+            const confirmed = confirm(`Delete "${game.name}"?\n\nThis action cannot be undone.`);
+
+            if (!confirmed) {
+                console.log('User cancelled deletion of:', game.name);
+                // Don't show any message - user chose to cancel
                 return;
             }
 
@@ -9237,55 +9301,65 @@
             buttonElement.innerHTML = '⏳';
             buttonElement.style.opacity = '0.6';
 
-            try {
-                // Delete the game from main array
-                games = games.filter(g => g.id !== gameId);
-                saveGames();
+            // Small delay to ensure UI updates
+            setTimeout(() => {
+                try {
+                    // Delete the game from main array
+                    const beforeCount = games.length;
+                    games = games.filter(g => g.id !== gameId);
+                    const afterCount = games.length;
 
-                // Remove from sessions
-                sessions = sessions.map(session => {
-                    if (session.gameIds && session.gameIds.some(gId => gId == gameId)) {
-                        return {
-                            ...session,
-                            gameIds: session.gameIds.filter(gId => gId != gameId)
-                        };
+                    if (beforeCount === afterCount) {
+                        throw new Error('Game was not deleted');
                     }
-                    return session;
-                });
 
-                // Remove from templates
-                templates = templates.map(template => {
-                    if (template.gameIds && template.gameIds.some(gId => gId == gameId)) {
-                        return {
-                            ...template,
-                            gameIds: template.gameIds.filter(gId => gId != gameId)
-                        };
-                    }
-                    return template;
-                });
+                    saveGames();
 
-                saveSessions();
-                saveTemplates();
+                    // Remove from sessions
+                    sessions = sessions.map(session => {
+                        if (session.gameIds && session.gameIds.some(gId => gId == gameId)) {
+                            return {
+                                ...session,
+                                gameIds: session.gameIds.filter(gId => gId != gameId)
+                            };
+                        }
+                        return session;
+                    });
 
-                // Show success toast
-                showToast(`"${game.name}" deleted successfully`, 'success');
+                    // Remove from templates
+                    templates = templates.map(template => {
+                        if (template.gameIds && template.gameIds.some(gId => gId == gameId)) {
+                            return {
+                                ...template,
+                                gameIds: template.gameIds.filter(gId => gId != gameId)
+                            };
+                        }
+                        return template;
+                    });
 
-                // Re-render everything
-                renderQuickAccess();
-                renderGames();
-                if (currentTab === 'favorites') renderFavorites();
-                if (currentTab === 'used') renderUsed();
-                if (currentTab === 'sessions') renderSessions();
+                    saveSessions();
+                    saveTemplates();
 
-            } catch (error) {
-                console.error('Error deleting game:', error);
-                showToast('Failed to delete game. Please try again.', 'error');
+                    // Show success toast
+                    showToast(`✅ "${game.name}" deleted successfully`, 'success');
 
-                // Restore button state on error
-                buttonElement.disabled = false;
-                buttonElement.innerHTML = originalHTML;
-                buttonElement.style.opacity = '1';
-            }
+                    // Re-render everything
+                    renderQuickAccess();
+                    renderGames();
+                    if (currentTab === 'favorites') renderFavorites();
+                    if (currentTab === 'used') renderUsed();
+                    if (currentTab === 'sessions') renderSessions();
+
+                } catch (error) {
+                    console.error('Error deleting game:', error);
+                    showToast('❌ Failed to delete game. Please try again.', 'error');
+
+                    // Restore button state on error
+                    buttonElement.disabled = false;
+                    buttonElement.innerHTML = originalHTML;
+                    buttonElement.style.opacity = '1';
+                }
+            }, 50);
         }
 
         // Legacy function kept for compatibility
