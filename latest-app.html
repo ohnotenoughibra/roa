@@ -3841,7 +3841,7 @@
         }
 
         // Toast Notification System
-        function showToast(message, type = 'success', duration = 3000) {
+        function showToast(message, type = 'success', duration = 3000, showUndo = false) {
             const container = document.getElementById('toastContainer');
             if (!container) return;
 
@@ -3855,20 +3855,39 @@
                 warning: '⚠'
             }[type] || '✓';
 
-            toast.innerHTML = `
-                <span style="font-size: 1.25rem;">${icon}</span>
-                <span>${message}</span>
-            `;
+            if (showUndo && undoState) {
+                toast.innerHTML = `
+                    <span style="font-size: 1.25rem;">${icon}</span>
+                    <span>${message}</span>
+                    <button class="toast-undo-btn" onclick="performUndo(); event.stopPropagation();">UNDO</button>
+                `;
+                // Longer duration for undo toasts
+                duration = 5000;
+            } else {
+                toast.innerHTML = `
+                    <span style="font-size: 1.25rem;">${icon}</span>
+                    <span>${message}</span>
+                `;
+            }
 
             container.appendChild(toast);
 
             // Auto remove after duration
-            setTimeout(() => {
+            const hideTimeout = setTimeout(() => {
                 toast.classList.add('hiding');
                 setTimeout(() => {
-                    container.removeChild(toast);
+                    if (container.contains(toast)) {
+                        container.removeChild(toast);
+                    }
+                    // Clear undo state after toast disappears
+                    if (showUndo) {
+                        undoState = null;
+                    }
                 }, 300);
             }, duration);
+
+            // Store timeout ID on toast element so we can cancel it if undo is clicked
+            toast._hideTimeout = hideTimeout;
         }
 
         // Update Floating Action Bar
@@ -6512,26 +6531,25 @@
                         return '';
                     })()}
 
-                    ${/* Improved action buttons - all visible, no overflow menu */''}
+                    ${/* Simplified action buttons - focus on core actions */''}
                     <div class="game-actions" onclick="event.stopPropagation()">
-                        <div class="game-actions-main" style="display: flex; gap: 0.375rem; flex-wrap: wrap; width: 100%;">
+                        <div class="game-actions-main" style="display: flex; gap: 0.375rem; width: 100%;">
                             <button class="btn btn-sm ${game.favorite ? 'btn-warning' : 'btn-secondary'}"
                                     onclick="toggleFavorite(${game.id})"
-                                    title="${game.favorite ? 'Remove from favorites' : 'Add to favorites'}">
-                                ${game.favorite ? '⭐' : '☆'}
+                                    title="${game.favorite ? 'Remove from favorites' : 'Add to favorites'}"
+                                    style="min-width: 44px;">
+                                ${game.favorite ? '❤️' : '🤍'}
                             </button>
-                            <button class="btn btn-success btn-sm" onclick="addGameToSession(${game.id})" title="Add to Session">
-                                📋
-                            </button>
-                            <button class="btn btn-sm ${game.lastUsed ? 'btn-secondary' : 'btn-primary'}"
+                            <button class="btn btn-sm ${game.lastUsed ? 'btn-success' : 'btn-secondary'}"
                                     onclick="markAsUsed(${game.id})"
-                                    title="${game.lastUsed ? 'Mark as unused' : 'Mark as used'}">
-                                ${game.lastUsed ? '✓' : '✓'}
+                                    title="${game.lastUsed ? 'Mark as unused' : 'Mark as used'}"
+                                    style="min-width: 44px;">
+                                ${game.lastUsed ? '✅' : '✓'}
                             </button>
-                            <button class="btn btn-secondary btn-sm" onclick="quickRateGame(${game.id})" title="Rate game">⭐</button>
-                            <button class="btn btn-primary btn-sm" onclick="editGame(${game.id})" title="Edit">✏️</button>
-                            <button class="btn btn-secondary btn-sm" onclick="duplicateGame(${game.id})" title="Duplicate">📋</button>
-                            <button class="btn btn-danger btn-sm delete-game-btn" data-game-id="${game.id}" title="Delete">🗑️</button>
+                            <button class="btn btn-secondary btn-sm" onclick="quickRateGame(${game.id})" title="Rate game" style="min-width: 44px;">⭐</button>
+                            <button class="btn btn-primary btn-sm" onclick="editGame(${game.id})" title="Edit" style="flex: 1; min-width: 60px;">✏️ Edit</button>
+                            <button class="btn btn-secondary btn-sm" onclick="addGameToSession(${game.id})" title="Add to Session" style="min-width: 44px;">➕</button>
+                            <button class="btn btn-danger btn-sm delete-game-btn" data-game-id="${game.id}" title="Delete" style="min-width: 44px;">🗑️</button>
                         </div>
                     </div>
                 </div>
@@ -9005,10 +9023,14 @@
             const game = games.find(g => g.id === id);
             if (!game) return;
 
-            // Simple confirmation dialog
-            if (!confirm(`Are you sure you want to delete "${game.name}"?`)) {
-                return;
-            }
+            const gameName = game.name;
+
+            // Store for undo
+            undoState = {
+                type: 'game',
+                action: 'delete',
+                data: {...game}
+            };
 
             // Delete the game
             games = games.filter(g => g.id !== id);
@@ -9044,6 +9066,9 @@
             if (currentTab === 'favorites') renderFavorites();
             if (currentTab === 'used') renderUsed();
             if (currentTab === 'sessions') renderSessions();
+
+            // Show toast with undo option
+            showToast(`🗑️ "${gameName}" deleted`, 'info', 5000, true);
         }
 
         // Form submission
@@ -12247,7 +12272,7 @@ Created with NoGi Games Library
         function performUndo() {
             if (!undoState) return;
 
-            const toast = document.getElementById('toast');
+            const container = document.getElementById('toastContainer');
 
             if (undoState.type === 'game' && undoState.action === 'delete') {
                 // Restore deleted game
@@ -12256,15 +12281,26 @@ Created with NoGi Games Library
                 renderQuickAccess();
                 renderGames();
                 if (currentTab === 'favorites') renderFavorites();
+                if (currentTab === 'used') renderUsed();
                 if (currentTab === 'sessions') renderSessions();
-                toast.classList.remove('show');
+
+                // Clear all toasts
+                if (container) {
+                    container.innerHTML = '';
+                }
+
                 showToast(`✅ "${undoState.data.name}" restored`);
             } else if (undoState.type === 'session' && undoState.action === 'delete') {
                 // Restore deleted session
                 sessions.push(undoState.data);
                 saveSessions();
                 if (currentTab === 'sessions') renderSessions();
-                toast.classList.remove('show');
+
+                // Clear all toasts
+                if (container) {
+                    container.innerHTML = '';
+                }
+
                 showToast(`✅ "${undoState.data.name}" restored`);
             }
 
