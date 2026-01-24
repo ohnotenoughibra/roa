@@ -789,18 +789,33 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            background: var(--primary-light);
-            color: var(--primary-dark);
+            background: var(--surface);
+            color: var(--text-muted);
+            border: 2px solid var(--border);
             padding: 0.5rem 0.75rem;
             border-radius: 20px;
             font-size: 0.875rem;
             font-weight: 600;
             transition: all 0.2s;
+            cursor: pointer;
         }
 
-        [data-theme="dark"] .filter-chip {
-            background: var(--primary-dark);
-            color: var(--primary-light);
+        .filter-chip:hover {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            border-color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        .filter-chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        [data-theme="dark"] .filter-chip.active {
+            background: var(--primary);
+            color: white;
         }
 
         .filter-chip button {
@@ -2602,12 +2617,12 @@
     <div class="floating-action-bar" id="floatingActionBar">
         <div class="selection-count" id="floatingSelectionCount">0 selected</div>
         <div class="actions">
+            <button class="btn btn-sm btn-warning" onclick="bulkAddFavorites()" title="Like selected games">❤️ Like</button>
+            <button class="btn btn-sm btn-secondary" onclick="bulkRemoveFavorites()" title="Unlike selected games">💔 Unlike</button>
             <button class="btn btn-sm btn-success" onclick="bulkMarkAsUsed()" title="Mark selected as used">✓ Used</button>
-            <button class="btn btn-sm btn-warning" onclick="bulkAddFavorites()" title="Add to favorites">⭐ Favorite</button>
-            <button class="btn btn-sm btn-primary" onclick="bulkAddToSession()" title="Add to session">📋 Session</button>
             <button class="btn btn-sm btn-secondary" onclick="bulkMarkAsUnused()" title="Mark as unused">↩️ Unused</button>
+            <button class="btn btn-sm btn-primary" onclick="bulkAddToSession()" title="Add to session">📋 Session</button>
             <button class="btn btn-sm btn-danger" onclick="bulkDelete()" title="Delete selected">🗑️ Delete</button>
-            <button class="btn btn-sm btn-secondary" onclick="deselectAllGames()" title="Clear selection">✕ Clear</button>
         </div>
     </div>
 
@@ -2621,9 +2636,7 @@
         </header>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('games')" aria-label="View all games" role="tab" aria-selected="true">All Games</button>
-            <button class="tab" onclick="switchTab('favorites')" aria-label="View favorite games" role="tab" aria-selected="false">⭐ Favorites</button>
-            <button class="tab" onclick="switchTab('used')" aria-label="View used games" role="tab" aria-selected="false">✓ Used</button>
+            <button class="tab active" onclick="switchTab('games')" aria-label="View library" role="tab" aria-selected="true">📚 Library</button>
             <button class="tab" onclick="switchTab('sessions')" aria-label="View training sessions" role="tab" aria-selected="false">📋 Sessions</button>
             <button class="tab" onclick="switchTab('stats')" aria-label="View statistics" role="tab" aria-selected="false">📊 Stats</button>
             <button class="tab" onclick="switchTab('ai')" aria-label="AI Assistant" role="tab" aria-selected="false">🤖 AI Assistant</button>
@@ -2637,10 +2650,35 @@
                 <button class="filter-toggle-btn games-tab-btn" id="filterToggleBtn" onclick="toggleFilters()">
                     🔍 Filters
                 </button>
+                <button class="games-tab-btn" id="selectAllBtn" onclick="toggleSelectAll()" style="background: var(--secondary); color: var(--text);">
+                    ☑️ Select All
+                </button>
             </div>
 
             <!-- Active Filters Display -->
             <div class="active-filters" id="activeFilters" style="display: none;"></div>
+
+            <!-- Quick Filter Chips -->
+            <div class="filter-chips" id="filterChips" style="display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0 1rem; margin-bottom: 1rem;">
+                <button class="filter-chip active" onclick="applyQuickFilter('all')" data-filter="all" title="Show all games">
+                    All
+                </button>
+                <button class="filter-chip" onclick="applyQuickFilter('liked')" data-filter="liked" title="Show liked games">
+                    ❤️ Liked
+                </button>
+                <button class="filter-chip" onclick="applyQuickFilter('used')" data-filter="used" title="Show used games">
+                    ✓ Used
+                </button>
+                <button class="filter-chip" onclick="applyQuickFilter('unused')" data-filter="unused" title="Show unused games">
+                    📌 Unused
+                </button>
+                <button class="filter-chip" onclick="applyQuickFilter('highly-rated')" data-filter="highly-rated" title="Show highly rated games (4+ stars)">
+                    ⭐ Highly Rated
+                </button>
+                <button class="filter-chip" onclick="applyQuickFilter('new')" data-filter="new" title="Show games added in last 7 days">
+                    🆕 New
+                </button>
+            </div>
 
             <div class="action-section import-export-section" style="background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; margin-bottom: 1rem;">
                 <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;" onclick="toggleImportExport()">
@@ -3822,6 +3860,7 @@
         let timerTotalRounds = 3;
         let currentPage = 1;
         let gamesPerPage = 12;
+        let currentQuickFilter = 'all'; // Track active quick filter chip
 
         // Custom confirmation dialog variables
         let confirmResolve = null;
@@ -4244,14 +4283,10 @@
             event.target.setAttribute('aria-selected', 'true');
 
             document.getElementById('gamesView').style.display = tab === 'games' ? 'block' : 'none';
-            document.getElementById('favoritesView').style.display = tab === 'favorites' ? 'block' : 'none';
-            document.getElementById('usedView').style.display = tab === 'used' ? 'block' : 'none';
             document.getElementById('sessionsView').style.display = tab === 'sessions' ? 'block' : 'none';
             document.getElementById('statsView').style.display = tab === 'stats' ? 'block' : 'none';
             document.getElementById('aiView').style.display = tab === 'ai' ? 'block' : 'none';
 
-            if (tab === 'favorites') renderFavorites();
-            if (tab === 'used') renderUsed();
             if (tab === 'sessions') {
                 renderTemplates();
                 renderSessions();
@@ -6379,6 +6414,27 @@
             return insights;
         }
 
+        // Apply quick filter from filter chips
+        function applyQuickFilter(filterType) {
+            currentQuickFilter = filterType;
+
+            // Update active chip styling
+            const chips = document.querySelectorAll('.filter-chip');
+            chips.forEach(chip => {
+                if (chip.dataset.filter === filterType) {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            });
+
+            // Reset to page 1 when filter changes
+            currentPage = 1;
+
+            // Re-render games with new filter
+            renderGames();
+        }
+
         // Render games with pagination
         function renderGames() {
             // Render dashboard first
@@ -6417,7 +6473,23 @@
                 const matchesTopic = !topicFilter || game.topic === topicFilter;
                 const matchesAuthor = !authorFilterValue || game.author === authorFilterValue;
 
-                return matchesSearch && matchesTopic && matchesAuthor;
+                // Apply quick filter
+                let matchesQuickFilter = true;
+                if (currentQuickFilter === 'liked') {
+                    matchesQuickFilter = game.favorite === true;
+                } else if (currentQuickFilter === 'used') {
+                    matchesQuickFilter = game.lastUsed !== null;
+                } else if (currentQuickFilter === 'unused') {
+                    matchesQuickFilter = !game.lastUsed;
+                } else if (currentQuickFilter === 'highly-rated') {
+                    const ratingInfo = getGameAverageRating(game.id);
+                    matchesQuickFilter = ratingInfo && ratingInfo.average >= 4;
+                } else if (currentQuickFilter === 'new') {
+                    const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+                    matchesQuickFilter = (game.created || 0) > sevenDaysAgo;
+                }
+
+                return matchesSearch && matchesTopic && matchesAuthor && matchesQuickFilter;
             });
 
             filtered = sortGames(filtered);
@@ -6454,8 +6526,19 @@
             const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
 
             grid.innerHTML = paginatedGames.map(game => `
-                <div class="game-card ${getTopicClass(game.topic)} ${game.favorite ? 'favorite' : ''}"
+                <div class="game-card ${getTopicClass(game.topic)} ${game.favorite ? 'favorite' : ''} ${selectedGameIds.has(game.id) ? 'selected' : ''}"
                      ${quickSessionMode ? `onclick="addToQuickQueue(${game.id})" style="cursor: pointer;"` : ''}>
+
+                    ${/* Selection checkbox */!quickSessionMode ? `
+                        <div class="bulk-select-checkbox-container ${selectedGameIds.size > 0 ? 'has-selection' : ''}">
+                            <input type="checkbox"
+                                   class="bulk-select-checkbox"
+                                   value="${game.id}"
+                                   ${selectedGameIds.has(game.id) ? 'checked' : ''}
+                                   onclick="event.stopPropagation(); toggleGameSelection(${game.id})"
+                                   style="width: 20px; height: 20px; cursor: pointer;">
+                        </div>
+                    ` : ''}
 
                     ${quickSessionMode ? `
                         <div style="position: absolute; top: 1rem; right: 1rem; z-index: 10; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 0.5rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">
@@ -6536,7 +6619,7 @@
                         <div class="game-actions-main" style="display: flex; gap: 0.375rem; width: 100%;">
                             <button class="btn btn-sm ${game.favorite ? 'btn-warning' : 'btn-secondary'}"
                                     onclick="toggleFavorite(${game.id})"
-                                    title="${game.favorite ? 'Remove from favorites' : 'Add to favorites'}"
+                                    title="${game.favorite ? 'Unlike' : 'Like'}"
                                     style="min-width: 44px;">
                                 ${game.favorite ? '❤️' : '🤍'}
                             </button>
@@ -6609,10 +6692,10 @@
                             <div style="font-size: 0.85rem; opacity: 0.9;">Total Games →</div>
                         </div>
 
-                        <!-- Favorites - Switch to favorites tab -->
-                        <div onclick="switchTab('favorites')" style="background: rgba(255, 255, 255, 0.15); border-radius: var(--radius); padding: 1rem; backdrop-filter: blur(10px); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.25)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.15)'" title="Click to view favorites">
-                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">⭐ ${favorites}</div>
-                            <div style="font-size: 0.85rem; opacity: 0.9;">${favoritePercent}% Favorites →</div>
+                        <!-- Liked - Apply liked filter -->
+                        <div onclick="applyQuickFilter('liked')" style="background: rgba(255, 255, 255, 0.15); border-radius: var(--radius); padding: 1rem; backdrop-filter: blur(10px); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.25)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.15)'" title="Click to view liked games">
+                            <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">❤️ ${favorites}</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9;">${favoritePercent}% Liked →</div>
                         </div>
 
                         <!-- Sessions - Switch to sessions tab -->
@@ -6621,8 +6704,8 @@
                             <div style="font-size: 0.85rem; opacity: 0.9;">Sessions →</div>
                         </div>
 
-                        <!-- Recent Usage - Switch to used tab -->
-                        <div onclick="switchTab('used')" style="background: rgba(255, 255, 255, 0.15); border-radius: var(--radius); padding: 1rem; backdrop-filter: blur(10px); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.25)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.15)'" title="Click to view used games">
+                        <!-- Recent Usage - Apply used filter -->
+                        <div onclick="applyQuickFilter('used')" style="background: rgba(255, 255, 255, 0.15); border-radius: var(--radius); padding: 1rem; backdrop-filter: blur(10px); cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.25)'" onmouseout="this.style.background='rgba(255, 255, 255, 0.15)'" title="Click to view used games">
                             <div style="font-size: 2rem; font-weight: 700; margin-bottom: 0.25rem;">🔥 ${recentlyUsed}</div>
                             <div style="font-size: 0.85rem; opacity: 0.9;">Used This Week →</div>
                         </div>
@@ -6641,10 +6724,10 @@
                             </div>
                         </div>
 
-                        <!-- Favorites Progress -->
+                        <!-- Liked Progress -->
                         <div>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                                <span style="font-size: 0.85rem; opacity: 0.9;">Favorites</span>
+                                <span style="font-size: 0.85rem; opacity: 0.9;">Liked</span>
                                 <span style="font-size: 0.85rem; font-weight: 600;">${favoritePercent}%</span>
                             </div>
                             <div style="background: rgba(0, 0, 0, 0.2); border-radius: 10px; height: 8px; overflow: hidden;">
@@ -7992,6 +8075,37 @@
             }
         }
 
+        function toggleSelectAll() {
+            const btn = document.getElementById('selectAllBtn');
+
+            // If there are selected games, deselect all
+            if (selectedGameIds.size > 0) {
+                selectedGameIds.clear();
+                btn.textContent = '☑️ Select All';
+                btn.style.background = 'var(--secondary)';
+                updateFloatingActionBar();
+            } else {
+                // Select all visible games on the current page
+                const grid = document.getElementById('gamesGrid');
+                const gameCards = grid.querySelectorAll('.game-card');
+
+                gameCards.forEach(card => {
+                    // Extract game ID from the card's action buttons
+                    const deleteBtn = card.querySelector('.delete-game-btn');
+                    if (deleteBtn) {
+                        const gameId = parseInt(deleteBtn.dataset.gameId);
+                        if (gameId) {
+                            selectedGameIds.add(gameId);
+                        }
+                    }
+                });
+
+                btn.textContent = '✕ Deselect All';
+                btn.style.background = 'var(--danger)';
+                updateFloatingActionBar();
+            }
+        }
+
         function toggleBulkSelect() {
             bulkSelectMode = !bulkSelectMode;
             selectedGameIds.clear();
@@ -8055,7 +8169,15 @@
             const grid = document.getElementById('gamesGrid');
             const checkboxes = grid.querySelectorAll('.bulk-select-checkbox');
             checkboxes.forEach(cb => cb.checked = false);
-            updateBulkSelectedCount();
+
+            // Update Select All button
+            const btn = document.getElementById('selectAllBtn');
+            if (btn) {
+                btn.textContent = '☑️ Select All';
+                btn.style.background = 'var(--secondary)';
+            }
+
+            updateFloatingActionBar();
         }
 
         function bulkMarkAsUsed() {
@@ -8117,13 +8239,34 @@
 
             saveGames();
             renderQuickAccess();
-            if (currentTab === 'favorites') renderFavorites();
-            if (currentTab === 'used') renderUsed();
-            if (currentTab === 'sessions') renderSessions();
-            showToast(`⭐ ${count} game(s) added to favorites`, 'success');
+            renderGames();
+            showToast(`❤️ ${count} game(s) liked`, 'success');
 
-            // Exit selection mode after action
-            exitSelectionMode();
+            // Clear selection and update floating bar
+            selectedGameIds.clear();
+            updateFloatingActionBar();
+        }
+
+        function bulkRemoveFavorites() {
+            if (selectedGameIds.size === 0) {
+                showToast('❌ No games selected', 'error');
+                return;
+            }
+
+            const count = selectedGameIds.size;
+            selectedGameIds.forEach(id => {
+                const game = games.find(g => g.id === id);
+                if (game) game.favorite = false;
+            });
+
+            saveGames();
+            renderQuickAccess();
+            renderGames();
+            showToast(`💔 ${count} game(s) unliked`, 'info');
+
+            // Clear selection and update floating bar
+            selectedGameIds.clear();
+            updateFloatingActionBar();
         }
 
         function bulkRemoveFavoritesFromAll() {
@@ -8146,7 +8289,7 @@
             if (currentTab === 'sessions') renderSessions();
             selectedGameIds.clear();
             updateBulkSelectedCount();
-            showToast(`★ ${count} game(s) removed from favorites`, 'info');
+            showToast(`💔 ${count} game(s) unliked`, 'info');
         }
 
         function bulkDelete() {
