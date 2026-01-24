@@ -440,6 +440,9 @@
             gap: 0.5rem;
             min-height: 48px;
             -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation; /* Prevents iOS click delay */
+            user-select: none; /* Prevents text selection on long press */
+            -webkit-user-select: none;
         }
         
         @media (min-width: 768px) {
@@ -471,10 +474,17 @@
         .btn-danger {
             background: var(--danger);
             color: white;
+            cursor: pointer;
+            -webkit-tap-highlight-color: rgba(239, 68, 68, 0.3);
+            touch-action: manipulation;
         }
 
         .btn-danger:hover {
             background: #b91c1c;
+        }
+
+        .btn-danger:active {
+            background: #991b1b;
         }
 
         .btn-secondary {
@@ -4147,14 +4157,36 @@
             });
 
             // Event delegation for delete buttons - handles all delete clicks
-            document.addEventListener('click', (e) => {
-                const deleteBtn = e.target.closest('.delete-game-btn');
+            // Using both click and touchend for iOS Safari compatibility
+            const handleDeleteClick = (e) => {
+                // Check if the target or any parent is a delete button
+                let deleteBtn = null;
+
+                // Try closest first (modern browsers)
+                if (e.target.closest) {
+                    deleteBtn = e.target.closest('.delete-game-btn');
+                } else {
+                    // Fallback for older browsers
+                    let el = e.target;
+                    while (el && el !== document.body) {
+                        if (el.classList && el.classList.contains('delete-game-btn')) {
+                            deleteBtn = el;
+                            break;
+                        }
+                        el = el.parentElement;
+                    }
+                }
+
                 if (deleteBtn) {
                     e.preventDefault();
                     e.stopPropagation();
                     handleGameDelete(deleteBtn);
                 }
-            });
+            };
+
+            // Add both click and touchend listeners for iOS compatibility
+            document.addEventListener('click', handleDeleteClick);
+            document.addEventListener('touchend', handleDeleteClick);
         }
 
         function checkOnboarding() {
